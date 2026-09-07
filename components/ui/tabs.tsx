@@ -12,7 +12,7 @@ function Tabs({
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
-      className={cn("flex flex-col gap-8", className)}
+      className={cn("flex flex-col gap-10", className)}
       {...props}
     />
   );
@@ -25,12 +25,13 @@ function TabsList({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn("flex flex-wrap gap-2", className)}
+      className={cn("flex flex-wrap items-stretch gap-x-7 gap-y-3", className)}
       {...props}
     />
   );
 }
 
+/** A painted line under the active stint rather than a pill or a chip. */
 function TabsTrigger({
   className,
   ...props
@@ -39,7 +40,8 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "relative inline-flex items-center justify-center border border-hairline-strong bg-transparent px-4 py-2.5 font-mono text-[0.6875rem] uppercase tracking-[0.18em] text-muted transition-colors duration-200 hover:text-paper data-[state=active]:text-ink",
+        "narrow-bold relative pb-2 text-[0.9375rem] text-muted outline-offset-4 transition-colors duration-200",
+        "hover:text-wine data-[state=active]:text-wine",
         className,
       )}
       {...props}

@@ -4,264 +4,365 @@
  * Single source of truth for every factual claim on the site.
  *
  * GROUND RULES
- *  - Headline honours (titles, MVPs, Finals MVPs, golds, all-time scoring rank)
- *    are exact, stable, well-documented facts.
+ *  - Headline honours (titles, MVPs, Finals MVPs, golds, all-time scoring rank,
+ *    award years, championship years, Olympic years) are exact, stable,
+ *    well-documented facts.
  *  - Point / game totals are ROUNDED approximations of regular-season figures
- *    and are labelled `approx` in the UI. Update the numbers here, never in the
- *    components.
- *  - The radar chart is an *editorial* index (subjective 0–100 read), clearly
- *    labelled as interpretation, not official data.
- *  - Bump STATS_AS_OF whenever you refresh the numbers.
+ *    and are marked `approx` so the UI can label them.
+ *  - Nothing here is an invented index or a projection. Bump STATS_AS_OF
+ *    whenever the numbers are refreshed.
  */
 
-export const STATS_AS_OF = "2024–25 NBA season";
+export const STATS_AS_OF = "the 2024-25 season";
 
-export const MASTHEAD = {
-  kicker: "THE KING",
-  born: "BORN 1984",
-  place: "AKRON, OHIO",
-  number: "№23",
-  tributeLabel: "UNOFFICIAL FAN TRIBUTE №23",
+/* ---------------------------------------------------------------------------
+ * THE SPAN — the career as seasons. Everything on the ruler is derived from
+ * these small fact tables rather than hand-written, so the two cannot drift.
+ * A "season year" is the year the season STARTED: 2003 means 2003-04.
+ * ------------------------------------------------------------------------- */
+
+export const FIRST_SEASON = 2003;
+export const LAST_SEASON = 2024; // i.e. the 2024-25 season
+export const SEASON_COUNT = LAST_SEASON - FIRST_SEASON + 1;
+
+/** Season-ending years in which he won the title. */
+const TITLE_YEARS = [2012, 2013, 2016, 2020];
+/** Years the regular-season MVP was awarded to him. */
+const MVP_YEARS = [2009, 2010, 2012, 2013];
+
+export interface TeamSpan {
+  id: string;
+  club: string;
+  city: string;
+  /** first and last season START years */
+  from: number;
+  to: number;
+  floor: string;
+  paint: string;
+}
+
+export const TEAM_SPANS: TeamSpan[] = [
+  {
+    id: "cle1",
+    club: "Cleveland Cavaliers",
+    city: "Cleveland",
+    from: 2003,
+    to: 2009,
+    floor: "#5C1626",
+    paint: "#E0A72C",
+  },
+  {
+    id: "mia",
+    club: "Miami Heat",
+    city: "Miami",
+    from: 2010,
+    to: 2013,
+    floor: "#7A1810",
+    paint: "#E8761E",
+  },
+  {
+    id: "cle2",
+    club: "Cleveland Cavaliers",
+    city: "Cleveland",
+    from: 2014,
+    to: 2017,
+    floor: "#5C1626",
+    paint: "#E0A72C",
+  },
+  {
+    id: "lal",
+    club: "Los Angeles Lakers",
+    city: "Los Angeles",
+    from: 2018,
+    to: 2024,
+    floor: "#3B2352",
+    paint: "#E0A72C",
+  },
+];
+
+export interface OlympicYear {
+  year: number;
+  city: string;
+  medal: "Gold" | "Bronze";
+}
+
+export const OLYMPICS: OlympicYear[] = [
+  { year: 2004, city: "Athens", medal: "Bronze" },
+  { year: 2008, city: "Beijing", medal: "Gold" },
+  { year: 2012, city: "London", medal: "Gold" },
+  { year: 2024, city: "Paris", medal: "Gold" },
+];
+
+/** Milestones pinned to the season they happened in (season START year). */
+const MILESTONES: Record<number, string> = {
+  2003: "Rookie of the Year",
+  2006: "First trip to the Finals",
+  2022: "Passes Kareem Abdul-Jabbar for first all-time",
+  2023: "First player past 40,000 points",
+};
+
+export interface Season {
+  /** season start year — 2003 means the 2003-04 season */
+  start: number;
+  label: string;
+  team: TeamSpan;
+  /** true on the first season of a team span */
+  opensSpan: boolean;
+  title: boolean;
+  mvp: boolean;
+  olympic: OlympicYear | null;
+  milestone: string | null;
+}
+
+export const SEASONS: Season[] = Array.from(
+  { length: SEASON_COUNT },
+  (_, i): Season => {
+    const start = FIRST_SEASON + i;
+    const team =
+      TEAM_SPANS.find((t) => start >= t.from && start <= t.to) ?? TEAM_SPANS[0];
+    return {
+      start,
+      label: `${start}-${String((start + 1) % 100).padStart(2, "0")}`,
+      team,
+      opensSpan: team.from === start,
+      title: TITLE_YEARS.includes(start + 1),
+      mvp: MVP_YEARS.includes(start + 1),
+      // The summer Games fall between seasons; hang each one on the season
+      // that ended that spring so every marker has exactly one home.
+      olympic: OLYMPICS.find((o) => o.year === start + 1) ?? null,
+      milestone: MILESTONES[start] ?? null,
+    };
+  },
+);
+
+export const SPAN = {
+  heading: "He has been here since 2003.",
+  copy: "Twenty-two seasons, three NBA cities, and four Olympic teams. Longevity is not a footnote to this career. It is the argument.",
+  legend: [
+    { key: "title", text: "Championship season" },
+    { key: "mvp", text: "Regular-season MVP" },
+    { key: "olympic", text: "Olympic summer" },
+  ],
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * HERO
+ * ------------------------------------------------------------------------- */
 
 export const HERO = {
   first: "LEBRON",
   last: "JAMES",
-  ghost: "23",
-  centerStat: "4 TITLES · 4 MVPs · 40K+ POINTS",
-  scrollCaption: "SCROLL — THE RECORD MOVES",
-  copy: "An unofficial fan tribute to the player who turned longevity, pressure, and impossible expectations into a competitive language.",
-  stats: [
-    { value: "4", label: "TITLES" },
-    { value: "4", label: "MVPs" },
-    { value: "40K+", label: "POINTS" },
-  ],
-} as const;
-
-export const MARQUEE = {
-  top: ["THE KING", "23", "AKRON", "THE CHASE", "LEBRON JAMES", "THE KING", "23"],
-  bottom: [
-    "FOUR TITLES",
-    "FOUR MVPs",
-    "LONGEVITY",
-    "PRESSURE",
-    "LEGACY",
-    "FOUR TITLES",
+  meta: ["Akron, Ohio", "Born 1984", "No. 23"],
+  standfirst:
+    "An unofficial fan tribute to the player who turned longevity, pressure, and impossible expectations into a competitive language.",
+  figures: [
+    { value: "4", label: "Championships" },
+    { value: "4", label: "Most Valuable Player" },
+    { value: "40,000+", label: "Regular-season points" },
   ],
 } as const;
 
 /* ---------------------------------------------------------------------------
- * SECTION 01 — HONOURS & RECORDS
+ * HARDWARE — the honours ledger
  * ------------------------------------------------------------------------- */
 
-export type Accent = "gold" | "gold-bright" | "red" | "paper";
-
-export interface RecordCard {
-  index: string;
-  value: number | null; // null → use `display` glyph instead of a counter
-  display?: string; // shown when value is null (e.g. "№1")
+export interface Honour {
+  id: string;
+  value: number | null;
+  /** shown when value is null */
+  display?: string;
   suffix?: string;
   label: string;
   context: string;
-  accent: Accent;
-  /** relative grid weight — drives the asymmetric layout */
-  span: "sm" | "md" | "lg";
+  /** "row" sits in the ledger; "block" breaks out full width, into the paint */
+  weight: "row" | "block";
 }
 
-export const RECORDS: RecordCard[] = [
+export const HARDWARE = {
+  heading: "Hardware",
+  standfirst:
+    "Everything that came with a trophy, a ceremony, or a line in the record book.",
+} as const;
+
+export const HONOURS: Honour[] = [
   {
-    index: "01",
+    id: "titles",
     value: 4,
-    label: "NBA CHAMPIONSHIPS",
-    context: "Miami 2012 & 2013 · Cleveland 2016 · Los Angeles 2020.",
-    accent: "gold",
-    span: "md",
+    label: "NBA championships",
+    context: "Miami in 2012 and 2013, Cleveland in 2016, Los Angeles in 2020.",
+    weight: "row",
   },
   {
-    index: "02",
+    id: "mvp",
     value: 4,
-    label: "REGULAR-SEASON MVP",
-    context: "Most Valuable Player in 2009, 2010, 2012 and 2013.",
-    accent: "paper",
-    span: "sm",
+    label: "Regular-season MVP",
+    context: "Named Most Valuable Player in 2009, 2010, 2012 and 2013.",
+    weight: "row",
   },
   {
-    index: "03",
+    id: "fmvp",
     value: 4,
-    label: "FINALS MVP",
-    context: "Named Finals MVP in each of his four championship runs.",
-    accent: "gold",
-    span: "sm",
+    label: "Finals MVP",
+    context: "One in each championship run, for three different franchises.",
+    weight: "row",
   },
   {
-    index: "04",
+    id: "points",
     value: 40000,
     suffix: "+",
-    label: "REGULAR-SEASON POINTS",
-    context: "The first player in league history past 40,000 points.",
-    accent: "red",
-    span: "lg",
+    label: "Regular-season points",
+    context:
+      "In March 2024 he became the first player in league history past forty thousand.",
+    weight: "block",
   },
   {
-    index: "05",
+    id: "allstar",
     value: 20,
     suffix: "+",
-    label: "ALL-STAR SELECTIONS",
-    context: "More than two decades of consecutive All-Star nods.",
-    accent: "paper",
-    span: "sm",
+    label: "All-Star selections",
+    context: "More than two decades of them, without a year off the list.",
+    weight: "row",
   },
   {
-    index: "06",
+    id: "gold",
     value: 3,
-    label: "OLYMPIC GOLD MEDALS",
-    context: "Beijing 2008, London 2012 and Paris 2024.",
-    accent: "gold-bright",
-    span: "sm",
+    label: "Olympic gold medals",
+    context: "Beijing 2008, London 2012 and Paris 2024, plus bronze in Athens.",
+    weight: "row",
   },
   {
-    index: "07",
+    id: "scoring",
     value: null,
-    display: "№1",
-    label: "ALL-TIME SCORING LEADER",
-    context: "Passed Kareem Abdul-Jabbar for first all-time in 2023.",
-    accent: "red",
-    span: "md",
+    display: "No. 1",
+    label: "All-time scoring leader",
+    context:
+      "He passed Kareem Abdul-Jabbar in February 2023, thirty-nine years after the record was set.",
+    weight: "block",
   },
 ];
 
 export const NEXT_MARK = {
-  title: "THE NEXT MARK",
-  metric: "REGULAR-SEASON POINTS",
+  heading: "The measure that is still open",
   current: 40000,
   target: 50000,
-  currentLabel: "PAST 40,000",
-  targetLabel: "THE 50K HORIZON",
-  note: "A milestone no one has ever approached — tracked, not predicted.",
+  currentLabel: "Past 40,000",
+  targetLabel: "50,000",
+  note: "Nobody has been near it. A mark being tracked, not a prediction.",
 } as const;
 
 /* ---------------------------------------------------------------------------
- * SECTION 02 — THE ERAS  (pinned tunnel)
+ * THE ROOMS — pinned chapters
  * ------------------------------------------------------------------------- */
 
-export interface Era {
+export interface Room {
   id: string;
-  index: string; // "01".."06"
   name: string;
   years: string;
-  place: string;
+  venue: string;
   jersey: string;
-  headline: string;
   stat: string;
   statLabel: string;
   copy: string;
-  ghost: string; // massive background numeral
-  bg: string; // flat chapter background
-  accent: string; // chapter accent
-  text: string; // chapter foreground
+  floor: string;
+  paint: string;
+  type: string;
+  dim: string;
 }
 
-export const ERAS: Era[] = [
+export const ROOMS_INTRO = {
+  heading: "The rooms he has played in",
+  copy: "An Akron high-school gym, three NBA cities, and two decades in national colours. Six rooms, one long argument.",
+} as const;
+
+export const ROOMS: Room[] = [
   {
-    id: "svsm",
-    index: "01",
-    name: "ST. VINCENT—ST. MARY",
-    years: "2000 — 2003",
-    place: "AKRON",
-    jersey: "№23",
-    headline: "THE CHOSEN ONE",
+    id: "akron",
+    name: "Akron",
+    years: "2000-2003",
+    venue: "St. Vincent-St. Mary High School",
+    jersey: "23",
     stat: "3",
-    statLabel: "STATE TITLES",
-    copy: "Akron's St. Vincent–St. Mary turned a teenager into national television. Three state titles, a magazine cover at seventeen, and a certainty that the NBA was only a formality.",
-    ghost: "01",
-    bg: "#0A0908",
-    accent: "#C9A227",
-    text: "#EFE9DC",
+    statLabel: "Ohio state titles",
+    copy: "A high-school gym in Akron outgrew itself and moved its games to the university arena down the road. Three state titles, a national magazine cover at seventeen, and a growing sense that the NBA was a formality rather than an ambition.",
+    floor: "#E7D6B4",
+    paint: "#1E5B3A",
+    type: "#231508",
+    dim: "rgba(35,21,8,0.72)",
   },
   {
     id: "cle1",
-    index: "02",
-    name: "CLEVELAND I",
-    years: "2003 — 2010",
-    place: "CLEVELAND",
-    jersey: "№23",
-    headline: "THE HOMECOMING WEIGHT",
+    name: "Cleveland",
+    years: "2003-2010",
+    venue: "Cleveland Cavaliers",
+    jersey: "23",
     stat: "2",
-    statLabel: "MVP AWARDS",
-    copy: "The first overall pick carried a franchise and a region. Rookie of the Year, back-to-back MVPs, and a 2007 Finals run that arrived years before the roster did.",
-    ghost: "02",
-    bg: "#21090B",
-    accent: "#C9A227",
-    text: "#EFE9DC",
+    statLabel: "MVP awards",
+    copy: "The first overall pick went to the team down the road from where he grew up, and to a region that badly needed him to be as good as advertised. Rookie of the Year, back-to-back MVPs, and a Finals run in 2007 that arrived years before the roster around him did.",
+    floor: "#5C1626",
+    paint: "#E0A72C",
+    type: "#FBF7EF",
+    dim: "rgba(251,247,239,0.74)",
   },
   {
     id: "mia",
-    index: "03",
-    name: "MIAMI HEAT",
-    years: "2010 — 2014",
-    place: "MIAMI",
-    jersey: "№6",
-    headline: "THE DECISION, ANSWERED",
+    name: "Miami",
+    years: "2010-2014",
+    venue: "Miami Heat",
+    jersey: "6",
     stat: "2",
-    statLabel: "CHAMPIONSHIPS",
-    copy: "Four seasons, four Finals, two championships. In Miami the noise became a two-way peak and the first rings — proof burned into the record.",
-    ghost: "03",
-    bg: "#24100A",
-    accent: "#E91532",
-    text: "#EFE9DC",
+    statLabel: "Championships",
+    copy: "He left, and the noise followed him south. Four seasons, four Finals, two rings. Miami is where the criticism turned into a two-way peak, and where the argument stopped being theoretical.",
+    floor: "#7A1810",
+    paint: "#E8761E",
+    type: "#FBF7EF",
+    dim: "rgba(251,247,239,0.74)",
   },
   {
     id: "cle2",
-    index: "04",
-    name: "CLEVELAND II",
-    years: "2014 — 2018",
-    place: "CLEVELAND",
-    jersey: "№23",
-    headline: "THE PROMISE KEPT",
+    name: "Cleveland, again",
+    years: "2014-2018",
+    venue: "Cleveland Cavaliers",
+    jersey: "23",
     stat: "2016",
-    statLabel: "THE TITLE",
-    copy: "He came home to deliver what he left to find. Down 3–1 to a 73-win team, Cleveland's fifty-two-year wait ended in seven games.",
-    ghost: "04",
-    bg: "#1B0E0A",
-    accent: "#F1C83B",
-    text: "#EFE9DC",
+    statLabel: "The title he went back for",
+    copy: "He returned to deliver the thing he had left in order to go and find. Three games to one down against a team that had won seventy-three, Cleveland took the last three, and a fifty-two-year wait ended in game seven.",
+    floor: "#E0A72C",
+    paint: "#5C1626",
+    type: "#2A0C13",
+    dim: "rgba(42,12,19,0.76)",
   },
   {
     id: "lal",
-    index: "05",
-    name: "LOS ANGELES",
-    years: "2018 — NOW",
-    place: "LOS ANGELES",
-    jersey: "№23",
-    headline: "THE LONG VIEW",
-    stat: "40K+",
-    statLabel: "CAREER POINTS",
-    copy: "A championship in the bubble, the all-time scoring record, and the first 40,000 points ever scored. Longevity became its own kind of dominance.",
-    ghost: "05",
-    bg: "#12100B",
-    accent: "#C9A227",
-    text: "#EFE9DC",
+    name: "Los Angeles",
+    years: "2018-now",
+    venue: "Los Angeles Lakers",
+    jersey: "23",
+    stat: "40,000+",
+    statLabel: "Career points",
+    copy: "A championship won inside a sealed campus in Orlando with nobody in the building, the all-time scoring record, and the first forty thousand points anyone has scored. In Los Angeles, endurance became its own form of dominance.",
+    floor: "#3B2352",
+    paint: "#E0A72C",
+    type: "#FBF7EF",
+    dim: "rgba(251,247,239,0.74)",
   },
   {
     id: "usa",
-    index: "06",
-    name: "TEAM USA",
-    years: "2004 — 2024",
-    place: "UNITED STATES",
-    jersey: "№6",
-    headline: "THE GLOBAL GAME",
+    name: "National colours",
+    years: "2004-2024",
+    venue: "United States",
+    jersey: "6",
     stat: "3",
-    statLabel: "GOLD MEDALS",
-    copy: "Bronze in Athens, then gold in Beijing, London and Paris. Two decades in national colours, and a flag to carry into the 2024 opening ceremony.",
-    ghost: "06",
-    bg: "#092017",
-    accent: "#EFE9DC",
-    text: "#EFE9DC",
+    statLabel: "Gold medals",
+    copy: "Bronze in Athens as a teenager, then gold in Beijing, London and Paris. Twenty years in the same shirt, and the flag to carry into the opening ceremony at the end of it.",
+    floor: "#16305A",
+    paint: "#FBF7EF",
+    type: "#FBF7EF",
+    dim: "rgba(251,247,239,0.74)",
   },
 ];
 
 /* ---------------------------------------------------------------------------
- * SECTION 03 — STAT EXPLORER
+ * THE LEDGER — the points, added up
  * ------------------------------------------------------------------------- */
 
 export interface Metric {
@@ -272,237 +373,230 @@ export interface Metric {
   approx?: boolean;
 }
 
-export interface RadarAxis {
-  axis: string;
-  value: number; // editorial index 0–100
+export interface Achievement {
+  when: string;
+  what: string;
 }
 
-export interface ExplorerEra {
+export interface LedgerEntry {
   id: string;
   tab: string;
-  full: string;
+  club: string;
   years: string;
   place: string;
-  /** three headline metric bars */
   metrics: [Metric, Metric, Metric];
-  /** running-total panel */
+  /** points scored in this stint — drives the accumulation column */
+  scored: number | null;
   running: { value: number; suffix?: string; label: string };
-  achievements: string[];
-  radar: RadarAxis[];
+  achievements: Achievement[];
   note: string;
 }
 
-export const EXPLORER: ExplorerEra[] = [
+export const LEDGER_INTRO = {
+  heading: "The points, added up",
+  copy: "Four stints, one running total. Figures are regular-season, and rounded wherever they are marked approximate.",
+} as const;
+
+export const LEDGER: LedgerEntry[] = [
   {
     id: "cle1",
-    tab: "CLEVELAND I",
-    full: "CLEVELAND CAVALIERS",
-    years: "2003 — 2010",
-    place: "CLEVELAND, OHIO",
+    tab: "Cleveland",
+    club: "Cleveland Cavaliers",
+    years: "2003-2010",
+    place: "Cleveland, Ohio",
     metrics: [
-      { label: "POINTS", value: 15251, max: 16000, approx: true },
-      { label: "GAMES", value: 548, max: 600 },
-      { label: "POINTS / GAME", value: 27.8, max: 30, approx: true },
+      { label: "Points", value: 15251, max: 16000, approx: true },
+      { label: "Games", value: 548, max: 600 },
+      { label: "Points per game", value: 27.8, max: 30, approx: true },
     ],
-    running: { value: 15251, label: "CAREER POINTS THROUGH 2010" },
+    scored: 15251,
+    running: { value: 15251, label: "Career points through 2010" },
     achievements: [
-      "ROOKIE OF THE YEAR — 2004",
-      "REGULAR-SEASON MVP — 2009 & 2010",
-      "FIRST NBA FINALS — 2007",
+      { when: "2004", what: "Rookie of the Year" },
+      { when: "2009, 2010", what: "Regular-season MVP" },
+      { when: "2007", what: "First NBA Finals" },
     ],
-    radar: [
-      { axis: "SCORING", value: 88 },
-      { axis: "PLAYMAKING", value: 90 },
-      { axis: "DEFENCE", value: 78 },
-      { axis: "TITLES", value: 20 },
-      { axis: "LONGEVITY", value: 55 },
-    ],
-    note: "The phenom years: production immediately, a supporting cast slowly.",
+    note: "Production arrived immediately. A supporting cast took rather longer.",
   },
   {
     id: "mia",
-    tab: "MIAMI",
-    full: "MIAMI HEAT",
-    years: "2010 — 2014",
-    place: "MIAMI, FLORIDA",
+    tab: "Miami",
+    club: "Miami Heat",
+    years: "2010-2014",
+    place: "Miami, Florida",
     metrics: [
-      { label: "POINTS", value: 7919, max: 16000, approx: true },
-      { label: "GAMES", value: 294, max: 600 },
-      { label: "POINTS / GAME", value: 26.9, max: 30, approx: true },
+      { label: "Points", value: 7919, max: 16000, approx: true },
+      { label: "Games", value: 294, max: 600 },
+      { label: "Points per game", value: 26.9, max: 30, approx: true },
     ],
-    running: { value: 23170, label: "CAREER POINTS THROUGH 2014" },
+    scored: 7919,
+    running: { value: 23170, label: "Career points through 2014" },
     achievements: [
-      "NBA CHAMPION — 2012 & 2013",
-      "FINALS MVP — 2012 & 2013",
-      "REGULAR-SEASON MVP — 2012 & 2013",
-      "FOUR STRAIGHT FINALS",
+      { when: "2012, 2013", what: "NBA champion" },
+      { when: "2012, 2013", what: "Finals MVP" },
+      { when: "2012, 2013", what: "Regular-season MVP" },
+      { when: "2011-2014", what: "Four straight Finals" },
     ],
-    radar: [
-      { axis: "SCORING", value: 92 },
-      { axis: "PLAYMAKING", value: 88 },
-      { axis: "DEFENCE", value: 92 },
-      { axis: "TITLES", value: 80 },
-      { axis: "LONGEVITY", value: 70 },
-    ],
-    note: "The two-way peak: the criticism turned into the first championships.",
+    note: "The two-way peak, and the first proof burned into the record.",
   },
   {
     id: "cle2",
-    tab: "CLEVELAND II",
-    full: "CLEVELAND CAVALIERS",
-    years: "2014 — 2018",
-    place: "CLEVELAND, OHIO",
+    tab: "Cleveland, again",
+    club: "Cleveland Cavaliers",
+    years: "2014-2018",
+    place: "Cleveland, Ohio",
     metrics: [
-      { label: "POINTS", value: 8192, max: 16000, approx: true },
-      { label: "GAMES", value: 301, max: 600 },
-      { label: "POINTS / GAME", value: 27.2, max: 30, approx: true },
+      { label: "Points", value: 8192, max: 16000, approx: true },
+      { label: "Games", value: 301, max: 600 },
+      { label: "Points per game", value: 27.2, max: 30, approx: true },
     ],
-    running: { value: 31362, label: "CAREER POINTS THROUGH 2018" },
+    scored: 8192,
+    running: { value: 31362, label: "Career points through 2018" },
     achievements: [
-      "NBA CHAMPION — 2016",
-      "3–1 FINALS COMEBACK",
-      "FINALS MVP — 2016",
-      "FOUR STRAIGHT FINALS",
+      { when: "2016", what: "NBA champion" },
+      { when: "2016", what: "Back from three games to one down" },
+      { when: "2016", what: "Finals MVP" },
+      { when: "2015-2018", what: "Four straight Finals" },
     ],
-    radar: [
-      { axis: "SCORING", value: 90 },
-      { axis: "PLAYMAKING", value: 92 },
-      { axis: "DEFENCE", value: 80 },
-      { axis: "TITLES", value: 72 },
-      { axis: "LONGEVITY", value: 82 },
-    ],
-    note: "The promise kept: a city's first title in fifty-two years.",
+    note: "A city's first title in fifty-two years, and the promise closed out.",
   },
   {
     id: "lal",
-    tab: "LOS ANGELES",
-    full: "LOS ANGELES LAKERS",
-    years: "2018 — NOW",
-    place: "LOS ANGELES, CALIFORNIA",
+    tab: "Los Angeles",
+    club: "Los Angeles Lakers",
+    years: "2018-now",
+    place: "Los Angeles, California",
     metrics: [
-      { label: "POINTS", value: 8900, max: 16000, approx: true },
-      { label: "GAMES", value: 350, max: 600, approx: true },
-      { label: "POINTS / GAME", value: 25.4, max: 30, approx: true },
+      { label: "Points", value: 8900, max: 16000, approx: true },
+      { label: "Games", value: 350, max: 600, approx: true },
+      { label: "Points per game", value: 25.4, max: 30, approx: true },
     ],
-    running: { value: 40000, suffix: "+", label: "CAREER POINTS — AND COUNTING" },
+    scored: 8900,
+    running: { value: 40000, suffix: "+", label: "Career points, and counting" },
     achievements: [
-      "NBA CHAMPION — 2020",
-      "FINALS MVP — 2020",
-      "ALL-TIME SCORING LEADER — 2023",
-      "40,000 POINTS — 2024",
+      { when: "2020", what: "NBA champion" },
+      { when: "2020", what: "Finals MVP" },
+      { when: "2023", what: "All-time scoring leader" },
+      { when: "2024", what: "First past 40,000 points" },
     ],
-    radar: [
-      { axis: "SCORING", value: 88 },
-      { axis: "PLAYMAKING", value: 86 },
-      { axis: "DEFENCE", value: 68 },
-      { axis: "TITLES", value: 70 },
-      { axis: "LONGEVITY", value: 100 },
-    ],
-    note: "The long view: records that measure endurance as much as talent.",
+    note: "Records that measure endurance at least as much as talent.",
   },
   {
     id: "usa",
-    tab: "TEAM USA",
-    full: "UNITED STATES",
-    years: "2004 — 2024",
-    place: "OLYMPIC BASKETBALL",
+    tab: "National colours",
+    club: "United States",
+    years: "2004-2024",
+    place: "Olympic basketball",
     metrics: [
-      { label: "OLYMPIC GAMES", value: 4, max: 4 },
-      { label: "GOLD MEDALS", value: 3, max: 4 },
-      { label: "TOTAL MEDALS", value: 4, max: 4 },
+      { label: "Olympic Games", value: 4, max: 4 },
+      { label: "Gold medals", value: 3, max: 4 },
+      { label: "Total medals", value: 4, max: 4 },
     ],
-    running: { value: 3, label: "OLYMPIC GOLD MEDALS" },
+    scored: null,
+    running: { value: 3, label: "Olympic gold medals" },
     achievements: [
-      "GOLD — BEIJING 2008",
-      "GOLD — LONDON 2012",
-      "GOLD — PARIS 2024",
-      "BRONZE — ATHENS 2004",
-      "FLAG BEARER — PARIS 2024",
+      { when: "2008", what: "Gold in Beijing" },
+      { when: "2012", what: "Gold in London" },
+      { when: "2024", what: "Gold in Paris" },
+      { when: "2004", what: "Bronze in Athens" },
+      { when: "2024", what: "Flag bearer for the United States" },
     ],
-    radar: [
-      { axis: "SCORING", value: 84 },
-      { axis: "PLAYMAKING", value: 88 },
-      { axis: "DEFENCE", value: 90 },
-      { axis: "TITLES", value: 96 },
-      { axis: "LONGEVITY", value: 88 },
-    ],
-    note: "The global game: two decades of national colours, three golds.",
+    note: "Two decades in the same shirt, and three golds to show for it.",
   },
 ];
 
 /* ---------------------------------------------------------------------------
- * SECTION 04 — THE NUMBER
+ * TWENTY-THREE
  * ------------------------------------------------------------------------- */
 
-export const NUMBER_SECTION = {
-  word: "TWENTY THREE",
+export const NUMBER = {
   numeral: "23",
-  ring: "KING · 23 · AKRON · KING · ",
+  spoken: "Twenty-three",
+  worn: [
+    { n: "23", where: "Akron, then Cleveland, then Los Angeles" },
+    { n: "6", where: "Miami, Team USA, and two Lakers seasons" },
+    { n: "23", where: "Los Angeles again, from 2023" },
+  ],
   paragraphs: [
-    "Twenty-three is not a number he chose so much as one he made unavoidable — worn from Akron gyms to three franchises, bound for rafters he has not finished filling.",
-    "It is a number carried on purpose: a statement that the highest standard was the point, and that comparison was never something to be feared.",
+    "Twenty-three is less a number he picked than one he made impossible to hand to anybody else. It went from an Akron gym to three franchises, and it is bound for rafters he has not finished filling.",
+    "It was carried on purpose. Wearing it said that the highest standard was the point, and that being measured against it was never something to be afraid of.",
   ],
 } as const;
 
 /* ---------------------------------------------------------------------------
- * SECTION 06 — THE LEGACY (timeline)
+ * THE LAST SHOT — interactive
  * ------------------------------------------------------------------------- */
 
-export interface LegacyEvent {
+export const SHOT = {
+  heading: "Take the last shot",
+  copy: "Time the release into the painted band and keep the aim centred. Three in a row and the gym starts making noise.",
+  keys: [
+    { key: "Space or Enter", does: "Shoot" },
+    { key: "Left and right arrows", does: "Aim" },
+    { key: "Click or tap the court", does: "Shoot" },
+  ],
+} as const;
+
+/* ---------------------------------------------------------------------------
+ * FOUR NIGHTS
+ * ------------------------------------------------------------------------- */
+
+export interface Night {
   year: string;
   title: string;
   copy: string;
-  accent: Accent;
 }
 
-export const LEGACY: LegacyEvent[] = [
+export const NIGHTS_INTRO = {
+  heading: "Four nights",
+  copy: "Most games get a box score. These four got a name.",
+} as const;
+
+export const NIGHTS: Night[] = [
   {
     year: "2003",
-    title: "THE ARRIVAL",
-    copy: "Selected first overall out of high school. Rookie of the Year a season later, and the weight of a franchise from day one.",
-    accent: "gold",
+    title: "The arrival",
+    copy: "Taken first overall out of high school by the team down the road from where he grew up. Rookie of the Year a season later, carrying a franchise before he was old enough to toast the win.",
   },
   {
     year: "2016",
-    title: "THE COMEBACK",
-    copy: "Down 3–1 to a 73-win Golden State, he led Cleveland back to end the city's fifty-two-year championship drought.",
-    accent: "red",
+    title: "The comeback",
+    copy: "Three games to one down against a Golden State side that had won seventy-three. Cleveland took the last three, and a city that had waited fifty-two years finally stopped waiting.",
   },
   {
     year: "2020",
-    title: "THE CROWN",
-    copy: "A fourth ring with the Lakers and a fourth Finals MVP — a title won in the isolation of the Orlando bubble.",
-    accent: "gold-bright",
+    title: "The fourth",
+    copy: "A title won inside a sealed campus in Orlando with nobody in the building. A fourth ring, a fourth Finals MVP, and a third franchise on the list.",
   },
   {
     year: "2024",
-    title: "THE RETURN",
-    copy: "Gold again in Paris and a turn as flag bearer — the same year he crossed 40,000 points and shared an NBA floor with his son.",
-    accent: "paper",
+    title: "The long view",
+    copy: "Gold in Paris and the flag at the opening ceremony, in the same year he crossed forty thousand points and shared an NBA floor with his son.",
   },
 ];
 
 /* ---------------------------------------------------------------------------
- * FOOTER
+ * BASELINE — the footer
  * ------------------------------------------------------------------------- */
 
-export const FOOTER = {
-  ghost: "23",
-  disclaimerTitle: "AN UNOFFICIAL FAN PROJECT",
+export const BASELINE = {
+  closing: "The work continues.",
+  disclaimerTitle: "An unofficial fan project",
   disclaimer:
     "Not affiliated with LeBron James, the NBA, the Los Angeles Lakers, the Cleveland Cavaliers, the Miami Heat, or USA Basketball. All trademarks belong to their respective owners.",
   credits: [
-    "TYPE — ANTON · ARCHIVO · JETBRAINS MONO",
-    "100% ORIGINAL TYPE-LED ARTWORK",
+    "Set in Archivo and Newsreader",
+    "Original type-led artwork, no photography",
   ],
-  closing: "THE WORK CONTINUES.",
+  identity: ["The King, No. 23", "Akron, Ohio, born 1984"],
 } as const;
 
 export const SECTIONS = [
-  { id: "records", label: "01 — HONOURS & RECORDS" },
-  { id: "eras", label: "02 — THE ERAS" },
-  { id: "explorer", label: "03 — STAT EXPLORER" },
-  { id: "number", label: "04 — THE NUMBER" },
-  { id: "challenge", label: "05 — INTERACTIVE" },
-  { id: "legacy", label: "06 — THE LEGACY" },
+  { id: "span", label: "The span" },
+  { id: "hardware", label: "Hardware" },
+  { id: "rooms", label: "The rooms" },
+  { id: "ledger", label: "The ledger" },
+  { id: "number", label: "Twenty-three" },
+  { id: "shot", label: "Take the last shot" },
+  { id: "nights", label: "Four nights" },
 ] as const;

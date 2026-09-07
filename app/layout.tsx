@@ -1,43 +1,44 @@
 import type { Metadata, Viewport } from "next";
-import { Anton, Archivo, JetBrains_Mono } from "next/font/google";
+import { Archivo, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const anton = Anton({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-anton",
-  display: "swap",
-});
-
+/**
+ * One display family taken to two width extremes, so `wdth` is loaded as an
+ * extra variable axis alongside weight. Newsreader carries the reading copy
+ * and brings its optical-size axis with it.
+ */
 const archivo = Archivo({
   subsets: ["latin"],
+  axes: ["wdth"],
   variable: "--font-archivo",
   display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
+const newsreader = Newsreader({
   subsets: ["latin"],
-  variable: "--font-jetbrains",
+  axes: ["opsz"],
+  style: ["normal", "italic"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "THE KING — An Unofficial LeBron James Fan Tribute",
+  title: "The King — an unofficial LeBron James tribute",
   description:
-    "An unofficial fan tribute to LeBron James: four titles, four MVPs, 40,000+ points and a career that turned longevity into a competitive language.",
+    "An unofficial fan tribute to LeBron James: twenty-two seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
   robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0908",
-  colorScheme: "dark",
+  themeColor: "#e9d6b0",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${anton.variable} ${archivo.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${archivo.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <a href="#main" className="skip-link">

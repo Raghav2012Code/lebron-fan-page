@@ -11,13 +11,12 @@ import {
 
 import { cn } from "@/lib/utils";
 import {
-  charClip,
   DUR,
-  EASE_OUT,
-  maskUp,
-  staggerFast,
+  EASE_PAINT,
+  EASE_SETTLE,
+  rise,
+  riseChar,
   VIEWPORT,
-  wordUp,
 } from "@/lib/motion";
 
 /* -------------------------------------------------------------------------
@@ -85,7 +84,7 @@ export function Counter({
 
     const controls = animate(from, to, {
       duration,
-      ease: EASE_OUT,
+      ease: EASE_SETTLE,
       onUpdate: (v) => {
         node.textContent = formatNumber(v, decimals);
       },
@@ -95,7 +94,7 @@ export function Counter({
   }, [inView, to, from, duration, decimals, reduce, countKey]);
 
   return (
-    <span className={cn("tnum", className)}>
+    <span className={className}>
       {prefix}
       <span ref={ref}>{formatNumber(from, decimals)}</span>
       {suffix}
@@ -104,186 +103,212 @@ export function Counter({
 }
 
 /* -------------------------------------------------------------------------
- * SplitText — masked word/character reveal. Accessible: the animated pieces
- * are aria-hidden and a visually-hidden sibling exposes the real string,
- * since aria-label support on a plain span/div isn't reliable across
- * screen readers.
+ * RiseLine — a single line of lettering coming up out of the boards inside a
+ * mask. The observer sits on the unclipped wrapper: watching the clipped
+ * child would report ~0 intersection (it starts translated out of the mask)
+ * and the reveal would never fire.
  * ---------------------------------------------------------------------- */
 
-export function SplitText({
-  text,
-  mode = "word",
+export function RiseLine({
+  children,
   className,
-  stagger,
   delay = 0,
+  once = true,
   as = "span",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  once?: boolean;
+  as?: "span" | "div";
+}) {
+  const Wrapper = as === "div" ? motion.div : motion.span;
+  return (
+    <Wrapper
+      className={cn("inline-flex overflow-hidden", className)}
+      style={{ paddingBottom: "0.1em" }}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once, amount: 0.35 }}
+      variants={{ hidden: {}, show: {} }}
+    >
+      <motion.span
+        className="inline-block will-change-transform"
+        variants={rise}
+        transition={{ duration: DUR.slow, ease: EASE_SETTLE, delay }}
+      >
+        {children}
+      </motion.span>
+    </Wrapper>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * RiseWords — word-by-word masked reveal for headlines. The animated pieces
+ * are aria-hidden and a visually-hidden sibling carries the real string,
+ * since aria-label on a plain span is not reliably announced.
+ * ---------------------------------------------------------------------- */
+
+export function RiseWords({
+  text,
+  className,
+  stagger = 0.07,
+  delay = 0,
   once = true,
 }: {
   text: string;
-  mode?: "word" | "char";
   className?: string;
   stagger?: number;
   delay?: number;
-  as?: "span" | "div";
   once?: boolean;
 }) {
-  const tokens =
-    mode === "word" ? text.split(" ") : Array.from(text);
-  const itemVariant: Variants = mode === "word" ? wordUp : charClip;
+  const words = text.split(" ");
   const container: Variants = {
     hidden: {},
-    show: {
-      transition: {
-        staggerChildren: stagger ?? (mode === "word" ? 0.09 : 0.035),
-        delayChildren: delay,
-      },
-    },
+    show: { transition: { staggerChildren: stagger, delayChildren: delay } },
   };
-
-  const Wrapper = as === "div" ? motion.div : motion.span;
 
   return (
     <>
       <span className="sr-only">{text}</span>
-      <Wrapper
+      <motion.span
         aria-hidden
         className={cn("inline-flex flex-wrap", className)}
-        style={{ perspective: 600 }}
         variants={container}
         initial="hidden"
         whileInView="show"
-        viewport={{ once, amount: 0.4 }}
+        viewport={{ once, amount: 0.35 }}
       >
-        {tokens.map((token, i) => (
+        {words.map((word, i) => (
           <span
-            key={`${token}-${i}`}
-            aria-hidden
+            key={`${word}-${i}`}
             className="inline-flex overflow-hidden"
-            style={{ paddingBottom: "0.08em" }}
+            style={{ paddingBottom: "0.1em" }}
           >
             <motion.span
               className="inline-block will-change-transform"
-              variants={itemVariant}
+              variants={rise}
             >
-              {token === " " ? " " : token}
+              {word}
             </motion.span>
-            {mode === "word" && i < tokens.length - 1 ? (
-              <span className="inline-block">{" "}</span>
+            {i < words.length - 1 ? (
+              <span className="inline-block">&nbsp;</span>
             ) : null}
           </span>
         ))}
-      </Wrapper>
+      </motion.span>
     </>
   );
 }
 
 /* -------------------------------------------------------------------------
- * MaskReveal — single masked line for a block of children.
+ * PaintedName — letter-by-letter reveal used once, in the hero. Letters are
+ * laid down left to right like a roller passing over the boards.
  * ---------------------------------------------------------------------- */
 
-export function MaskReveal({
-  children,
+export function PaintedName({
+  word,
   className,
-  delay = 0,
+  baseDelay = 0,
+  perLetter = 0.045,
+  style,
 }: {
-  children: React.ReactNode;
+  word: string;
   className?: string;
-  delay?: number;
+  baseDelay?: number;
+  perLetter?: number;
+  style?: React.CSSProperties;
 }) {
-  // The observer must sit on the *unclipped* wrapper — observing the clipped
-  // child would report ~0 intersection (it starts translated out of the mask)
-  // and the reveal would never fire.
+  return (
+    <span aria-hidden className={cn("inline-flex", className)} style={style}>
+      {Array.from(word).map((c, i) => (
+        <span
+          key={i}
+          className="inline-flex overflow-hidden"
+          style={{ paddingBottom: "0.08em" }}
+        >
+          <motion.span
+            className="inline-block will-change-transform"
+            variants={riseChar}
+            transition={{
+              duration: 0.8,
+              ease: EASE_SETTLE,
+              delay: baseDelay + i * perLetter,
+            }}
+          >
+            {c}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * PaintRule — a painted line laid down from one edge. The site's only
+ * repeated decorative element, and it always separates two real things.
+ * ---------------------------------------------------------------------- */
+
+export function PaintRule({
+  className,
+  color = "var(--rule)",
+  thickness = 1,
+  from = "left",
+  delay = 0,
+  once = true,
+}: {
+  className?: string;
+  color?: string;
+  thickness?: number;
+  from?: "left" | "right";
+  delay?: number;
+  once?: boolean;
+}) {
   return (
     <motion.span
-      className={cn("inline-flex overflow-hidden", className)}
-      initial="hidden"
-      whileInView="show"
-      viewport={VIEWPORT}
-      variants={{ hidden: {}, show: {} }}
-    >
-      <motion.span
-        className="inline-block will-change-transform"
-        variants={maskUp}
-        transition={{ duration: DUR.slow, ease: EASE_OUT, delay }}
-      >
-        {children}
-      </motion.span>
-    </motion.span>
-  );
-}
-
-/* -------------------------------------------------------------------------
- * SectionLabel — the mono "01 — HONOURS & RECORDS" tag with a drawn rule.
- * ---------------------------------------------------------------------- */
-
-export function SectionLabel({
-  children,
-  className,
-  align = "left",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  align?: "left" | "right";
-}) {
-  return (
-    <motion.div
-      className={cn(
-        "flex items-center gap-4",
-        align === "right" && "flex-row-reverse",
-        className,
-      )}
-      initial="hidden"
-      whileInView="show"
-      viewport={VIEWPORT}
-      variants={staggerFast}
-    >
-      <motion.span
-        variants={{
-          hidden: { opacity: 0, y: 8 },
-          show: { opacity: 1, y: 0, transition: { duration: DUR.base, ease: EASE_OUT } },
-        }}
-        className="label whitespace-nowrap text-gold"
-      >
-        {children}
-      </motion.span>
-      <motion.span
-        className="h-px flex-1 origin-left bg-hairline"
-        variants={{
-          hidden: { scaleX: 0 },
-          show: {
-            scaleX: 1,
-            transition: { duration: DUR.slow, ease: EASE_OUT },
-          },
-        }}
-        style={{ transformOrigin: align === "right" ? "right" : "left" }}
-      />
-    </motion.div>
-  );
-}
-
-/* -------------------------------------------------------------------------
- * GhostNumeral — oversized outlined figure sitting behind content.
- * ---------------------------------------------------------------------- */
-
-export function GhostNumeral({
-  children,
-  className,
-  strokeColor = "var(--hairline-strong)",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  strokeColor?: string;
-}) {
-  return (
-    <span
       aria-hidden
+      className={cn("block w-full", className)}
+      style={{
+        height: thickness,
+        backgroundColor: color,
+        transformOrigin: from,
+      }}
+      initial={{ scaleX: 0 }}
+      whileInView={{ scaleX: 1 }}
+      viewport={{ once, amount: 0.6 }}
+      transition={{ duration: 1.1, ease: EASE_PAINT, delay }}
+    />
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * Caption — the narrow cut, used for every label and data string on the site
+ * in place of the tracked-out monospace this design started from.
+ * ---------------------------------------------------------------------- */
+
+export function Caption({
+  children,
+  className,
+  style,
+  bold = false,
+  as: Tag = "span",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  bold?: boolean;
+  as?: "span" | "div" | "p" | "dt" | "dd";
+}) {
+  return (
+    <Tag
       className={cn(
-        "font-display type-outline pointer-events-none select-none leading-none",
+        bold ? "narrow-bold" : "narrow",
+        "text-[0.8125rem] leading-snug",
         className,
       )}
-      style={{ ["--stroke-c" as string]: strokeColor, ["--stroke-w" as string]: "2px" }}
+      style={style}
     >
       {children}
-    </span>
+    </Tag>
   );
 }

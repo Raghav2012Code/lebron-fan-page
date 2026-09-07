@@ -1,53 +1,62 @@
 @import "tailwindcss";
 
 /* =========================================================================
-   THE KING — LeBron James fan tribute · design tokens
-   Solid ink ground, bone/cream type, flat metallic gold, red + orange accents.
-   Gradients are intentionally near-absent; the language is color blocks,
-   type, borders, opacity, grain, linework and motion.
+   HARDWOOD — an unofficial LeBron James tribute
+   ---------------------------------------------------------------------------
+   The page is a floor seen from above. Court geometry is the layout grammar,
+   not decoration: the key, the arc, the baseline and the sideline do the
+   structural work that borders and cards would otherwise do.
+
+   Ground is maple. Type is one family taken to two width extremes — pushed
+   wide for monument lettering (the way a name is painted onto a floor) and
+   squeezed narrow for figures and labels, which is what replaces the usual
+   monospace. Newsreader carries the reading copy.
    ========================================================================= */
 
 :root {
-  --ink: #0a0908;
-  --paper: #efe9dc;
-  --gold: #c9a227;
-  --gold-bright: #f1c83b;
-  --red: #e91532;
-  --orange: #f0641e;
-  --forest: #092017;
-  --wine: #21090b;
-  --muted: #77736a;
-  --hairline: rgba(239, 233, 220, 0.16);
-  --hairline-strong: rgba(239, 233, 220, 0.32);
+  /* --- ground ------------------------------------------------------------ */
+  --maple: #e9d6b0;
+  --maple-deep: #dcbf8c;
+  --chalk: #fbf7ef;
 
-  /* Chapter background is driven by JS motion values on the eras tunnel;
-     this is the resting page ground. */
-  color-scheme: dark;
+  /* --- paint ------------------------------------------------------------- */
+  --wine: #5a1626;
+  --wine-deep: #380c16;
+  --ochre: #a2670f;
+  --gold: #e0a72c;
+  --leather: #c24a16;
+
+  /* --- type -------------------------------------------------------------- */
+  --muted: #6e5039;
+  --chalk-dim: rgba(251, 247, 239, 0.74);
+
+  /* --- lines ------------------------------------------------------------- */
+  --rule: rgba(90, 22, 38, 0.22);
+  --rule-strong: rgba(90, 22, 38, 0.48);
+  --rule-chalk: rgba(251, 247, 239, 0.26);
+
+  color-scheme: light;
 }
 
 @theme inline {
-  --color-ink: var(--ink);
-  --color-paper: var(--paper);
-  --color-gold: var(--gold);
-  --color-gold-bright: var(--gold-bright);
-  --color-red: var(--red);
-  --color-orange: var(--orange);
-  --color-forest: var(--forest);
+  --color-maple: var(--maple);
+  --color-maple-deep: var(--maple-deep);
+  --color-chalk: var(--chalk);
   --color-wine: var(--wine);
+  --color-wine-deep: var(--wine-deep);
+  --color-ochre: var(--ochre);
+  --color-gold: var(--gold);
+  --color-leather: var(--leather);
   --color-muted: var(--muted);
-  --color-hairline: var(--hairline);
-  --color-hairline-strong: var(--hairline-strong);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-rule-chalk: var(--rule-chalk);
 
-  --color-background: var(--ink);
-  --color-foreground: var(--paper);
+  --color-background: var(--maple);
+  --color-foreground: var(--wine);
 
-  --font-display: var(--font-anton), "Arial Narrow", sans-serif;
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
-}
-
-* {
-  border-color: var(--hairline);
+  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --font-text: var(--font-newsreader), Georgia, "Times New Roman", serif;
 }
 
 html {
@@ -56,11 +65,11 @@ html {
 }
 
 body {
-  background-color: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-sans);
+  background-color: var(--maple);
+  color: var(--wine);
+  font-family: var(--font-text);
   /* clip (not hidden) kills horizontal overflow WITHOUT creating a scroll
-     container — so position: sticky in the eras tunnel keeps working. */
+     container — so position: sticky in the chapters section keeps working. */
   overflow-x: clip;
   font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
@@ -68,70 +77,109 @@ body {
 }
 
 ::selection {
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--wine);
+  color: var(--chalk);
 }
 
-/* --- Display type helpers ------------------------------------------------ */
-.font-display {
+/* --- Type -----------------------------------------------------------------
+   One variable family, two widths. `wdth` is loaded as an extra axis in
+   layout.tsx; if it ever fails to load the settings are simply ignored and
+   the weights still hold, so nothing breaks.
+   ------------------------------------------------------------------------ */
+
+.monument {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-variation-settings: "wdth" 118, "wght" 860;
+  letter-spacing: -0.022em;
+  line-height: 0.84;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 112, "wght" 760;
+  letter-spacing: -0.018em;
+  line-height: 0.92;
+}
+
+.figure {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 108, "wght" 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
   line-height: 0.82;
-  text-transform: uppercase;
 }
 
-/* Outlined ("ghost") type: transparent fill + stroke. Stroke colour and
-   width are set per-use via CSS variables so it can be tuned responsively. */
-.type-outline {
-  color: transparent;
-  -webkit-text-stroke: var(--stroke-w, 1.5px) var(--stroke-c, var(--gold));
-  paint-order: stroke fill;
-}
-
-.type-fill {
-  color: var(--paper);
-}
-
-/* --- Editorial furniture ------------------------------------------------- */
-.hairline {
-  height: 1px;
-  width: 100%;
-  background: var(--hairline);
-}
-
-.vertical-label {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-}
-
-.label {
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.28em;
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-
-.tnum {
+/* The narrow cut carries every label, caption and data string on the site.
+   It is what replaces the tracked-out monospace this design started from. */
+.narrow {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 74, "wght" 560;
+  letter-spacing: 0.012em;
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Fine grain overlay (very subtle, no gradients) ---------------------- */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+.narrow-bold {
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 74, "wght" 760;
+  letter-spacing: 0.012em;
+  font-variant-numeric: tabular-nums;
 }
 
-/* --- Focus + skip link (accessibility) ---------------------------------- */
-:focus-visible {
-  outline: 2px solid var(--gold-bright);
+.prose-copy {
+  font-family: var(--font-text);
+  font-variation-settings: "opsz" 20;
+  line-height: 1.62;
+  max-width: 62ch;
+}
+
+/* --- Floor ----------------------------------------------------------------
+   Maple boards. Hard-stop repeating lines, not a gradient wash: seams every
+   38px across the grain and a board joint every 260px along it. Only applied
+   where the ground actually is wood.
+   ------------------------------------------------------------------------ */
+.floor {
+  background-color: var(--maple);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(90, 22, 38, 0.05) 0 1px,
+      transparent 1px 38px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(90, 22, 38, 0.035) 0 1px,
+      transparent 1px 260px
+    );
+}
+
+.floor-deep {
+  background-color: var(--maple-deep);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(90, 22, 38, 0.06) 0 1px,
+    transparent 1px 38px
+  );
+}
+
+/* --- Accessibility -------------------------------------------------------- */
+/* Two-tone focus ring: a halo hugging the element and an outline just
+   outside it, in opposite values. The page alternates maple grounds and
+   painted ones, and controls sit on both, so a single-colour ring is always
+   going to disappear somewhere. This one cannot. */
+/* The :root prefix is load-bearing: it lifts these above the single-class
+   outline utilities, which would otherwise let outline-color fall back to
+   currentColor on the controls that carry them. */
+:root :focus-visible {
+  outline: 2px solid var(--wine);
+  outline-color: var(--wine);
   outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--chalk);
+}
+
+:root .on-paint :focus-visible,
+:root .on-paint:focus-visible {
+  outline-color: var(--chalk);
+  box-shadow: 0 0 0 2px var(--wine);
 }
 
 .skip-link {
@@ -139,36 +187,20 @@ body {
   left: 1rem;
   top: -100px;
   z-index: 200;
-  background: var(--gold);
-  color: var(--ink);
+  background: var(--wine);
+  color: var(--chalk);
   padding: 0.6rem 1rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-family: var(--font-display);
+  font-variation-settings: "wdth" 74, "wght" 760;
+  font-size: 0.8125rem;
   transition: top 0.2s ease;
 }
 .skip-link:focus {
   top: 1rem;
 }
 
-/* Hide the native cursor only when our custom cursor is active. */
-[data-custom-cursor="true"],
-[data-custom-cursor="true"] * {
-  cursor: none;
-}
-
-/* --- Reduced motion: neutralise CSS-side motion. Framer Motion is handled
-   globally by <MotionConfig reducedMotion="user">. --------------------- */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  .grain-overlay {
-    display: none;
-  }
-  [data-custom-cursor="true"],
-  [data-custom-cursor="true"] * {
-    cursor: auto;
   }
 }

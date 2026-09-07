@@ -11,15 +11,18 @@ import {
   useTransform,
 } from "framer-motion";
 
-import { EASE_OUT } from "@/lib/motion";
+import { SHOT } from "@/lib/lebron-data";
+import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
+import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
-import { SectionLabel, SplitText } from "@/components/kinetic";
+import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { SoundToggle } from "@/components/sound-toggle";
 import { useSound } from "@/components/sound-provider";
 
 /* Court coordinate model, in percentages of the court box. */
 const ORIGIN = { x: 50, y: 90 };
 const HOOP = { x: 50, y: 22 };
-const BAND = { center: 74, half: 11 }; // sweet-spot power window (63–85)
+const BAND = { center: 74, half: 11 }; // sweet-spot power window (63-85)
 const AIM_TOL = 0.42; // |aim| within this counts as on-target
 const STORAGE_KEY = "king23:shot";
 const BEST_EVENT = "king23:shot-best";
@@ -46,7 +49,7 @@ function subscribeBest(cb: () => void) {
   };
 }
 
-function StatReadout({
+function Readout({
   label,
   value,
   accent,
@@ -56,19 +59,19 @@ function StatReadout({
   accent?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="label text-muted">{label}</span>
-      <div className="relative h-12 w-full overflow-hidden text-center">
+    <div className="flex flex-col gap-1">
+      <Caption className="text-muted">{label}</Caption>
+      <div className="relative h-12 w-full overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={value}
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: "0%", opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
-            transition={{ duration: 0.35, ease: EASE_OUT }}
+            transition={{ duration: 0.35, ease: EASE_SETTLE }}
             className={cn(
-              "font-display absolute inset-0 flex items-center justify-center text-4xl leading-none tnum sm:text-5xl",
-              accent ? "text-gold-bright" : "text-paper",
+              "figure absolute inset-0 flex items-center text-[2.5rem] sm:text-[3rem]",
+              accent ? "text-leather" : "text-wine",
             )}
           >
             {value}
@@ -79,8 +82,12 @@ function StatReadout({
   );
 }
 
-export function ShotChallenge() {
+export function LastShot() {
   const reduce = useReducedMotion();
+  // Structural branching needs the SSR-safe hook: framer's own reads the
+  // media query during the first client render, which would render a
+  // different tree than the server did.
+  const reduceLayout = usePrefersReducedMotion();
   const { play } = useSound();
 
   const [phase, setPhase] = React.useState<Phase>("ready");
@@ -176,7 +183,7 @@ export function ShotChallenge() {
       );
 
       if (made) {
-        animate(ballScale, [1, 1.18, 1], { duration: 0.5, ease: EASE_OUT });
+        animate(ballScale, [1, 1.18, 1], { duration: 0.5, ease: EASE_SETTLE });
         play(streak % 3 === 0 ? "streak" : "made");
       } else {
         play("miss");
@@ -212,10 +219,10 @@ export function ShotChallenge() {
     const made = powerGood && aimGood;
 
     let label: string;
-    if (made) label = (streakRef.current + 1) % 3 === 0 ? "ON FIRE" : "BUCKET";
-    else if (!aimGood) label = a < 0 ? "OFF LEFT" : "OFF RIGHT";
-    else if (p < BAND.center) label = "SHORT";
-    else label = "LONG";
+    if (made) label = (streakRef.current + 1) % 3 === 0 ? "On fire" : "Bucket";
+    else if (!aimGood) label = a < 0 ? "Off left" : "Off right";
+    else if (p < BAND.center) label = "Short";
+    else label = "Long";
 
     setPhaseSync("flying");
     const dur = reduce ? 0.35 : 0.9;
@@ -286,31 +293,37 @@ export function ShotChallenge() {
 
   return (
     <section
-      id="challenge"
-      aria-labelledby="challenge-heading"
-      className="relative border-t border-hairline bg-ink px-5 py-20 sm:px-8 sm:py-28 md:px-12"
+      id="shot"
+      aria-labelledby="shot-heading"
+      className="floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
     >
       <div className="mx-auto max-w-6xl">
-        <SectionLabel className="mb-10">05 — INTERACTIVE</SectionLabel>
-        <h2
-          id="challenge-heading"
-          className="mb-4 max-w-4xl font-display leading-[0.86]"
-          style={{ fontSize: "clamp(2.5rem, 7vw, 6rem)" }}
-        >
-          <SplitText text="TAKE THE" className="text-paper" />{" "}
-          <SplitText
-            text="LAST SHOT"
-            className="type-outline [--stroke-c:var(--red)] [--stroke-w:1.5px]"
-            delay={0.1}
-          />
-        </h2>
-        <p className="mb-12 max-w-lg text-sm text-muted">
-          Time the meter into the gold band and keep your aim centred. Three in
-          a row and you are on fire.
-        </p>
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <h2
+            id="shot-heading"
+            className="monument max-w-[12ch] text-wine"
+            style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
+          >
+            <RiseWords text={SHOT.heading} />
+          </h2>
+          <SoundToggle />
+        </div>
 
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.4fr_1fr]">
-          {/* COURT */}
+        <motion.p
+          className="prose-copy mt-6 max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={VIEWPORT_SOON}
+          transition={{ duration: 0.8, ease: EASE_SETTLE, delay: 0.2 }}
+        >
+          {SHOT.copy}
+        </motion.p>
+
+        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[1.45fr_1fr]">
+          {/* THE COURT — chalk lines on painted floor. Revealed by pulling a
+              maple cover off it rather than by transforming the panel itself,
+              so the court markings never distort and the panel is the right
+              size for pointer maths from the first frame. */}
           <div
             ref={courtRef}
             role="group"
@@ -320,7 +333,7 @@ export function ShotChallenge() {
             onPointerDown={handlePointer}
             onClick={() => shoot()}
             onKeyDown={handleKeyDown}
-            className="relative aspect-[4/5] w-full select-none overflow-hidden border border-hairline bg-wine/20 outline-offset-4 sm:aspect-[5/4]"
+            className="on-paint relative aspect-[4/5] w-full select-none overflow-hidden bg-wine outline-offset-4 sm:aspect-[5/4]"
           >
             <svg
               className="pointer-events-none absolute inset-0 h-full w-full"
@@ -328,29 +341,42 @@ export function ShotChallenge() {
               preserveAspectRatio="none"
               aria-hidden
             >
-              <line x1="0" y1="90" x2="100" y2="90" stroke="var(--hairline)" strokeWidth="0.4" />
-              <ellipse cx="50" cy="90" rx="30" ry="6" fill="none" stroke="var(--hairline)" strokeWidth="0.4" />
-              <line x1="50" y1="90" x2="50" y2="96" stroke="var(--hairline)" strokeWidth="0.4" />
+              {/* floor, key markings and the arc, seen from the wing */}
+              <line x1="0" y1="90" x2="100" y2="90" stroke="rgba(251,247,239,0.5)" strokeWidth="0.5" />
+              <line x1="0" y1="96" x2="100" y2="96" stroke="rgba(251,247,239,0.32)" strokeWidth="0.3" />
+              <ellipse cx="50" cy="90" rx="30" ry="6" fill="none" stroke="rgba(251,247,239,0.42)" strokeWidth="0.4" />
+              <ellipse cx="50" cy="90" rx="13" ry="2.6" fill="none" stroke="rgba(251,247,239,0.42)" strokeWidth="0.4" />
+              <line x1="50" y1="90" x2="50" y2="96" stroke="rgba(251,247,239,0.32)" strokeWidth="0.3" />
             </svg>
 
-            {/* backboard + rim + net */}
+            {/* backboard, rim and net */}
             <div className="pointer-events-none absolute left-1/2 top-[14%] -translate-x-1/2">
-              <div className="mx-auto h-10 w-24 border border-hairline-strong sm:h-12 sm:w-28" />
-              <div className="mx-auto -mt-1 h-3 w-8 border-x border-b border-gold" aria-hidden />
+              <div
+                className="mx-auto h-10 w-24 border sm:h-12 sm:w-28"
+                style={{ borderColor: "rgba(251,247,239,0.45)" }}
+              />
+              <div
+                className="mx-auto -mt-1 h-3 w-8 border-x border-b"
+                style={{ borderColor: "var(--gold)" }}
+                aria-hidden
+              />
               <motion.div
                 aria-hidden
                 className="mx-auto h-4 w-8 origin-top"
                 style={{
                   background:
-                    "repeating-linear-gradient(var(--hairline) 0 1px, transparent 1px 3px)",
+                    "repeating-linear-gradient(rgba(251,247,239,0.45) 0 1px, transparent 1px 3px)",
                 }}
                 animate={result?.made ? { scaleY: [1, 1.4, 1], skewX: [0, 4, 0] } : {}}
                 transition={{ duration: 0.5 }}
               />
-              <div className="mx-auto -mt-4 h-2 w-9 rounded-[50%] border-2 border-gold" />
+              <div
+                className="mx-auto -mt-4 h-2 w-9 rounded-[50%] border-2"
+                style={{ borderColor: "var(--gold)" }}
+              />
             </div>
 
-            {/* aim indicator */}
+            {/* aim line */}
             <motion.div
               aria-hidden
               className="pointer-events-none absolute bottom-[8%] w-px"
@@ -358,15 +384,15 @@ export function ShotChallenge() {
                 left: aimLeft,
                 height: "62%",
                 background:
-                  "repeating-linear-gradient(to top, var(--hairline-strong) 0 4px, transparent 4px 9px)",
+                  "repeating-linear-gradient(to top, rgba(251,247,239,0.5) 0 4px, transparent 4px 9px)",
                 transform: "translateX(-50%)",
               }}
             />
 
-            {/* ball */}
+            {/* the ball */}
             <motion.div
               aria-hidden
-              className="pointer-events-none absolute z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 border-ink bg-orange sm:h-10 sm:w-10"
+              className="pointer-events-none absolute z-10 flex h-9 w-9 items-center justify-center rounded-full bg-leather sm:h-10 sm:w-10"
               style={{
                 left: ballLeft,
                 top: ballTop,
@@ -374,27 +400,28 @@ export function ShotChallenge() {
                 y: "-50%",
                 rotate: ballRotate,
                 scale: ballScale,
+                boxShadow: "inset 0 0 0 2px rgba(56,12,22,0.55)",
               }}
             >
-              <span className="block h-full w-px bg-ink/70" />
-              <span className="absolute h-px w-full bg-ink/70" />
+              <span className="block h-full w-px bg-wine-deep/70" />
+              <span className="absolute h-px w-full bg-wine-deep/70" />
             </motion.div>
 
-            {/* result flash */}
+            {/* result, called out in chalk */}
             <AnimatePresence>
               {result ? (
                 <motion.div
                   key={`flash-${result.id}`}
-                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                  initial={{ opacity: 0, scale: 0.85, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  transition={{ duration: 0.3, ease: EASE_OUT }}
+                  exit={{ opacity: 0, scale: 1.08 }}
+                  transition={{ duration: 0.3, ease: EASE_SETTLE }}
                   className="pointer-events-none absolute inset-x-0 top-[40%] flex justify-center"
                 >
                   <span
                     className={cn(
-                      "font-display text-4xl uppercase tracking-tight sm:text-5xl",
-                      result.made ? "text-gold-bright" : "text-red",
+                      "headline text-[2.25rem] sm:text-[3rem]",
+                      result.made ? "text-gold" : "text-chalk/70",
                     )}
                   >
                     {result.label}
@@ -403,78 +430,109 @@ export function ShotChallenge() {
               ) : null}
             </AnimatePresence>
 
-            {/* made celebration ring */}
+            {/* made ring */}
             <AnimatePresence>
               {result?.made ? (
                 <motion.div
                   key={`ring-${result.id}`}
-                  className="pointer-events-none absolute left-1/2 top-[22%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold-bright"
+                  className="pointer-events-none absolute left-1/2 top-[22%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold"
                   initial={{ width: 10, height: 10, opacity: 0.9 }}
-                  animate={{ width: 160, height: 160, opacity: 0 }}
+                  animate={{ width: 170, height: 170, opacity: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.7, ease: EASE_OUT }}
+                  transition={{ duration: 0.7, ease: EASE_SETTLE }}
                 />
               ) : null}
             </AnimatePresence>
+
+            {/* The cover, pulled off to the right. Not rendered at all under
+                reduced motion: a cover that depends on an animation running
+                is a cover that can leave the court hidden. */}
+            {reduceLayout ? null : (
+              <motion.span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 z-20 origin-right bg-maple"
+                initial={{ scaleX: 1 }}
+                whileInView={{ scaleX: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.95, ease: EASE_PAINT }}
+              />
+            )}
           </div>
 
           {/* CONTROLS */}
-          <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-3 gap-3 border border-hairline p-5">
-              <StatReadout label="SCORE" value={display.score} accent />
-              <StatReadout label="STREAK" value={display.streak} />
-              <StatReadout label="BEST" value={best} />
+          <div className="flex flex-col gap-9">
+            <div>
+              <PaintRule color="var(--rule-strong)" />
+              <div className="grid grid-cols-3 gap-4 pt-4">
+                <Readout label="Score" value={display.score} accent />
+                <Readout label="Streak" value={display.streak} />
+                <Readout label="Best streak" value={best} />
+              </div>
             </div>
 
             <div className="flex items-stretch gap-6">
+              {/* the release gauge */}
               <div
-                className="relative h-56 w-8 shrink-0 overflow-hidden border border-hairline bg-ink"
+                className="relative h-56 w-9 shrink-0 overflow-hidden bg-maple-deep"
                 aria-hidden
               >
                 <div
-                  className="absolute inset-x-0 border-y border-gold/50 bg-gold/15"
+                  className="absolute inset-x-0 bg-gold"
                   style={{
                     bottom: `${BAND.center - BAND.half}%`,
                     height: `${BAND.half * 2}%`,
                   }}
                 />
                 <motion.div
-                  className="absolute inset-x-0 h-[3px] bg-gold-bright"
+                  className="absolute inset-x-0 h-[3px] bg-wine"
                   style={{ bottom: markerBottom }}
                 />
               </div>
 
-              <div className="flex flex-1 flex-col justify-between gap-4">
+              <div className="flex flex-1 flex-col justify-between gap-5">
                 <div>
-                  <span className="label text-muted">POWER METER</span>
-                  <p className="mt-2 text-sm text-muted">
-                    Release inside the gold band. Too low falls short, too high
-                    runs long.
+                  <Caption bold className="text-wine">
+                    Release
+                  </Caption>
+                  <p className="prose-copy mt-2 text-[0.9375rem] text-muted">
+                    Let it go inside the gold. Too low and it falls short, too
+                    high and it runs long.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => shoot()}
-                  data-cursor="SHOOT"
                   disabled={phase !== "ready"}
-                  className="h-16 w-full border border-gold bg-gold font-mono text-sm uppercase tracking-[0.2em] text-ink transition-colors hover:bg-gold-bright disabled:opacity-40"
+                  className="narrow-bold h-16 w-full bg-wine text-[1rem] text-chalk outline-offset-4 transition-colors hover:bg-wine-deep disabled:opacity-45"
                 >
-                  {phase === "ready" ? "Shoot" : "…"}
+                  {phase === "ready" ? "Shoot" : "In the air"}
                 </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-hairline pt-4">
-              <span className="label text-muted">SPACE / ENTER — SHOOT</span>
-              <span className="label text-muted">← → — AIM</span>
-              <span className="label text-muted">CLICK / TAP — SHOOT</span>
+            <div>
+              <PaintRule />
+              <dl className="flex flex-col gap-2 pt-4">
+                {SHOT.keys.map((k) => (
+                  <div key={k.key} className="flex items-baseline gap-4">
+                    <dt className="w-[12rem] shrink-0">
+                      <Caption className="text-muted">{k.key}</Caption>
+                    </dt>
+                    <dd>
+                      <Caption bold className="text-wine">
+                        {k.does}
+                      </Caption>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           </div>
         </div>
 
-        <div aria-live="polite" className="sr-only">
+        <p aria-live="polite" className="sr-only">
           {announce}
-        </div>
+        </p>
       </div>
     </section>
   );
