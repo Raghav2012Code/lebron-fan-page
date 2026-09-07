@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
  * The old version of this section put a radar chart here scored on an
  * invented "editorial index". That has been removed: nothing on this page
  * should be a number somebody made up. In its place is the one shape the
- * career actually makes — forty thousand points accumulating across four
+ * career actually makes — every point accumulating across four
  * stints, drawn to scale, with the running total marked at each handover.
  */
 
@@ -43,10 +43,10 @@ function Accumulation({ activeId }: { activeId: string }) {
     <div>
       <div className="flex items-end justify-between gap-6">
         <Caption bold className="text-wine">
-          Forty thousand points, in the order they arrived
+          Every point, in the order it arrived
         </Caption>
         <Caption className="hidden text-muted sm:block">
-          Regular season, approximate
+          Regular season
         </Caption>
       </div>
 
@@ -122,8 +122,8 @@ function Accumulation({ activeId }: { activeId: string }) {
       </div>
 
       <Caption className="mt-3 block text-muted/80">
-        {TOTAL.toLocaleString("en-US")} across the four stints, which is where
-        the {"40,000+"} on the record sheet comes from.
+        {TOTAL.toLocaleString("en-US")} across the four stints, which is the
+        career total exactly. Nothing here is rounded to make it land.
       </Caption>
     </div>
   );

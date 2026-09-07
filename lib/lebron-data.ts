@@ -7,13 +7,17 @@
  *  - Headline honours (titles, MVPs, Finals MVPs, golds, all-time scoring rank,
  *    award years, championship years, Olympic years) are exact, stable,
  *    well-documented facts.
- *  - Point / game totals are ROUNDED approximations of regular-season figures
- *    and are marked `approx` so the UI can label them.
+ *  - Season, game and counting totals are exact official regular-season
+ *    figures. The per-season table they come from sums to the published
+ *    career totals in every category (see CAREER below), so the stint splits
+ *    and the career line cannot disagree with each other.
+ *  - Per-game figures are those totals divided out and rounded to one decimal,
+ *    which is how they are published.
  *  - Nothing here is an invented index or a projection. Bump STATS_AS_OF
  *    whenever the numbers are refreshed.
  */
 
-export const STATS_AS_OF = "the 2024-25 season";
+export const STATS_AS_OF = "the 2025-26 season";
 
 /* ---------------------------------------------------------------------------
  * THE SPAN — the career as seasons. Everything on the ruler is derived from
@@ -22,7 +26,7 @@ export const STATS_AS_OF = "the 2024-25 season";
  * ------------------------------------------------------------------------- */
 
 export const FIRST_SEASON = 2003;
-export const LAST_SEASON = 2024; // i.e. the 2024-25 season
+export const LAST_SEASON = 2025; // i.e. the 2025-26 season
 export const SEASON_COUNT = LAST_SEASON - FIRST_SEASON + 1;
 
 /** Season-ending years in which he won the title. */
@@ -74,7 +78,7 @@ export const TEAM_SPANS: TeamSpan[] = [
     club: "Los Angeles Lakers",
     city: "Los Angeles",
     from: 2018,
-    to: 2024,
+    to: 2025,
     floor: "#3B2352",
     paint: "#E0A72C",
   },
@@ -99,6 +103,7 @@ const MILESTONES: Record<number, string> = {
   2006: "First trip to the Finals",
   2022: "Passes Kareem Abdul-Jabbar for first all-time",
   2023: "First player past 40,000 points",
+  2025: "First player to reach a 23rd season",
 };
 
 export interface Season {
@@ -137,7 +142,7 @@ export const SEASONS: Season[] = Array.from(
 
 export const SPAN = {
   heading: "He has been here since 2003.",
-  copy: "Twenty-two seasons, three NBA cities, and four Olympic teams. Longevity is not a footnote to this career. It is the argument.",
+  copy: "Twenty-three seasons, three NBA cities, and four Olympic teams. Longevity is not a footnote to this career. It is the argument.",
   legend: [
     { key: "title", text: "Championship season" },
     { key: "mvp", text: "Regular-season MVP" },
@@ -158,7 +163,7 @@ export const HERO = {
   figures: [
     { value: "4", label: "Championships" },
     { value: "4", label: "Most Valuable Player" },
-    { value: "40,000+", label: "Regular-season points" },
+    { value: "43,440", label: "Regular-season points" },
   ],
 } as const;
 
@@ -208,19 +213,18 @@ export const HONOURS: Honour[] = [
   },
   {
     id: "points",
-    value: 40000,
-    suffix: "+",
+    value: 43440,
     label: "Regular-season points",
     context:
-      "In March 2024 he became the first player in league history past forty thousand.",
+      "He passed forty thousand in March 2024, the first player in league history to get there, and has not stopped.",
     weight: "block",
   },
   {
     id: "allstar",
-    value: 20,
-    suffix: "+",
+    value: 22,
     label: "All-Star selections",
-    context: "More than two decades of them, without a year off the list.",
+    context:
+      "Twenty-two of them, in consecutive years, which is more than anybody else has managed.",
     weight: "row",
   },
   {
@@ -243,11 +247,62 @@ export const HONOURS: Honour[] = [
 
 export const NEXT_MARK = {
   heading: "The measure that is still open",
-  current: 40000,
+  current: 43440,
   target: 50000,
-  currentLabel: "Past 40,000",
+  currentLabel: "43,440",
   targetLabel: "50,000",
   note: "Nobody has been near it. A mark being tracked, not a prediction.",
+} as const;
+
+/* ---------------------------------------------------------------------------
+ * THE LINE — the official career stat line.
+ *
+ * Every figure below is an exact regular-season total from the official
+ * record, cross-checked three ways: the per-season table sums to each of
+ * these totals, and each average is its total divided by 1,622 games.
+ * ------------------------------------------------------------------------- */
+
+export interface CareerAverage {
+  label: string;
+  /** per game, to one decimal */
+  avg: number;
+  total: number;
+  rank?: string;
+}
+
+export interface CareerRow {
+  label: string;
+  value: string;
+  note?: string;
+}
+
+export const CAREER = {
+  heading: "The line",
+  standfirst:
+    "Twenty-three seasons and 1,622 games of it, written the way a stat line is said out loud. Per game across the top, in total underneath.",
+  /** points / rebounds / assists — the three numbers a stat line is made of */
+  headline: [
+    { label: "Points", avg: 26.8, total: 43440, rank: "Most in NBA history" },
+    { label: "Rebounds", avg: 7.5, total: 12095 },
+    { label: "Assists", avg: 7.4, total: 12016 },
+  ] as CareerAverage[],
+  supporting: [
+    { label: "Games played", value: "1,622", note: "Most in NBA history" },
+    { label: "Minutes played", value: "61,031", note: "Most in NBA history" },
+    { label: "Steals", value: "2,417" },
+    { label: "Blocks", value: "1,185" },
+    { label: "Field goals", value: "50.7%" },
+    { label: "Three-pointers", value: "34.8%" },
+    { label: "Free throws", value: "73.7%" },
+  ] as CareerRow[],
+  playoffs: {
+    label: "And in the playoffs",
+    points: 8289,
+    games: 292,
+    copy: "8,289 points across 292 playoff games, which is also more than anyone else has scored. Regular season and playoffs together, he finished the season on 51,729.",
+  },
+  triple:
+    "He is the only player in the history of the league to reach ten thousand points, ten thousand rebounds and ten thousand assists.",
 } as const;
 
 /* ---------------------------------------------------------------------------
@@ -334,12 +389,12 @@ export const ROOMS: Room[] = [
   {
     id: "lal",
     name: "Los Angeles",
-    years: "2018-now",
+    years: "2018-2026",
     venue: "Los Angeles Lakers",
     jersey: "23",
-    stat: "40,000+",
-    statLabel: "Career points",
-    copy: "A championship won inside a sealed campus in Orlando with nobody in the building, the all-time scoring record, and the first forty thousand points anyone has scored. In Los Angeles, endurance became its own form of dominance.",
+    stat: "12,402",
+    statLabel: "Points in eight seasons",
+    copy: "A championship won inside a sealed campus in Orlando with nobody in the building, the all-time scoring record, and the first forty thousand points anyone has scored. Eight seasons in Los Angeles, in which endurance became its own form of dominance.",
     floor: "#3B2352",
     paint: "#E0A72C",
     type: "#FBF7EF",
@@ -394,7 +449,7 @@ export interface LedgerEntry {
 
 export const LEDGER_INTRO = {
   heading: "The points, added up",
-  copy: "Four stints, one running total. Figures are regular-season, and rounded wherever they are marked approximate.",
+  copy: "Four stints, one running total. Every figure is a regular-season total, and the four add up to the career number exactly.",
 } as const;
 
 export const LEDGER: LedgerEntry[] = [
@@ -405,9 +460,9 @@ export const LEDGER: LedgerEntry[] = [
     years: "2003-2010",
     place: "Cleveland, Ohio",
     metrics: [
-      { label: "Points", value: 15251, max: 16000, approx: true },
+      { label: "Points", value: 15251, max: 16000 },
       { label: "Games", value: 548, max: 600 },
-      { label: "Points per game", value: 27.8, max: 30, approx: true },
+      { label: "Points per game", value: 27.8, max: 30 },
     ],
     scored: 15251,
     running: { value: 15251, label: "Career points through 2010" },
@@ -425,9 +480,9 @@ export const LEDGER: LedgerEntry[] = [
     years: "2010-2014",
     place: "Miami, Florida",
     metrics: [
-      { label: "Points", value: 7919, max: 16000, approx: true },
+      { label: "Points", value: 7919, max: 16000 },
       { label: "Games", value: 294, max: 600 },
-      { label: "Points per game", value: 26.9, max: 30, approx: true },
+      { label: "Points per game", value: 26.9, max: 30 },
     ],
     scored: 7919,
     running: { value: 23170, label: "Career points through 2014" },
@@ -446,12 +501,12 @@ export const LEDGER: LedgerEntry[] = [
     years: "2014-2018",
     place: "Cleveland, Ohio",
     metrics: [
-      { label: "Points", value: 8192, max: 16000, approx: true },
+      { label: "Points", value: 7868, max: 16000 },
       { label: "Games", value: 301, max: 600 },
-      { label: "Points per game", value: 27.2, max: 30, approx: true },
+      { label: "Points per game", value: 26.1, max: 30 },
     ],
-    scored: 8192,
-    running: { value: 31362, label: "Career points through 2018" },
+    scored: 7868,
+    running: { value: 31038, label: "Career points through 2018" },
     achievements: [
       { when: "2016", what: "NBA champion" },
       { when: "2016", what: "Back from three games to one down" },
@@ -464,20 +519,21 @@ export const LEDGER: LedgerEntry[] = [
     id: "lal",
     tab: "Los Angeles",
     club: "Los Angeles Lakers",
-    years: "2018-now",
+    years: "2018-2026",
     place: "Los Angeles, California",
     metrics: [
-      { label: "Points", value: 8900, max: 16000, approx: true },
-      { label: "Games", value: 350, max: 600, approx: true },
-      { label: "Points per game", value: 25.4, max: 30, approx: true },
+      { label: "Points", value: 12402, max: 16000 },
+      { label: "Games", value: 479, max: 600 },
+      { label: "Points per game", value: 25.9, max: 30 },
     ],
-    scored: 8900,
-    running: { value: 40000, suffix: "+", label: "Career points, and counting" },
+    scored: 12402,
+    running: { value: 43440, label: "Career points" },
     achievements: [
       { when: "2020", what: "NBA champion" },
       { when: "2020", what: "Finals MVP" },
       { when: "2023", what: "All-time scoring leader" },
       { when: "2024", what: "First past 40,000 points" },
+      { when: "2026", what: "First to play a 23rd season" },
     ],
     note: "Records that measure endurance at least as much as talent.",
   },
@@ -594,6 +650,7 @@ export const BASELINE = {
 export const SECTIONS = [
   { id: "span", label: "The span" },
   { id: "hardware", label: "Hardware" },
+  { id: "line", label: "The line" },
   { id: "rooms", label: "The rooms" },
   { id: "ledger", label: "The ledger" },
   { id: "number", label: "Twenty-three" },
