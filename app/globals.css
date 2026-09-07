@@ -204,3 +204,42 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* --- Scrollbar --------------------------------------------------------- */
+/* The default scrollbar is a light-grey strip of browser chrome that reads as
+   empty space against a painted floor. This makes it part of the court: a
+   maple-deep track with a solid wine thumb, square like everything else here.
+
+   The two engines have to be kept apart deliberately. Chrome honours these
+   ::-webkit-scrollbar rules ONLY while the standard scrollbar-* properties
+   are absent — set either one and it discards this whole block and draws its
+   own rounded thumb instead, which would be the one shape this design never
+   uses. So the standard properties are scoped to browsers that have no
+   ::-webkit-scrollbar at all, which in practice means Firefox. */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--maple-deep);
+  border-left: 1px solid var(--rule);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--wine);
+  /* an inset in the track colour, since a square thumb cannot be padded */
+  border: 2px solid var(--maple-deep);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--wine-deep);
+}
+::-webkit-scrollbar-corner {
+  background: var(--maple-deep);
+}
+
+/* Firefox: colour is the only thing it exposes, and it is enough. */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--wine) var(--maple-deep);
+  }
+}
