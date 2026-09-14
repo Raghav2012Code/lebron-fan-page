@@ -5,6 +5,7 @@ import { HonoursBoard } from "@/components/honours-board";
 import { TheLine } from "@/components/the-line";
 import { TheRooms } from "@/components/the-rooms";
 import { TheLedger } from "@/components/the-ledger";
+import { ShotZones } from "@/components/shot-zones";
 import { TwentyThree } from "@/components/twenty-three";
 import { LastShot } from "@/components/last-shot";
 import { FourNights } from "@/components/four-nights";
@@ -20,6 +21,7 @@ export default function Page() {
       <TheLine />
       <TheRooms />
       <TheLedger />
+      <ShotZones />
       <TwentyThree />
       <LastShot />
       <FourNights />
