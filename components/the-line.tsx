@@ -57,7 +57,7 @@ export function TheLine() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: EASE_SETTLE, delay: 0.45 }}
         >
-          <dl className="flex flex-col gap-10 sm:flex-row sm:items-start sm:gap-0 lg:gap-x-14">
+          <dl className="flex flex-row items-start gap-3 sm:gap-0 lg:gap-x-14">
             {CAREER.headline.map((stat, i) => (
               <React.Fragment key={stat.label}>
                 <div className="flex min-w-0 flex-1 flex-col lg:flex-none">
@@ -66,13 +66,13 @@ export function TheLine() {
                       written stat line however wide the columns get */}
                   <dd
                     className="figure flex items-baseline leading-none text-chalk"
-                    style={{ fontSize: "clamp(3.75rem, 11vw, 7.5rem)" }}
+                    style={{ fontSize: "clamp(2rem, 10vw, 7.5rem)" }}
                   >
                     <Counter to={stat.avg} decimals={1} duration={1.8} />
                     {i < CAREER.headline.length - 1 ? (
                       <span
                         aria-hidden
-                        className="hidden select-none pl-5 text-gold sm:inline"
+                        className="select-none pl-2 text-gold sm:pl-5"
                       >
                         /
                       </span>

@@ -38,7 +38,13 @@ function colourFor(id: string) {
   return TEAM_SPANS.find((t) => t.id === id)?.floor ?? "var(--wine)";
 }
 
-function Accumulation({ activeId }: { activeId: string }) {
+function Accumulation({
+  activeId,
+  setActive,
+}: {
+  activeId: string;
+  setActive: (id: string) => void;
+}) {
   return (
     <div>
       <div className="flex items-end justify-between gap-6">
@@ -65,7 +71,22 @@ function Accumulation({ activeId }: { activeId: string }) {
           return (
             <div
               key={stint.id}
-              className="relative min-w-0 overflow-hidden"
+              role="button"
+              tabIndex={0}
+              aria-label={`${stint.club}: ${stint.scored.toLocaleString("en-US")} points`}
+              aria-pressed={on}
+              onClick={() => setActive(stint.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActive(stint.id);
+                }
+              }}
+              className={cn(
+                "group relative min-w-0 cursor-pointer overflow-hidden transition-all duration-200",
+                "hover:brightness-110",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2 focus-visible:z-10",
+              )}
               style={{ flexGrow: stint.scored, flexBasis: 0 }}
             >
               {/* only the paint scales, so the figure sitting on it never
@@ -94,7 +115,7 @@ function Accumulation({ activeId }: { activeId: string }) {
               <span className="absolute inset-x-2 bottom-2 truncate">
                 <Caption
                   bold
-                  className="text-chalk"
+                  className="text-chalk transition-opacity duration-200 group-hover:opacity-100"
                   style={{ opacity: on ? 1 : 0.72 }}
                 >
                   {stint.scored.toLocaleString("en-US")}
@@ -339,7 +360,7 @@ export function TheLedger() {
         </motion.p>
 
         <div className="mt-14">
-          <Accumulation activeId={active} />
+          <Accumulation activeId={active} setActive={setActive} />
         </div>
 
         <div className="mt-16">

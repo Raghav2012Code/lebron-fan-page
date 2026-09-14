@@ -16,6 +16,8 @@ import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { Caption, RiseWords } from "@/components/typeset";
 
 const N = ROOMS.length;
+const PINNED_HEIGHT = "420vh";
+const REST_RATIO = 0.35;
 
 /**
  * The rooms he has played in.
@@ -48,8 +50,8 @@ function RoomPanel({
   const center = i * seg;
   const range = [
     center - seg * 0.5,
-    center - seg * 0.34,
-    center + seg * 0.34,
+    center - seg * REST_RATIO,
+    center + seg * REST_RATIO,
     center + seg * 0.5,
   ];
 
@@ -126,9 +128,9 @@ function PinnedRooms() {
     offset: ["start start", "end end"],
   });
   const progress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 28,
-    mass: 0.5,
+    stiffness: 100,
+    damping: 24,
+    mass: 0.35,
   });
 
   // Each room's colour is held flat while you are in it and repainted
@@ -136,8 +138,8 @@ function PinnedRooms() {
   // clubs' colours for half the section.
   const seg = 1 / (N - 1);
   const stops = ROOMS.flatMap((_, i) => [
-    i * seg - seg * 0.34,
-    i * seg + seg * 0.34,
+    i * seg - seg * REST_RATIO,
+    i * seg + seg * REST_RATIO,
   ]);
   const floor = useTransform(
     progress,
@@ -165,7 +167,7 @@ function PinnedRooms() {
   }, []);
 
   return (
-    <div ref={ref} style={{ height: `${N * 100}vh` }} className="relative">
+    <div ref={ref} style={{ height: PINNED_HEIGHT }} className="relative">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <motion.div
           className="absolute inset-0"

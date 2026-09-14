@@ -24,6 +24,7 @@ export function CenterCourt() {
 
   const courtY = useTransform(scrollYProgress, [0, 1], [0, 120]);
   const nameY = useTransform(scrollYProgress, [0, 1], [0, -40]);
+  const indicatorOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
 
   const nameSize = { fontSize: "clamp(3.1rem, 13.5vw, 12rem)" };
 
@@ -31,7 +32,7 @@ export function CenterCourt() {
     <section
       ref={ref}
       aria-labelledby="hero-name"
-      className="floor relative flex min-h-[92svh] w-full flex-col justify-center overflow-clip"
+      className="floor relative flex min-h-[92svh] w-full flex-col justify-between overflow-clip pt-12 pb-6 sm:pt-16 sm:pb-8"
     >
       {/* The painted end of a court, drawn to scale and anchored bottom
           right, running off the edge of the frame the way a floor does. The
@@ -44,7 +45,7 @@ export function CenterCourt() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 w-full"
+        className="relative z-10 my-auto w-full"
         style={{ y: nameY }}
         initial="hidden"
         animate="show"
@@ -142,6 +143,57 @@ export function CenterCourt() {
             ))}
           </motion.dl>
         </div>
+      </motion.div>
+
+      {/* Subtle hardwood scroll affordance indicator */}
+      <motion.div
+        className="relative z-10 w-full px-5 pt-8 sm:px-8 md:px-14"
+        style={{ opacity: indicatorOpacity }}
+      >
+        <motion.a
+          href="#span"
+          onClick={(e) => {
+            const spanEl = document.getElementById("span");
+            if (spanEl) {
+              e.preventDefault();
+              spanEl.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          aria-label="Scroll down to explore career span"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE_SETTLE, delay: 2.2 }}
+          className="group inline-flex flex-col items-start gap-2.5 outline-offset-4"
+        >
+          <div className="flex items-center gap-2.5">
+            <motion.span
+              className="inline-block h-1.5 w-1.5 bg-wine"
+              animate={{ opacity: [0.35, 1, 0.35], scale: [0.85, 1, 0.85] }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              aria-hidden="true"
+            />
+            <Caption className="text-[0.6875rem] uppercase tracking-widest text-muted/75 transition-colors group-hover:text-wine">
+              Scroll to explore
+            </Caption>
+          </div>
+          {/* Animated hairline floor seam */}
+          <div className="relative ml-[3px] h-7 w-px overflow-hidden bg-wine/20">
+            <motion.div
+              className="h-3 w-full bg-wine/60"
+              animate={{ y: [-12, 28] }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              aria-hidden="true"
+            />
+          </div>
+        </motion.a>
       </motion.div>
     </section>
   );

@@ -124,6 +124,9 @@ export function LastShot() {
   const ballScale = useMotionValue(1);
 
   const markerBottom = useTransform(power, (v) => `${v}%`);
+  const courtMarkerBg = useTransform(power, (v) =>
+    Math.abs(v - BAND.center) <= BAND.half ? "var(--wine-deep)" : "var(--chalk)",
+  );
   const aimLeft = useTransform(aim, (v) => `${50 + v * 34}%`);
   const ballLeft = useTransform(ballX, (v) => `${v}%`);
   const ballTop = useTransform(ballY, (v) => `${v}%`);
@@ -445,6 +448,56 @@ export function LastShot() {
               ) : null}
             </AnimatePresence>
 
+            {/* on-court release timing gauge: keeps timing meter directly in the
+                court viewport so desktop players avoid split-attention and mobile
+                players see the oscillating release meter without scrolling down */}
+            <div
+              className="pointer-events-none absolute right-3 top-3.5 z-10 flex flex-col items-center sm:right-5 sm:top-5"
+              aria-hidden
+            >
+              <Caption className="mb-1 text-[0.625rem] tracking-wider text-chalk/75 uppercase sm:text-[0.6875rem]">
+                Release
+              </Caption>
+              <div className="relative h-36 w-3.5 border border-chalk/30 bg-wine-deep/90 sm:h-48 sm:w-4">
+                {/* sweet-spot target zone */}
+                <div
+                  className="absolute inset-x-0 bg-gold"
+                  style={{
+                    bottom: `${BAND.center - BAND.half}%`,
+                    height: `${BAND.half * 2}%`,
+                  }}
+                />
+                {/* target zone boundary marks */}
+                <span
+                  className="absolute -left-1 w-1 border-t border-gold"
+                  style={{ bottom: `${BAND.center + BAND.half}%` }}
+                />
+                <span
+                  className="absolute -left-1 w-1 border-b border-gold"
+                  style={{ bottom: `${BAND.center - BAND.half}%` }}
+                />
+                <span
+                  className="absolute -right-1 w-1 border-t border-gold"
+                  style={{ bottom: `${BAND.center + BAND.half}%` }}
+                />
+                <span
+                  className="absolute -right-1 w-1 border-b border-gold"
+                  style={{ bottom: `${BAND.center - BAND.half}%` }}
+                />
+                {/* oscillating indicator marker */}
+                <motion.div
+                  className="absolute inset-x-0 h-[3px]"
+                  style={{
+                    bottom: markerBottom,
+                    backgroundColor: courtMarkerBg,
+                  }}
+                />
+              </div>
+              <Caption className="mt-1 text-[0.5625rem] tracking-wider text-gold/90 uppercase sm:text-[0.625rem]">
+                Gold
+              </Caption>
+            </div>
+
             {/* The cover, pulled off to the right. Not rendered at all under
                 reduced motion: a cover that depends on an animation running
                 is a cover that can leave the court hidden. */}
@@ -496,8 +549,9 @@ export function LastShot() {
                     Release
                   </Caption>
                   <p className="prose-copy mt-2 text-[0.9375rem] text-muted">
-                    Let it go inside the gold. Too low and it falls short, too
-                    high and it runs long.
+                    Let it go inside the gold. Time your shot using the on-court
+                    meter or the gauge here. Too low and it falls short, too high
+                    and it runs long.
                   </p>
                 </div>
                 <button

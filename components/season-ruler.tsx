@@ -63,6 +63,7 @@ function Marker({ season }: { season: Season }) {
 export function SeasonRuler() {
   const [index, setIndex] = React.useState(SEASONS.length - 1);
   const itemRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  const rulerRef = React.useRef<HTMLDivElement>(null);
   const selected = SEASONS[index];
   const honours = honoursFor(selected);
 
@@ -70,6 +71,20 @@ export function SeasonRuler() {
     const clamped = Math.max(0, Math.min(SEASONS.length - 1, next));
     setIndex(clamped);
     itemRefs.current[clamped]?.focus();
+  };
+
+  const handleTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (!touch || !rulerRef.current) return;
+    const rect = rulerRef.current.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const x = touch.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(0.9999, x / rect.width));
+    const targetIndex = Math.min(
+      SEASONS.length - 1,
+      Math.max(0, Math.floor(ratio * SEASONS.length)),
+    );
+    setIndex(targetIndex);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -152,10 +167,13 @@ export function SeasonRuler() {
         {/* --- the ruler ------------------------------------------------- */}
         <div className="mt-14">
           <motion.div
+            ref={rulerRef}
             role="radiogroup"
             aria-label={`Seasons, ${SEASONS[0].label} to ${SEASONS[SEASONS.length - 1].label}. Choose a season to read what happened in it.`}
             onKeyDown={onKeyDown}
-            className="flex w-full items-end gap-[2px] sm:gap-[3px]"
+            onTouchStart={handleTouch}
+            onTouchMove={handleTouch}
+            className="flex w-full items-end gap-[2px] touch-pan-y select-none sm:gap-[3px]"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.25 }}
@@ -177,6 +195,7 @@ export function SeasonRuler() {
                   aria-checked={active}
                   tabIndex={active ? 0 : -1}
                   onClick={() => setIndex(i)}
+                  onTouchStart={() => setIndex(i)}
                   onMouseEnter={() => setIndex(i)}
                   onFocus={() => setIndex(i)}
                   aria-label={`${season.label}, ${season.team.club}${
@@ -184,7 +203,7 @@ export function SeasonRuler() {
                       ? `. ${honoursFor(season).join(". ")}`
                       : ""
                   }`}
-                  className="group flex flex-1 flex-col items-center outline-offset-2"
+                  className="group flex flex-1 flex-col items-center py-2 outline-offset-2 sm:py-2.5"
                   variants={{
                     hidden: { opacity: 0 },
                     show: {
@@ -246,10 +265,13 @@ export function SeasonRuler() {
                   className="block h-[3px] w-full"
                   style={{ backgroundColor: team.floor }}
                 />
-                <Caption bold className="mt-2 block truncate text-wine">
+                <Caption
+                  bold
+                  className="mt-1.5 block truncate text-[0.6875rem] text-wine sm:mt-2 sm:text-[0.8125rem]"
+                >
                   {team.city}
                 </Caption>
-                <Caption className="block truncate text-muted">
+                <Caption className="block truncate text-[0.6875rem] text-muted sm:text-[0.8125rem]">
                   {team.from}
                   {"–"}
                   {team.to + 1}

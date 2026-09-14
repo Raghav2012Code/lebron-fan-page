@@ -52,7 +52,11 @@ function LedgerRow({ honour, index }: { honour: Honour; index: number }) {
           <Counter
             to={honour.value}
             suffix={honour.suffix ?? ""}
-            duration={1.6 + index * 0.1}
+            duration={
+              honour.value <= 10
+                ? 0.6 + index * 0.04
+                : 1.6 + index * 0.1
+            }
           />
         )}
       </motion.div>

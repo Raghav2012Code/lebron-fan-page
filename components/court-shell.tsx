@@ -4,6 +4,7 @@ import * as React from "react";
 import { MotionConfig } from "framer-motion";
 
 import { SoundProvider } from "@/components/sound-provider";
+import { BackToTop } from "@/components/back-to-top";
 
 /**
  * Global client shell. Deliberately almost empty: no custom cursor, no fixed
@@ -18,6 +19,7 @@ export function CourtShell({ children }: { children: React.ReactNode }) {
         <main id="main" className="relative">
           {children}
         </main>
+        <BackToTop />
       </SoundProvider>
     </MotionConfig>
   );

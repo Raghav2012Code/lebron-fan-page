@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { NIGHTS, NIGHTS_INTRO, type Night } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { RiseWords } from "@/components/typeset";
+import { PaintRule, RiseWords } from "@/components/typeset";
 
 /**
  * Four nights.
@@ -116,6 +116,8 @@ export function FourNights() {
           <NightBand key={night.year} night={night} index={i} />
         ))}
       </div>
+
+      <PaintRule color="var(--gold)" />
     </section>
   );
 }

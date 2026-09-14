@@ -34,7 +34,7 @@ function formatNumber(value: number, decimals: number): string {
 export function Counter({
   to,
   from = 0,
-  duration = 1.8,
+  duration,
   decimals = 0,
   prefix = "",
   suffix = "",
@@ -53,7 +53,14 @@ export function Counter({
   const reduce = useReducedMotion();
   const started = React.useRef(false);
   const controlsRef = React.useRef<{ stop: () => void } | null>(null);
-  const countKey = `${to}:${from}:${duration}:${decimals}`;
+
+  // Small integer targets (<= 10) scale to snappy 0.6s–0.8s so counting
+  // to 3 or 4 feels crisp instead of sluggish.
+  const animDuration =
+    duration ??
+    (to <= 10 ? Math.max(0.6, Math.min(0.8, 0.5 + to * 0.05)) : 1.8);
+
+  const countKey = `${to}:${from}:${animDuration}:${decimals}`;
   const countKeyRef = React.useRef(countKey);
 
   React.useEffect(() => {
@@ -83,7 +90,7 @@ export function Counter({
     started.current = true;
 
     const controls = animate(from, to, {
-      duration,
+      duration: animDuration,
       ease: EASE_SETTLE,
       onUpdate: (v) => {
         node.textContent = formatNumber(v, decimals);
@@ -91,7 +98,7 @@ export function Counter({
     });
     controlsRef.current = controls;
     return () => controls.stop();
-  }, [inView, to, from, duration, decimals, reduce, countKey]);
+  }, [inView, to, from, animDuration, decimals, reduce, countKey]);
 
   return (
     <span className={className}>
