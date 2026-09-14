@@ -151,7 +151,7 @@ export function MilestoneCalculator() {
             accumulated per full season played.
           </span>
           <span className="text-leather font-bold">
-            Current Regular Season: 43,440 PTS · All-Time Combined: 51,729 PTS
+            Current Regular Season: 43,440 PTS · All-Time Combined: 51,961 PTS
           </span>
         </div>
       </div>

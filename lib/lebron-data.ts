@@ -288,7 +288,7 @@ export const CAREER = {
   ] as CareerAverage[],
   supporting: [
     { label: "Games played", value: "1,622", note: "Most in NBA history" },
-    { label: "Minutes played", value: "61,031", note: "Most in NBA history" },
+    { label: "Minutes played", value: "61,030", note: "Most in NBA history" },
     { label: "Steals", value: "2,417" },
     { label: "Blocks", value: "1,185" },
     { label: "Field goals", value: "50.7%" },
@@ -297,9 +297,9 @@ export const CAREER = {
   ] as CareerRow[],
   playoffs: {
     label: "And in the playoffs",
-    points: 8289,
-    games: 292,
-    copy: "8,289 points across 292 playoff games, which is also more than anyone else has scored. Regular season and playoffs together, he finished the season on 51,729.",
+    points: 8521,
+    games: 302,
+    copy: "8,521 points across 302 playoff games, which is also more than anyone else has scored. Regular season and playoffs together, he has scored 51,961.",
   },
   triple:
     "He is the only player in the history of the league to reach ten thousand points, ten thousand rebounds and ten thousand assists.",
@@ -1541,10 +1541,10 @@ export interface PacePreset {
 export const MILESTONE_CALC_DATA = {
   heading: "Road to 50,000",
   subheading: "Projecting the outer frontier of career scoring.",
-  copy: "At 43,440 regular-season points and 51,729 combined career points, LeBron occupies territory no basketball player has ever approached. Adjust the scoring pace and games per season to project the exact timeline to 45,000, 50,000, and beyond.",
+  copy: "At 43,440 regular-season points and 51,961 combined career points, LeBron occupies territory no basketball player has ever approached. Adjust the scoring pace and games per season to project the exact timeline to 45,000, 50,000, and beyond.",
   currentRegular: 43440,
-  currentPlayoffs: 8289,
-  currentCombined: 51729,
+  currentPlayoffs: 8521,
+  currentCombined: 51961,
   milestones: [
     {
       id: "45k",
