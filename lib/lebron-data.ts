@@ -632,6 +632,102 @@ export const NIGHTS: Night[] = [
 ];
 
 /* ---------------------------------------------------------------------------
+ * THE BLOCK — June 19, 2016
+ * ------------------------------------------------------------------------- */
+
+export interface BlockKeyframe {
+  time: number;
+  lebron: { x: number; y: number; elevation: number };
+  iguodala: { x: number; y: number };
+  jrSmith: { x: number; y: number };
+  ball: { x: number; y: number };
+  annotation: string;
+  telemetry: {
+    speed: string;
+    distance: string;
+    elevation: string;
+  };
+}
+
+export const THE_BLOCK = {
+  heading: "The Block",
+  subheading: "Game 7, 2016 NBA Finals. 89–89. 1:52 remaining.",
+  copy: "Ninety-three feet of hardwood closed in 2.8 seconds. A chase-down sprint at 20.1 miles per hour that ended with both hands on the glass at eleven feet five inches.",
+  quote:
+    "“Back comes Iguodala to Curry, back to Iguodala, up for the layup... Oh! BLOCKED BY JAMES! LeBron James with the rejection!”",
+  caller: "Mike Breen, ABC Sports",
+  duration: 2.8,
+  stats: [
+    { label: "Sprint distance", value: "93 ft" },
+    { label: "Peak sprint speed", value: "20.1 mph" },
+    { label: "Impact elevation", value: "11' 5\"" },
+    { label: "Time to glass", value: "2.8 sec" },
+  ],
+  keyframes: [
+    {
+      time: 0.0,
+      lebron: { x: 38, y: 8, elevation: 0 },
+      iguodala: { x: 42, y: 16 },
+      jrSmith: { x: 48, y: 36 },
+      ball: { x: 42, y: 16 },
+      annotation:
+        "Kyrie Irving misses a floater. Andre Iguodala secures the defensive rebound and ignites the Golden State 2-on-1.",
+      telemetry: { speed: "11.2 mph", distance: "88 ft", elevation: "0' 0\"" },
+    },
+    {
+      time: 0.7,
+      lebron: { x: 42, y: 26, elevation: 0 },
+      iguodala: { x: 44, y: 36 },
+      jrSmith: { x: 49, y: 52 },
+      ball: { x: 44, y: 36 },
+      annotation:
+        "LeBron crosses the half-court stripe, accelerating past everyone else on the floor.",
+      telemetry: { speed: "17.4 mph", distance: "68 ft", elevation: "0' 0\"" },
+    },
+    {
+      time: 1.4,
+      lebron: { x: 46, y: 48, elevation: 0 },
+      iguodala: { x: 47, y: 56 },
+      jrSmith: { x: 50, y: 68 },
+      ball: { x: 47, y: 56 },
+      annotation:
+        "LeBron reaches top sprint speed: 20.1 mph — faster than any sprint recorded in the entire 2016 Finals.",
+      telemetry: { speed: "20.1 mph", distance: "45 ft", elevation: "0' 0\"" },
+    },
+    {
+      time: 2.1,
+      lebron: { x: 48, y: 72, elevation: 0 },
+      iguodala: { x: 48, y: 74 },
+      jrSmith: { x: 51, y: 80 },
+      ball: { x: 48, y: 74 },
+      annotation:
+        "JR Smith retreats and contests straight up without fouling, forcing Iguodala to double-clutch and extend high.",
+      telemetry: { speed: "19.3 mph", distance: "21 ft", elevation: "0' 0\"" },
+    },
+    {
+      time: 2.5,
+      lebron: { x: 49, y: 83, elevation: 2.8 },
+      iguodala: { x: 49, y: 84 },
+      jrSmith: { x: 52, y: 85 },
+      ball: { x: 49, y: 85 },
+      annotation:
+        "LeBron launches off two feet outside the charge circle, rising toward the glass with eyes level with the rim.",
+      telemetry: { speed: "14.8 mph", distance: "8 ft", elevation: "8' 9\"" },
+    },
+    {
+      time: 2.8,
+      lebron: { x: 50, y: 87.5, elevation: 3.5 },
+      iguodala: { x: 49, y: 87.5 },
+      jrSmith: { x: 53, y: 87 },
+      ball: { x: 49.5, y: 87.5 },
+      annotation:
+        "“BLOCKED BY JAMES!” Both hands pin the ball flush against the backboard at eleven feet five inches.",
+      telemetry: { speed: "0.0 mph", distance: "0 ft", elevation: "11' 5\"" },
+    },
+  ] as BlockKeyframe[],
+} as const;
+
+/* ---------------------------------------------------------------------------
  * BASELINE — the footer
  * ------------------------------------------------------------------------- */
 
@@ -656,4 +752,5 @@ export const SECTIONS = [
   { id: "number", label: "Twenty-three" },
   { id: "shot", label: "Take the last shot" },
   { id: "nights", label: "Four nights" },
+  { id: "the-block", label: "The block" },
 ] as const;

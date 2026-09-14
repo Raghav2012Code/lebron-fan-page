@@ -8,6 +8,7 @@ import { TheLedger } from "@/components/the-ledger";
 import { TwentyThree } from "@/components/twenty-three";
 import { LastShot } from "@/components/last-shot";
 import { FourNights } from "@/components/four-nights";
+import { TheBlock } from "@/components/the-block";
 import { Baseline } from "@/components/baseline";
 
 export default function Page() {
@@ -22,6 +23,7 @@ export default function Page() {
       <TwentyThree />
       <LastShot />
       <FourNights />
+      <TheBlock />
       <Baseline />
     </CourtShell>
   );
