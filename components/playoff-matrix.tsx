@@ -262,7 +262,7 @@ export function PlayoffMatrix() {
 
         {/* Aggregate Headline Cards */}
         <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 rounded border border-rule bg-chalk/60 backdrop-blur-xs">
+          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">All-Time Series</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
               <Counter to={42} />–<Counter to={15} />
@@ -270,7 +270,7 @@ export function PlayoffMatrix() {
             <Caption className="text-muted mt-1 block">57 series • 73.7% Win Rate</Caption>
           </div>
 
-          <div className="p-4 rounded border border-rule bg-chalk/60 backdrop-blur-xs">
+          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Playoff Games</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
               <Counter to={302} />
@@ -278,7 +278,7 @@ export function PlayoffMatrix() {
             <Caption className="text-muted mt-1 block">182–120 • 60.3% game mark</Caption>
           </div>
 
-          <div className="p-4 rounded border border-rule bg-chalk/60 backdrop-blur-xs">
+          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Playoff Scoring</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
               <Counter to={8521} />
@@ -286,7 +286,7 @@ export function PlayoffMatrix() {
             <Caption className="text-muted mt-1 block">28.2 PPG • Most in history</Caption>
           </div>
 
-          <div className="p-4 rounded border border-rule bg-chalk/60 backdrop-blur-xs">
+          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Sweeps Mastery</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-gold mt-1">
               <Counter to={12} />W – <Counter to={4} />L
@@ -366,7 +366,7 @@ export function PlayoffMatrix() {
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="flex flex-wrap items-center gap-2">
                 {/* Outcome Toggle */}
-                <div role="group" aria-label="Outcome filter" className="inline-flex rounded border border-rule bg-chalk/80 p-0.5">
+                <div role="group" aria-label="Outcome filter" className="inline-flex rounded border border-rule bg-maple-deep/50 p-0.5">
                   <button
                     type="button"
                     onClick={() => setOutcomeFilter("ALL")}
@@ -408,7 +408,7 @@ export function PlayoffMatrix() {
                     "inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs narrow-bold transition-colors",
                     sweepsOnly
                       ? "bg-gold text-wine border-gold shadow-xs"
-                      : "bg-chalk/80 border-rule text-wine hover:border-wine",
+                      : "bg-maple-deep/40 border-rule text-wine hover:border-wine hover:bg-maple-deep/60",
                   )}
                 >
                   <span aria-hidden className="text-sm">★</span>
@@ -439,7 +439,7 @@ export function PlayoffMatrix() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search opponent, year..."
                   aria-label="Search playoff series"
-                  className="w-full px-3 py-1.5 rounded border border-rule bg-chalk text-wine text-xs narrow focus:border-wine focus:ring-1 focus:ring-wine outline-none"
+                  className="w-full px-3 py-1.5 rounded border border-rule bg-maple-deep/40 text-wine text-xs narrow placeholder:text-muted/70 focus:bg-maple-deep/60 focus:border-wine focus:ring-1 focus:ring-wine outline-none"
                 />
                 {searchQuery && (
                   <button
@@ -479,7 +479,7 @@ export function PlayoffMatrix() {
                     }}
                     className={cn(
                       "group relative flex flex-col justify-between p-4 rounded-md border text-left cursor-pointer transition-all duration-200",
-                      "bg-[#FBF7EF]/90 hover:bg-[#FBF7EF] border-rule hover:border-wine hover:shadow-md",
+                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine hover:shadow-md",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
                     whileHover={{ y: -2 }}
@@ -512,7 +512,7 @@ export function PlayoffMatrix() {
                           <span
                             className={cn(
                               "px-2 py-0.5 rounded text-xs narrow-bold",
-                              isWon ? "bg-wine text-chalk" : "bg-rule text-wine",
+                              isWon ? "bg-wine text-chalk" : "bg-wine/15 text-wine border border-wine/25",
                             )}
                           >
                             {series.result} {series.seriesScore ?? `${series.wins}–${series.losses}`}
@@ -532,7 +532,7 @@ export function PlayoffMatrix() {
                       </div>
 
                       {/* LeBron Series Slash Stats */}
-                      <div className="mt-3 p-2.5 rounded bg-maple/40 border border-rule/60">
+                      <div className="mt-3 p-2.5 rounded bg-maple-deep/60 border border-rule/50">
                         <div className="flex items-baseline justify-between text-wine">
                           <div className="flex items-baseline gap-1">
                             <span className="figure text-lg font-bold">
@@ -566,7 +566,7 @@ export function PlayoffMatrix() {
                     </div>
 
                     {/* Bottom Prompt */}
-                    <div className="mt-4 pt-2 border-t border-rule/40 flex items-center justify-between text-[0.6875rem] narrow text-muted group-hover:text-wine">
+                    <div className="mt-4 pt-2 border-t border-rule/40 flex items-center justify-between text-[0.6875rem] narrow text-muted group-hover:text-wine transition-colors">
                       <span>Inspect Series Box Score</span>
                       <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
                     </div>
@@ -577,7 +577,7 @@ export function PlayoffMatrix() {
 
             {/* Empty state */}
             {filteredSeries.length === 0 && (
-              <div className="p-12 text-center rounded-md border border-dashed border-rule bg-chalk/50">
+              <div className="p-12 text-center rounded-md border border-dashed border-rule bg-maple-deep/30">
                 <Caption bold className="text-wine text-base block">No series found matching these criteria</Caption>
                 <Caption className="text-muted mt-1 block">Try clearing the search query or resetting the filters.</Caption>
                 <button
@@ -635,7 +635,7 @@ export function PlayoffMatrix() {
                     }}
                     className={cn(
                       "group p-4 rounded-md border text-left cursor-pointer transition-all duration-150",
-                      "bg-chalk/90 hover:bg-chalk border-rule hover:border-wine hover:shadow-md",
+                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine hover:shadow-md",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
                   >
@@ -648,13 +648,13 @@ export function PlayoffMatrix() {
                           {f.years.join(", ")}
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded text-xs narrow-bold bg-maple text-wine border border-rule">
+                      <span className="px-2 py-0.5 rounded text-xs narrow-bold bg-maple-deep/70 text-wine border border-rule">
                         {f.abbr}
                       </span>
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="mt-4 grid grid-cols-3 gap-2 p-2 rounded bg-maple/40 border border-rule/60">
+                    <div className="mt-4 grid grid-cols-3 gap-2 p-2 rounded bg-maple-deep/60 border border-rule/50">
                       <div>
                         <Caption className="text-muted block text-[0.6875rem]">Series</Caption>
                         <div className={cn("figure text-base font-bold", hasWonSeries ? "text-wine" : isTied ? "text-muted" : "text-leather")}>
