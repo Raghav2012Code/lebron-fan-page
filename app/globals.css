@@ -55,8 +55,8 @@
   --color-background: var(--maple);
   --color-foreground: var(--wine);
 
-  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
-  --font-text: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-display), "Oswald", "Helvetica Neue", Arial, sans-serif;
+  --font-text: var(--font-text), "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -82,54 +82,56 @@ body {
 }
 
 /* --- Type -----------------------------------------------------------------
-   One variable family, two widths. `wdth` is loaded as an extra axis in
-   layout.tsx; if it ever fails to load the settings are simply ignored and
-   the weights still hold, so nothing breaks.
+   Oswald carries monument lettering, headlines, and arena scoreboard figures.
+   Plus Jakarta Sans carries editorial copy, captions, and data strings.
    ------------------------------------------------------------------------ */
 
 .monument {
   font-family: var(--font-display);
-  font-variation-settings: "wdth" 118, "wght" 860;
-  letter-spacing: -0.022em;
-  line-height: 0.84;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+  line-height: 0.88;
 }
 
 .headline {
   font-family: var(--font-display);
-  font-variation-settings: "wdth" 112, "wght" 760;
-  letter-spacing: -0.018em;
-  line-height: 0.92;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
 }
 
 .figure {
   font-family: var(--font-display);
-  font-variation-settings: "wdth" 108, "wght" 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  line-height: 0.82;
+  letter-spacing: -0.01em;
+  line-height: 0.88;
 }
 
-/* The narrow cut carries every label, caption and data string on the site.
-   It is what replaces the tracked-out monospace this design started from. */
+/* Captions and labels use crisp geometric styling */
 .narrow {
-  font-family: var(--font-display);
-  font-variation-settings: "wdth" 74, "wght" 560;
-  letter-spacing: 0.012em;
+  font-family: var(--font-text);
+  font-weight: 600;
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
 }
 
 .narrow-bold {
-  font-family: var(--font-display);
-  font-variation-settings: "wdth" 74, "wght" 760;
-  letter-spacing: 0.012em;
+  font-family: var(--font-text);
+  font-weight: 700;
+  letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
 }
 
 .prose-copy {
   font-family: var(--font-text);
-  font-variation-settings: "opsz" 20;
-  line-height: 1.62;
-  max-width: 62ch;
+  font-weight: 400;
+  line-height: 1.68;
+  letter-spacing: -0.01em;
+  max-width: 64ch;
 }
 
 /* --- Floor ----------------------------------------------------------------
@@ -191,7 +193,9 @@ body {
   color: var(--chalk);
   padding: 0.6rem 1rem;
   font-family: var(--font-display);
-  font-variation-settings: "wdth" 74, "wght" 760;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   font-size: 0.8125rem;
   transition: top 0.2s ease;
 }

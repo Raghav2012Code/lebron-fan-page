@@ -286,7 +286,7 @@ export function ShotZones() {
                     fill={isSelected || isHovered ? "var(--gold)" : "var(--chalk)"}
                     fontSize={zone.id === "restricted" ? "15" : "13"}
                     fontWeight="800"
-                    fontFamily="var(--font-archivo), sans-serif"
+                    fontFamily="var(--font-display), sans-serif"
                     className="select-none tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
                   >
                     {zoneData?.fgPct.toFixed(1)}%

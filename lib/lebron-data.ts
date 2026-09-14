@@ -1600,7 +1600,7 @@ export const BASELINE = {
   disclaimer:
     "Not affiliated with LeBron James, the NBA, the Los Angeles Lakers, the Cleveland Cavaliers, the Miami Heat, or USA Basketball. All trademarks belong to their respective owners.",
   credits: [
-    "Set in Archivo and Newsreader",
+    "Set in Oswald and Plus Jakarta Sans",
     "Original type-led artwork, no photography",
   ],
   identity: ["The King, No. 23", "Akron, Ohio, born 1984"],

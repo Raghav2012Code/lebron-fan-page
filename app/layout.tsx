@@ -1,24 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Newsreader } from "next/font/google";
+import { Oswald, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-/**
- * One display family taken to two width extremes, so `wdth` is loaded as an
- * extra variable axis alongside weight. Newsreader carries the reading copy
- * and brings its optical-size axis with it.
- */
-const archivo = Archivo({
+const oswald = Oswald({
   subsets: ["latin"],
-  axes: ["wdth"],
-  variable: "--font-archivo",
+  variable: "--font-display",
   display: "swap",
 });
 
-const newsreader = Newsreader({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  axes: ["opsz"],
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
+  variable: "--font-text",
   display: "swap",
 });
 
@@ -43,7 +35,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${archivo.variable} ${newsreader.variable} h-full antialiased`}
+      className={`${oswald.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <a href="#main" className="skip-link">

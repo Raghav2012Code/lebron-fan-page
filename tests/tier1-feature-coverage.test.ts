@@ -429,8 +429,8 @@ describe("Tier 1: Feature Coverage Suite", () => {
     assert.ok(expectedRoles.includes("tab"));
     assert.ok(expectedRoles.includes("region"));
 
-    // Typography rules: Archivo for monument/figures, Newsreader for editorial copy
-    assert.strictEqual(HARDWOOD_TOKENS.typography.headings, "Archivo");
-    assert.strictEqual(HARDWOOD_TOKENS.typography.prose, "Newsreader");
+    // Typography rules: Oswald for monument/figures, Plus Jakarta Sans for editorial copy
+    assert.strictEqual(HARDWOOD_TOKENS.typography.headings, "Oswald");
+    assert.strictEqual(HARDWOOD_TOKENS.typography.prose, "Plus Jakarta Sans");
   });
 });

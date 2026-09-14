@@ -17,8 +17,8 @@ export const HARDWOOD_TOKENS = {
     ochre: "#A2670F",
   },
   typography: {
-    headings: "Archivo",
-    prose: "Newsreader",
+    headings: "Oswald",
+    prose: "Plus Jakarta Sans",
     figuresTabular: "tabular-nums",
   },
   courtGeometry: {
