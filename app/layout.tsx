@@ -25,7 +25,7 @@ const newsreader = Newsreader({
 export const metadata: Metadata = {
   title: "The King — an unofficial LeBron James tribute",
   description:
-    "An unofficial fan tribute to LeBron James: twenty-two seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
+    "An unofficial fan tribute to LeBron James: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
   robots: { index: false, follow: false },
 };
 
@@ -34,10 +34,15 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${archivo.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="min-h-full">

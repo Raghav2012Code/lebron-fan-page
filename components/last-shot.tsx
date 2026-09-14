@@ -193,6 +193,7 @@ export function LastShot() {
         ballX.set(ORIGIN.x);
         ballY.set(ORIGIN.y);
         ballRotate.set(0);
+        ballScale.set(1);
         setPhaseSync("ready");
       }, 900);
 

@@ -15,14 +15,21 @@ import * as React from "react";
  */
 const QUERY = "(prefers-reduced-motion: reduce)";
 
+function subscribe(cb: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(QUERY);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+function getSnapshot() {
+  return window.matchMedia(QUERY).matches;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 export function usePrefersReducedMotion() {
-  return React.useSyncExternalStore(
-    (cb) => {
-      const mq = window.matchMedia(QUERY);
-      mq.addEventListener("change", cb);
-      return () => mq.removeEventListener("change", cb);
-    },
-    () => window.matchMedia(QUERY).matches,
-    () => false,
-  );
+  return React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -1,6 +1,6 @@
 # The King — a LeBron James fan tribute
 
-An unofficial, single-page tribute to LeBron James: twenty-two seasons, four titles, four MVPs, and the first forty thousand points anyone has scored. Built with Next.js (App Router), React 19, Tailwind CSS v4 and Framer Motion.
+An unofficial, single-page tribute to LeBron James: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored. Built with Next.js (App Router), React 19, Tailwind CSS v4 and Framer Motion.
 
 ## Design direction
 

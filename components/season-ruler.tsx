@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { Caption, PaintRule, RiseWords } from "@/components/typeset";
 
 /**
- * The span. Twenty-two seasons on one line, with every championship, MVP and
+ * The span. Twenty-three seasons on one line, with every championship, MVP and
  * Olympic summer marked in place.
  *
  * This replaces the scrolling marquee the site used to open with. A marquee
@@ -153,7 +153,7 @@ export function SeasonRuler() {
         <div className="mt-14">
           <motion.div
             role="radiogroup"
-            aria-label="Seasons, 2003-04 to 2024-25. Choose a season to read what happened in it."
+            aria-label={`Seasons, ${SEASONS[0].label} to ${SEASONS[SEASONS.length - 1].label}. Choose a season to read what happened in it.`}
             onKeyDown={onKeyDown}
             className="flex w-full items-end gap-[2px] sm:gap-[3px]"
             initial="hidden"
@@ -178,6 +178,7 @@ export function SeasonRuler() {
                   tabIndex={active ? 0 : -1}
                   onClick={() => setIndex(i)}
                   onMouseEnter={() => setIndex(i)}
+                  onFocus={() => setIndex(i)}
                   aria-label={`${season.label}, ${season.team.club}${
                     honoursFor(season).length
                       ? `. ${honoursFor(season).join(". ")}`
