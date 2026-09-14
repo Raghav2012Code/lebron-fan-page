@@ -7,6 +7,7 @@ import { TheRooms } from "@/components/the-rooms";
 import { FatherAndSon } from "@/components/father-and-son";
 import { TheLedger } from "@/components/the-ledger";
 import { ShotZones } from "@/components/shot-zones";
+import { EraCompare } from "@/components/era-compare";
 import { TwentyThree } from "@/components/twenty-three";
 import { LastShot } from "@/components/last-shot";
 import { FourNights } from "@/components/four-nights";
@@ -24,6 +25,7 @@ export default function Page() {
       <FatherAndSon />
       <TheLedger />
       <ShotZones />
+      <EraCompare />
       <TwentyThree />
       <LastShot />
       <FourNights />
