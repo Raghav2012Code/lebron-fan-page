@@ -1520,6 +1520,77 @@ export const ERA_COMPARE_INTRO = {
 } as const;
 
 /* ---------------------------------------------------------------------------
+ * ROAD TO 50,000 — Dynamic Pace & Milestone Projection Model
+ * ------------------------------------------------------------------------- */
+
+export interface MilestoneTarget {
+  id: string;
+  target: number;
+  label: string;
+  desc: string;
+  type: "regular" | "combined";
+}
+
+export interface PacePreset {
+  name: string;
+  ppg: number;
+  gamesPerYear: number;
+  narrative: string;
+}
+
+export const MILESTONE_CALC_DATA = {
+  heading: "Road to 50,000",
+  subheading: "Projecting the outer frontier of career scoring.",
+  copy: "At 43,440 regular-season points and 51,729 combined career points, LeBron occupies territory no basketball player has ever approached. Adjust the scoring pace and games per season to project the exact timeline to 45,000, 50,000, and beyond.",
+  currentRegular: 43440,
+  currentPlayoffs: 8289,
+  currentCombined: 51729,
+  milestones: [
+    {
+      id: "45k",
+      target: 45000,
+      label: "45,000 Regular Season",
+      desc: "The next unscaled summit in NBA history",
+      type: "regular",
+    },
+    {
+      id: "55k-comb",
+      target: 55000,
+      label: "55,000 Combined Points",
+      desc: "Regular season plus playoff career total",
+      type: "combined",
+    },
+    {
+      id: "50k",
+      target: 50000,
+      label: "50,000 Regular Season",
+      desc: "The mythical half-century milestone",
+      type: "regular",
+    },
+  ] as readonly MilestoneTarget[],
+  presets: [
+    {
+      name: "Current Rhythm",
+      ppg: 22.5,
+      gamesPerYear: 65,
+      narrative: "Calibrated late-career output with managed rest",
+    },
+    {
+      name: "Longevity Reserve",
+      ppg: 18.0,
+      gamesPerYear: 55,
+      narrative: "Reduced usage as pure playmaking facilitator",
+    },
+    {
+      name: "Vintage Attack",
+      ppg: 26.0,
+      gamesPerYear: 70,
+      narrative: "High-volume carrying load defying the aging curve",
+    },
+  ] as readonly PacePreset[],
+} as const;
+
+/* ---------------------------------------------------------------------------
  * BASELINE — the footer
  * ------------------------------------------------------------------------- */
 
@@ -1538,6 +1609,7 @@ export const BASELINE = {
 export const SECTIONS = [
   { id: "span", label: "The span" },
   { id: "hardware", label: "Hardware" },
+  { id: "calculator", label: "Road to 50k" },
   { id: "line", label: "The line" },
   { id: "rooms", label: "The rooms" },
   { id: "father-son", label: "Father & son" },
