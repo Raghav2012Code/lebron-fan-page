@@ -2,7 +2,6 @@ import { CourtShell } from "@/components/court-shell";
 import { CenterCourt } from "@/components/center-court";
 import { SeasonRuler } from "@/components/season-ruler";
 import { HonoursBoard } from "@/components/honours-board";
-import { MilestoneCalculator } from "@/components/milestone-calculator";
 import { TheLine } from "@/components/the-line";
 import { TheRooms } from "@/components/the-rooms";
 import { FatherAndSon } from "@/components/father-and-son";
@@ -22,7 +21,6 @@ export default function Page() {
       <CenterCourt />
       <SeasonRuler />
       <HonoursBoard />
-      <MilestoneCalculator />
       <TheLine />
       <TheRooms />
       <FatherAndSon />

@@ -1609,7 +1609,6 @@ export const BASELINE = {
 export const SECTIONS = [
   { id: "span", label: "The span" },
   { id: "hardware", label: "Hardware" },
-  { id: "calculator", label: "Road to 50k" },
   { id: "line", label: "The line" },
   { id: "rooms", label: "The rooms" },
   { id: "father-son", label: "Father & son" },
