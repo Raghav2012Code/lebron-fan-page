@@ -4,6 +4,7 @@ import { SeasonRuler } from "@/components/season-ruler";
 import { HonoursBoard } from "@/components/honours-board";
 import { TheLine } from "@/components/the-line";
 import { TheRooms } from "@/components/the-rooms";
+import { FatherAndSon } from "@/components/father-and-son";
 import { TheLedger } from "@/components/the-ledger";
 import { ShotZones } from "@/components/shot-zones";
 import { TwentyThree } from "@/components/twenty-three";
@@ -20,6 +21,7 @@ export default function Page() {
       <HonoursBoard />
       <TheLine />
       <TheRooms />
+      <FatherAndSon />
       <TheLedger />
       <ShotZones />
       <TwentyThree />
