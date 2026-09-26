@@ -58,3 +58,18 @@ The page must stay readable and truthful with JS disabled. Two rules follow from
 - Anything animated by Framer carries a `data-reveal` attribute. `app/globals.css` uses it to land the element in its final position under `prefers-reduced-motion: reduce`, because Framer's own `reducedMotion` only suppresses transform keys and leaves `opacity` and stagger delays running.
 - **Counters must render their final value, not their start value.** `Counter` seeds the DOM with `to` and animates *from* `from` after hydration. Seeding it with `from` shipped every statistic on the page as a literal `0`.
 - Any section whose content is gated behind scroll-linked state needs a `<noscript>` fallback.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked as GitHub issues on `origin` (Raghav2012Code/lebron-fan-page); the `upstream` remote is the fork source and is not a tracker. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles, using their default strings (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`); a separate severity/ordering vocabulary also exists and does not collide with them. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` plus `docs/adr/` at the repo root, created lazily by `/domain-modeling` when terms or decisions actually get resolved. See `docs/agents/domain.md`.
+
