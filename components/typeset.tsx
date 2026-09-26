@@ -95,15 +95,30 @@ export function Counter({
       onUpdate: (v) => {
         node.textContent = formatNumber(v, decimals);
       },
+      // Without this an interrupted count freezes on whatever intermediate
+      // value it had reached and the cleanup below retains it, so the figure
+      // stays wrong permanently rather than merely un-animated.
+      onComplete: () => {
+        node.textContent = formatNumber(to, decimals);
+      },
     });
     controlsRef.current = controls;
-    return () => controls.stop();
+    return () => {
+      controls.stop();
+      // Guarantee the final value survives any stop, mid-flight or not.
+      if (node.isConnected) node.textContent = formatNumber(to, decimals);
+    };
   }, [inView, to, from, animDuration, decimals, reduce, countKey]);
 
   return (
-    <span className={className}>
+    <span className={cn(className)}>
       {prefix}
-      <span ref={ref}>{formatNumber(from, decimals)}</span>
+      {/* The server has no IntersectionObserver and no animation clock, so
+          the value it can honestly render is the FINAL one. Seeding this with
+          `from` shipped every statistic on the page as a literal 0 to any
+          client without JS. The count still animates from `from` once
+          hydrated, because the effect writes to this same node. */}
+      <span ref={ref}>{formatNumber(to, decimals)}</span>
       {suffix}
     </span>
   );
@@ -132,6 +147,7 @@ export function RiseLine({
   const Wrapper = as === "div" ? motion.div : motion.span;
   return (
     <Wrapper
+      data-reveal=""
       className={cn("inline-flex overflow-hidden", className)}
       style={{ paddingBottom: "0.1em" }}
       initial="hidden"
@@ -180,6 +196,7 @@ export function RiseWords({
       <span className="sr-only">{text}</span>
       <motion.span
         aria-hidden
+        data-reveal=""
         className={cn("inline-flex flex-wrap", className)}
         variants={container}
         initial="hidden"
@@ -227,7 +244,12 @@ export function PaintedName({
   style?: React.CSSProperties;
 }) {
   return (
-    <span aria-hidden className={cn("inline-flex", className)} style={style}>
+    <span
+      aria-hidden
+      data-reveal=""
+      className={cn("inline-flex", className)}
+      style={style}
+    >
       {Array.from(word).map((c, i) => (
         <span
           key={i}
@@ -274,6 +296,7 @@ export function PaintRule({
   return (
     <motion.span
       aria-hidden
+      data-reveal=""
       className={cn("block w-full", className)}
       style={{
         height: thickness,

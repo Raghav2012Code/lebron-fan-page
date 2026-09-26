@@ -24,7 +24,28 @@ const BASKET_Y = H - 52.5;
 const ARC_TOP = 180; // 417.5 - 237.5
 
 /** three-point line: up the corners, then the arc */
-const THREE = `M 30 ${H} L 30 330 A 237.5 237.5 0 0 0 470 330 L 470 ${H}`;
+/* Three-point line: 14ft straight up from the baseline in the corners, then
+   an arc of 237.5 units (23ft 9in) centred on the basket.
+   The sweep flag MUST be 1. With 0 the browser resolves the arc against the
+   other possible centre — (250, 240.52) instead of the basket at
+   (250, 417.5) — so the line bows away from the hoop and dips ~8 units
+   *below* the baseline, where both viewBoxes clip it. */
+const THREE = `M 30 ${H} L 30 328.02 A 237.5 237.5 0 0 1 470 328.02 L 470 ${H}`;
+
+/**
+ * Aspect ratio of the default `paint` cut, as a CSS `aspect-ratio` value.
+ *
+ * Export it because the ratio is the thing consumers get wrong. A box that
+ * frames the court at the wrong ratio makes `preserveAspectRatio="meet"`
+ * letterbox the drawing and pin it to one edge — the court is complete but
+ * reads as a fragment. Size on this and the fit is exact by construction.
+ *
+ * Note it is `aspect-ratio` on a plain block, not on the `<svg>`: an inline
+ * SVG with `width: auto` resolves to `100%` of its containing block rather
+ * than deriving from its own viewBox, so setting the ratio on the wrapper and
+ * filling it is the only reliable arrangement.
+ */
+export const COURT_PAINT_ASPECT = `${W} / ${H - (ARC_TOP - 14)}`;
 
 export function CourtDiagram({
   className,

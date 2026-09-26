@@ -41,7 +41,7 @@ function MetricRow({
   const pctB = 100 - pctA;
 
   return (
-    <div className="group border-b border-rule py-3 transition-colors hover:bg-maple-dark/30">
+    <div className="group border-b border-rule py-3 transition-colors hover:bg-maple-shadow/30">
       <div className="flex items-center justify-between gap-4 text-xs font-mono uppercase tracking-wider text-muted">
         <span
           className={cn(
@@ -51,14 +51,20 @@ function MetricRow({
         >
           {displayA}
           {aWins && (
-            <span className="ml-1.5 inline-block text-[0.6875rem] font-mono font-bold text-leather">
-              ▲
+            <span className="ml-1.5 inline-block text-[0.6875rem] font-mono font-bold text-wine">
+              <span aria-hidden>▲</span>
+              <span className="sr-only">
+                {" "}
+                {higherIsBetter ? "higher" : "lower"} by{" "}
+                {Math.abs(diff)}
+              </span>
             </span>
           )}
         </span>
 
         <span className="text-center text-xs font-semibold normal-case text-ink font-sans">
           {label}
+          {isTie && <span className="sr-only">, tied</span>}
         </span>
 
         <span
@@ -68,8 +74,13 @@ function MetricRow({
           )}
         >
           {bWins && (
-            <span className="mr-1.5 inline-block text-[0.6875rem] font-mono font-bold text-leather">
-              ▲
+            <span className="mr-1.5 inline-block text-[0.6875rem] font-mono font-bold text-wine">
+              <span aria-hidden>▲</span>
+              <span className="sr-only">
+                {" "}
+                {higherIsBetter ? "higher" : "lower"} by{" "}
+                {Math.abs(diff)}
+              </span>
             </span>
           )}
           {displayB}
@@ -77,14 +88,14 @@ function MetricRow({
       </div>
 
       {/* Visual differential balance bar */}
-      <div className="mt-2 flex h-2 w-full overflow-hidden bg-maple-dark/50">
+      <div className="mt-2 flex h-2 w-full overflow-hidden bg-maple-shadow/40">
         <motion.div
           initial={{ width: "50%" }}
           animate={{ width: `${pctA}%` }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className={cn(
             "h-full transition-colors",
-            aWins ? "bg-wine" : isTie ? "bg-muted/40" : "bg-maple-dark",
+            aWins ? "bg-wine" : isTie ? "bg-muted/40" : "bg-maple-shadow",
           )}
         />
         <motion.div
@@ -93,7 +104,7 @@ function MetricRow({
           transition={{ duration: 0.4, ease: "easeOut" }}
           className={cn(
             "h-full transition-colors",
-            bWins ? "bg-gold" : isTie ? "bg-muted/40" : "bg-maple-dark",
+            bWins ? "bg-gold" : isTie ? "bg-muted/40" : "bg-maple-shadow",
           )}
         />
       </div>
@@ -134,7 +145,7 @@ export function EraCompare() {
       {/* --- Dual Peak Selectors --- */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* ERA A SELECTOR CARD */}
-        <div className="border-2 border-wine bg-maple-light/40 p-6 shadow-md">
+        <div className="border-2 border-wine bg-maple-deep/40 p-6 shadow-md">
           <div className="flex items-center justify-between">
             <span className="bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
               Profile A
@@ -151,18 +162,37 @@ export function EraCompare() {
             >
               Select Peak Season:
             </label>
-            <select
-              id="era-a-select"
-              value={eraAId}
-              onChange={(e) => setEraAId(e.target.value)}
-              className="mt-1.5 w-full cursor-pointer border border-rule bg-chalk px-3 py-2 text-base font-bold text-wine shadow-inner focus:border-wine focus:outline-none"
-            >
-              {PEAK_ERAS.map((e) => (
-                <option key={`a-${e.id}`} value={e.id}>
-                  {e.seasonLabel} ({e.city}) — {e.name}
-                </option>
-              ))}
-            </select>
+            {/* Native <select> is the right control here — real keyboard
+                semantics and a mobile wheel picker, neither of which a
+                custom listbox would preserve. It is restyled to the house
+                palette instead: `bg-chalk` is the stark-white card treatment
+                AGENTS.md forbids on the maple floor, and the OS chevron was
+                the only non-hand-drawn control on the page. */}
+            <div className="relative mt-1.5">
+              <select
+                id="era-a-select"
+                value={eraAId}
+                onChange={(e) => setEraAId(e.target.value)}
+                className="w-full cursor-pointer appearance-none border border-rule bg-maple-deep/50 px-3 py-2 pr-9 text-base font-bold text-wine focus:border-wine focus:outline-none"
+              >
+                {PEAK_ERAS.map((e) => (
+                  <option
+                    key={`a-${e.id}`}
+                    value={e.id}
+                    disabled={e.id === eraBId}
+                  >
+                    {e.seasonLabel} ({e.city}) — {e.name}
+                  </option>
+                ))}
+              </select>
+              <svg
+                aria-hidden
+                viewBox="0 0 12 8"
+                className="pointer-events-none absolute right-3 top-1/2 h-2 w-3 -translate-y-1/2 fill-none stroke-wine stroke-2"
+              >
+                <path d="M1 1.5L6 6.5L11 1.5" />
+              </svg>
+            </div>
           </div>
 
           <div className="mt-4 border-t border-rule pt-3">
@@ -177,7 +207,7 @@ export function EraCompare() {
         </div>
 
         {/* ERA B SELECTOR CARD */}
-        <div className="border-2 border-gold bg-maple-light/40 p-6 shadow-md">
+        <div className="border-2 border-gold bg-maple-deep/40 p-6 shadow-md">
           <div className="flex items-center justify-between">
             <span className="bg-gold px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-wine-deep font-mono">
               Profile B
@@ -194,18 +224,31 @@ export function EraCompare() {
             >
               Select Peak Season:
             </label>
-            <select
-              id="era-b-select"
-              value={eraBId}
-              onChange={(e) => setEraBId(e.target.value)}
-              className="mt-1.5 w-full cursor-pointer border border-rule bg-chalk px-3 py-2 text-base font-bold text-wine shadow-inner focus:border-gold focus:outline-none"
-            >
-              {PEAK_ERAS.map((e) => (
-                <option key={`b-${e.id}`} value={e.id}>
-                  {e.seasonLabel} ({e.city}) — {e.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative mt-1.5">
+              <select
+                id="era-b-select"
+                value={eraBId}
+                onChange={(e) => setEraBId(e.target.value)}
+                className="w-full cursor-pointer appearance-none border border-rule bg-maple-deep/50 px-3 py-2 pr-9 text-base font-bold text-wine focus:border-gold focus:outline-none"
+              >
+                {PEAK_ERAS.map((e) => (
+                  <option
+                    key={`b-${e.id}`}
+                    value={e.id}
+                    disabled={e.id === eraAId}
+                  >
+                    {e.seasonLabel} ({e.city}) — {e.name}
+                  </option>
+                ))}
+              </select>
+              <svg
+                aria-hidden
+                viewBox="0 0 12 8"
+                className="pointer-events-none absolute right-3 top-1/2 h-2 w-3 -translate-y-1/2 fill-none stroke-wine stroke-2"
+              >
+                <path d="M1 1.5L6 6.5L11 1.5" />
+              </svg>
+            </div>
           </div>
 
           <div className="mt-4 border-t border-rule pt-3">
@@ -221,7 +264,7 @@ export function EraCompare() {
       </div>
 
       {/* --- Head-to-Head Comparative Metric Rows --- */}
-      <div className="mt-10 border border-rule bg-maple-light/30 p-6 sm:p-8">
+      <div className="mt-10 border border-rule bg-maple-deep/40 p-6 sm:p-8">
         <div className="flex items-center justify-between border-b border-rule pb-4">
           <span className="font-mono text-xs font-bold uppercase text-wine">
             {eraA.seasonLabel} ({eraA.city})
@@ -336,7 +379,7 @@ export function EraCompare() {
 
       {/* --- Hardware & Accolades Showdown --- */}
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="border border-rule bg-maple-light/40 p-6">
+        <div className="border border-rule bg-maple-deep/40 p-6">
           <Caption bold className="text-wine">
             {eraA.seasonLabel} Hardware & Accolades
           </Caption>
@@ -350,7 +393,7 @@ export function EraCompare() {
           </ul>
         </div>
 
-        <div className="border border-rule bg-maple-light/40 p-6">
+        <div className="border border-rule bg-maple-deep/40 p-6">
           <Caption bold className="text-leather">
             {eraB.seasonLabel} Hardware & Accolades
           </Caption>

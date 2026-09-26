@@ -35,7 +35,14 @@ function readBest() {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return 0;
     const parsed = JSON.parse(raw) as { best?: number };
-    return typeof parsed.best === "number" ? parsed.best : 0;
+    // Validate the DOMAIN as well as the type: a hand-edited or half-written
+    // value used to render verbatim, so `{"best":-5}` displayed -5 in the
+    // BEST STREAK tile and `{"best":3.7}` displayed 3.7.
+    return typeof parsed.best === "number" &&
+      Number.isInteger(parsed.best) &&
+      parsed.best >= 0
+      ? parsed.best
+      : 0;
   } catch {
     return 0;
   }
@@ -92,10 +99,13 @@ export function LastShot() {
 
   const [phase, setPhase] = React.useState<Phase>("ready");
   const phaseRef = React.useRef<Phase>("ready");
-  const setPhaseSync = (p: Phase) => {
+  // Wrapped so the two `useCallback`s that call it can list it as a
+  // dependency. It closes over nothing unstable (a ref and a setState), so
+  // the identity is stable for the component's lifetime.
+  const setPhaseSync = React.useCallback((p: Phase) => {
     phaseRef.current = p;
     setPhase(p);
-  };
+  }, []);
 
   // Session counters live in refs; a small display state drives the animated
   // readouts. Personal best is external (localStorage) state.
@@ -211,7 +221,7 @@ export function LastShot() {
       resultTimer.current = t2;
       timers.current.push(t1, t2);
     },
-    [ballRotate, ballScale, ballX, ballY, play],
+    [ballRotate, ballScale, ballX, ballY, play, setPhaseSync],
   );
 
   const shoot = React.useCallback(() => {
@@ -272,7 +282,7 @@ export function LastShot() {
         ease: "linear",
       });
     }
-  }, [aim, ballRotate, ballX, ballY, finish, power, reduce]);
+  }, [aim, ballRotate, ballX, ballY, finish, power, reduce, setPhaseSync]);
 
   const handlePointer = (e: React.PointerEvent) => {
     const el = courtRef.current;

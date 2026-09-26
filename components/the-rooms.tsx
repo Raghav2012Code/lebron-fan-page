@@ -46,8 +46,14 @@ function RoomPanel({
   // middle of every transition. Here each panel sits still and legible for
   // most of its stretch, then leaves sideways while the floor is repainted
   // and the next one arrives — so nothing is ever read through anything else.
-  const seg = 1 / (N - 1);
-  const center = i * seg;
+  // `seg` is 1/N, not 1/(N-1), so every chapter gets an EQUAL share of the
+  // pin. With 1/(N-1) the first chapter's window was centred on progress 0 —
+  // the first reachable value — which put its entire fade-IN range below 0
+  // (unreachable, so Akron never slid in) and gave it half the scroll
+  // distance of every other chapter. The last chapter's exit range is
+  // likewise allowed to run past 1, which is unreachable by design.
+  const seg = 1 / N;
+  const center = (i + 0.5) * seg;
   const range = [
     center - seg * 0.5,
     center - seg * REST_RATIO,
@@ -71,7 +77,11 @@ function RoomPanel({
       style={{ opacity, color: room.type }}
     >
       <motion.div className="max-w-2xl" style={{ x }}>
-        <Caption bold style={{ color: room.paint }}>
+        {/* Uses `room.type` (the chalk/white text token) rather than
+            `room.paint`: Miami's paint (#E8761E) measured 3.58:1 on its own
+            #7A1810 floor, below the 4.5:1 that 13px bold text requires. The
+            years label is small, so it takes the high-contrast token. */}
+        <Caption bold style={{ color: room.type }}>
           {room.years}
         </Caption>
         <h3
@@ -175,7 +185,13 @@ function PinnedRooms() {
         />
 
         <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-center px-5 sm:px-8 md:px-14">
-          <div className="relative h-[64vh] overflow-hidden">
+          {/* Was a hard `h-[64vh] overflow-hidden`, which silently destroyed
+              body copy on any viewport shorter than ~714px — including the
+              ~660-700px a 1366x768 laptop actually has after browser chrome.
+              Content height is driven by `vw` clamps, not by viewport height,
+              so a fixed vh box cannot contain it. `min-h` + overflow-y lets
+              the panel scroll instead of truncating mid-sentence. */}
+          <div className="relative max-h-[86vh] min-h-[64vh] overflow-y-auto overscroll-contain">
             {ROOMS.map((room, i) => (
               <RoomPanel
                 key={room.id}
@@ -210,11 +226,15 @@ function PinnedRooms() {
                 }}
               />
               <span className="hidden sm:block">
+                {/* Stacking a 0.72-alpha `dim` colour with a further
+                    `opacity: 0.55` gave an effective alpha of ~0.40 and
+                    measured 2.33-3.37:1 on every floor — below AA for 13px.
+                    The full-opacity token carries the de-emphasis instead. */}
                 <Caption
                   className="truncate transition-opacity"
                   style={{
-                    color: ROOMS[active].dim,
-                    opacity: i === active ? 1 : 0.55,
+                    color: ROOMS[active].type,
+                    opacity: i === active ? 1 : 0.72,
                   }}
                 >
                   {room.name}
@@ -348,7 +368,14 @@ export function TheRooms() {
         </div>
       ) : (
         <>
-          <div className="hidden lg:block">
+          {/* Both branches stay in the DOM. The stacked copy used to be
+              `lg:hidden`, so at desktop it was display:none while Framer had
+              serialised the other five pinned panels as `opacity: 0` — a
+              visitor without JS got one of six chapters and no way to reach
+              the rest. The stacked copy is now visually hidden but present,
+              and the pinned panels carry `data-reveal`, which globals.css
+              lands in their final position when motion is reduced. */}
+          <div className="hidden lg:block" aria-hidden="true">
             <PinnedRooms />
           </div>
           <div className="lg:hidden">
@@ -358,6 +385,13 @@ export function TheRooms() {
           </div>
         </>
       )}
+      <noscript>
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 md:px-14">
+          {ROOMS.map((room) => (
+            <StackedRoom key={room.id} room={room} />
+          ))}
+        </div>
+      </noscript>
     </section>
   );
 }

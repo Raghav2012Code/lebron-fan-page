@@ -57,7 +57,7 @@ function Accumulation({
       </div>
 
       <motion.div
-        className="mt-4 flex h-24 w-full overflow-hidden sm:h-28"
+        className="mt-4 flex h-24 w-full sm:h-28"
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.4 }}
@@ -83,9 +83,14 @@ function Accumulation({
                 }
               }}
               className={cn(
-                "group relative min-w-0 cursor-pointer overflow-hidden transition-all duration-200",
+                "group relative min-w-0 cursor-pointer transition-all duration-200",
                 "hover:brightness-110",
-                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2 focus-visible:z-10",
+                // `on-paint` so the ring inverts: a --wine outline on a wine
+                // fill is a 1:1 match and reads as no indicator at all. The
+                // container also no longer clips, so the ring is not cut off
+                // on the top and bottom edges; the paint span below carries
+                // the rounding instead.
+                "on-paint focus-visible:outline focus-visible:outline-2 focus-visible:outline-chalk focus-visible:outline-offset-[-2px] focus-visible:z-10",
               )}
               style={{ flexGrow: stint.scored, flexBasis: 0 }}
             >
@@ -93,7 +98,7 @@ function Accumulation({
                   gets squashed while the bar is being laid down */}
               <motion.span
                 aria-hidden
-                className="absolute inset-0 origin-left"
+                className="absolute inset-0 origin-left overflow-hidden"
                 style={{ backgroundColor: colourFor(stint.id) }}
                 variants={{
                   hidden: { scaleX: 0 },
@@ -112,10 +117,15 @@ function Accumulation({
                 animate={{ opacity: on ? 1 : 0 }}
                 transition={{ duration: 0.25, ease: EASE_SETTLE }}
               />
-              <span className="absolute inset-x-2 bottom-2 truncate">
+              {/* The label width is dictated by the stint's share of the
+                  career total, so the smallest segments get the narrowest
+                  boxes — exactly backwards from what fits a 6-character
+                  figure. Dropping `truncate` lets the type scale down
+                  instead of being cut off. */}
+              <span className="absolute inset-x-1 bottom-2 sm:inset-x-2">
                 <Caption
                   bold
-                  className="text-chalk transition-opacity duration-200 group-hover:opacity-100"
+                  className="block text-chalk text-[0.625rem] sm:text-[0.8125rem] transition-opacity duration-200 group-hover:opacity-100 [font-size:clamp(0.5rem,2.1vw,0.8125rem)]"
                   style={{ opacity: on ? 1 : 0.72 }}
                 >
                   {stint.scored.toLocaleString("en-US")}
@@ -131,10 +141,10 @@ function Accumulation({
         {STINTS.map((stint) => (
           <div
             key={stint.id}
-            className="min-w-0 border-r border-rule-strong pr-2 text-right last:border-r-0 last:pr-0"
+            className="min-w-0 border-r border-rule-strong pr-1 text-right last:border-r-0 last:pr-0 sm:pr-2"
             style={{ flexGrow: stint.scored, flexBasis: 0 }}
           >
-            <Caption className="block truncate text-muted">
+            <Caption className="block text-muted text-[0.5625rem] sm:text-[0.8125rem] [font-size:clamp(0.5rem,1.9vw,0.8125rem)]">
               {stint.running.value.toLocaleString("en-US")}
               {stint.running.suffix ?? ""}
             </Caption>
@@ -143,8 +153,9 @@ function Accumulation({
       </div>
 
       <Caption className="mt-3 block text-muted/80">
-        {TOTAL.toLocaleString("en-US")} across the four stints, which is the
-        career total exactly. Nothing here is rounded to make it land.
+        {TOTAL.toLocaleString("en-US")} across the {STINTS.length} stints that
+        scored, which is the career total exactly. Nothing here is rounded to
+        make it land.
       </Caption>
     </div>
   );
@@ -365,7 +376,7 @@ export function TheLedger() {
 
         <div className="mt-16">
           <Tabs value={active} onValueChange={setActive}>
-            <TabsList>
+            <TabsList aria-label="Career stint">
               {LEDGER.map((e) => (
                 <TabsTrigger key={e.id} value={e.id}>
                   <span className="relative z-10">{e.tab}</span>

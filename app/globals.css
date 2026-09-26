@@ -7,16 +7,20 @@
    not decoration: the key, the arc, the baseline and the sideline do the
    structural work that borders and cards would otherwise do.
 
-   Ground is maple. Type is one family taken to two width extremes — pushed
-   wide for monument lettering (the way a name is painted onto a floor) and
-   squeezed narrow for figures and labels, which is what replaces the usual
-   monospace. Newsreader carries the reading copy.
+   Ground is maple. Oswald carries the monument lettering and the scoreboard
+   figures, condensed and athletic; Plus Jakarta Sans carries every piece of
+   reading copy, in one clean geometric cut. There is deliberately no serif
+   and no monospace.
    ========================================================================= */
 
 :root {
   /* --- ground ------------------------------------------------------------ */
   --maple: #e9d6b0;
   --maple-deep: #dcbf8c;
+  /* Darker than maple-deep. For recessive fills that must still read as a
+     shape against the floor: bar tracks, losing comparison segments, hover
+     washes. Never for text. */
+  --maple-shadow: #c6a472;
   --chalk: #fbf7ef;
 
   /* --- paint ------------------------------------------------------------- */
@@ -28,6 +32,9 @@
 
   /* --- type -------------------------------------------------------------- */
   --muted: #6e5039;
+  /* Reading-copy ink. Darker and more neutral than --wine, which is reserved
+     for accent, headings and figures. 9.4:1 on maple. */
+  --ink: #3f2a1c;
   --chalk-dim: rgba(251, 247, 239, 0.74);
 
   /* --- lines ------------------------------------------------------------- */
@@ -41,6 +48,7 @@
 @theme inline {
   --color-maple: var(--maple);
   --color-maple-deep: var(--maple-deep);
+  --color-maple-shadow: var(--maple-shadow);
   --color-chalk: var(--chalk);
   --color-wine: var(--wine);
   --color-wine-deep: var(--wine-deep);
@@ -48,6 +56,7 @@
   --color-gold: var(--gold);
   --color-leather: var(--leather);
   --color-muted: var(--muted);
+  --color-ink: var(--ink);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
   --color-rule-chalk: var(--rule-chalk);
@@ -69,7 +78,7 @@ body {
   color: var(--wine);
   font-family: var(--font-text);
   /* clip (not hidden) kills horizontal overflow WITHOUT creating a scroll
-     container — so position: sticky in the chapters section keeps working. */
+     container — so position: sticky in the rooms section keeps working. */
   overflow-x: clip;
   font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
@@ -135,9 +144,9 @@ body {
 }
 
 /* --- Floor ----------------------------------------------------------------
-   Maple boards. Hard-stop repeating lines, not a gradient wash: seams every
-   38px across the grain and a board joint every 260px along it. Only applied
-   where the ground actually is wood.
+   Maple boards. Hard-stop repeating lines, not a gradient wash: a seam every
+   38px across the grain, and — on `.floor` only — a board joint every 260px
+   along it. `.floor-deep` is the deeper inset tone and carries the seam only.
    ------------------------------------------------------------------------ */
 .floor {
   background-color: var(--maple);
@@ -168,9 +177,13 @@ body {
    outside it, in opposite values. The page alternates maple grounds and
    painted ones, and controls sit on both, so a single-colour ring is always
    going to disappear somewhere. This one cannot. */
-/* The :root prefix is load-bearing: it lifts these above the single-class
-   outline utilities, which would otherwise let outline-color fall back to
-   currentColor on the controls that carry them. */
+/* These rules are UNLAYERED, which is what actually lifts them above
+   Tailwind's single-class outline utilities — an unlayered author declaration
+   beats a layered one regardless of specificity. (`.focus-visible:outline-wine`
+   is (0,3,0) against this selector's (0,2,0), so the layer boundary is doing
+   the work, not the `:root` prefix. Do NOT wrap these in `@layer components`,
+   which is idiomatic Tailwind v4: that would let the wine `outline-color`
+   utilities win and silently break the two-tone contract.) */
 :root :focus-visible {
   outline: 2px solid var(--wine);
   outline-color: var(--wine);
@@ -206,6 +219,29 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  /* Reveal choreography must never be what a reduced-motion user waits for.
+     Framer's `reducedMotion="user"` only snaps *transform/layout* keys — it
+     leaves `opacity` and any orchestration `delay`/`staggerChildren` running
+     untouched — so a `stagger()`-ed block stayed at opacity 0 for seconds
+     even with the preference set. These overrides are `!important` because
+     Framer writes the hidden state as an inline style, which would otherwise
+     win. Land every reveal in its final position immediately. */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Repeating attention animations are the one thing that cannot be fixed by
+     landing on a final value, so they are stopped outright. */
+  [data-reveal-loop] {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .skip-link {
+    transition: none !important;
   }
 }
 

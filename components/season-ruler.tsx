@@ -40,10 +40,14 @@ function Marker({ season }: { season: Season }) {
       {season.olympic ? (
         <span
           aria-hidden
-          className="h-[7px] w-[7px] rounded-full"
+          className="h-[7px] w-[7px] rounded-full border border-rule-chalk/40"
           style={{
+            // Bronze was painted with `--muted`, a body-copy TEXT token, and
+            // the legend only ever showed a gold swatch, so a bronze season
+            // was indistinguishable from an unlabelled state. `--leather`
+            // is an actual paint token and is now in the legend.
             backgroundColor:
-              season.olympic.medal === "Gold" ? "var(--gold)" : "var(--muted)",
+              season.olympic.medal === "Gold" ? "var(--gold)" : "var(--leather)",
           }}
         />
       ) : null}
@@ -173,7 +177,13 @@ export function SeasonRuler() {
             onKeyDown={onKeyDown}
             onTouchStart={handleTouch}
             onTouchMove={handleTouch}
-            className="flex w-full items-end gap-[2px] touch-pan-y select-none sm:gap-[3px]"
+            // 23 `flex-1` buttons sharing the full width measured 12.14px each
+            // at a 375px viewport (pitch 14.13px), failing WCAG 2.2 SC 2.5.8
+            // Target Size (Minimum), and the spacing exception does not apply
+            // because 24px circles on adjacent targets would overlap. Below
+            // `sm` the ruler is given a horizontal scroll with a 24px minimum
+            // per target, so every season stays individually reachable.
+            className="flex w-full items-end gap-[2px] touch-pan-y select-none overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:overflow-visible sm:pb-0 sm:[scrollbar-width:auto] sm:[&::-webkit-scrollbar]:auto"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, amount: 0.25 }}
@@ -203,7 +213,7 @@ export function SeasonRuler() {
                       ? `. ${honoursFor(season).join(". ")}`
                       : ""
                   }`}
-                  className="group flex flex-1 flex-col items-center py-2 outline-offset-2 sm:py-2.5"
+                  className="group flex min-w-[24px] flex-1 flex-col items-center py-2 outline-offset-2 sm:min-w-0 sm:py-2.5"
                   variants={{
                     hidden: { opacity: 0 },
                     show: {
@@ -294,10 +304,12 @@ export function SeasonRuler() {
                   />
                 ) : null}
                 {l.key === "olympic" ? (
-                  <span
-                    aria-hidden
-                    className="h-[9px] w-[9px] rounded-full bg-gold"
-                  />
+                  // Both medal colours are keyed, because the ruler draws
+                  // two: gold for a title, leather for a bronze.
+                  <span aria-hidden className="flex items-center gap-1.5">
+                    <span className="h-[9px] w-[9px] rounded-full bg-gold" />
+                    <span className="h-[9px] w-[9px] rounded-full border border-rule-chalk/40 bg-leather" />
+                  </span>
                 ) : null}
                 <Caption className="text-muted">{l.text}</Caption>
               </li>

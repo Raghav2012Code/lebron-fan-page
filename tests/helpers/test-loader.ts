@@ -90,6 +90,9 @@ export function getTripleDoubles() {
     mod.TRIPLE_DOUBLES_REGULAR) as
     | typeof Authoritative.REGULAR_SEASON_TRIPLE_DOUBLES
     | undefined;
+  const liveSummary = mod.TRIPLE_DOUBLE_SUMMARY as
+    | typeof Authoritative.TRIPLE_DOUBLE_SUMMARY
+    | undefined;
   return {
     playoffs:
       livePlayoff && Array.isArray(livePlayoff)
@@ -99,7 +102,12 @@ export function getTripleDoubles() {
       liveRegular && Array.isArray(liveRegular)
         ? liveRegular
         : Authoritative.REGULAR_SEASON_TRIPLE_DOUBLES,
-    summary: Authoritative.TRIPLE_DOUBLE_SUMMARY,
+    // Reads the LIVE summary, not the fixture's. Hard-wiring the fixture meant
+    // the live `TRIPLE_DOUBLE_SUMMARY` export had zero coverage of any kind, so
+    // it could drift (a new careerTotal, a changed high-scoring line) with no
+    // test failing.
+    summary: (liveSummary ?? Authoritative.TRIPLE_DOUBLE_SUMMARY) as
+      typeof Authoritative.TRIPLE_DOUBLE_SUMMARY,
     isLive: Boolean(livePlayoff && Array.isArray(livePlayoff)),
   };
 }

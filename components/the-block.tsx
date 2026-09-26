@@ -73,6 +73,15 @@ export function TheBlock() {
   const [playing, setPlaying] = React.useState(false);
   const requestRef = React.useRef<number | null>(null);
   const prevTimeRef = React.useRef<number | null>(null);
+  // Mirror of `time` so the RAF loop can read the current value without
+  // `time` becoming a dependency (which would tear down and rebuild the
+  // loop on every single frame). Written from a single setter rather than
+  // during render, which `react-hooks/refs` correctly forbids.
+  const timeRef = React.useRef(0);
+  const setTimeTracked = React.useCallback((next: number) => {
+    timeRef.current = next;
+    setTime(next);
+  }, []);
 
   const keyframes = THE_BLOCK.keyframes;
   const current = interpolate(time, keyframes);
@@ -91,14 +100,17 @@ export function TheBlock() {
     const animate = (now: number) => {
       if (prevTimeRef.current !== null) {
         const deltaSec = (now - prevTimeRef.current) / 1000;
-        setTime((prev) => {
-          const next = prev + deltaSec * 0.75; // 0.75x speed for cinematic clarity
-          if (next >= THE_BLOCK.duration) {
-            setPlaying(false);
-            return THE_BLOCK.duration;
-          }
-          return next;
-        });
+        // `setPlaying` is called OUTSIDE the updater. Updaters run in the
+        // render phase and are double-invoked under StrictMode, so calling a
+        // setter from inside one is a render-phase side effect on a value
+        // React treats as pure.
+        const next = timeRef.current + deltaSec * 0.75; // 0.75x for clarity
+        if (next >= THE_BLOCK.duration) {
+          setTimeTracked(THE_BLOCK.duration);
+          setPlaying(false);
+        } else {
+          setTimeTracked(next);
+        }
       }
       prevTimeRef.current = now;
       requestRef.current = requestAnimationFrame(animate);
@@ -110,18 +122,21 @@ export function TheBlock() {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [playing]);
+  }, [playing, setTimeTracked]);
 
   const togglePlay = () => {
     if (time >= THE_BLOCK.duration) {
-      setTime(0);
+      setTimeTracked(0);
       setPlaying(true);
     } else {
       setPlaying(!playing);
     }
   };
 
-  const isImpact = time >= 2.72;
+  // The block lands on the final keyframe, which is THE_BLOCK.duration. A
+  // hardcoded 2.72 fired the stamp and shockwave 80ms early and would
+  // silently desync if the play were ever retimed in the data.
+  const isImpact = time >= THE_BLOCK.duration - 0.01;
 
   return (
     <section
@@ -170,11 +185,17 @@ export function TheBlock() {
         {/* --- Interactive Court & Controls Grid --- */}
         <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr]">
           {/* THE COURT SCHEMATIC */}
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-wine-deep border border-rule-chalk shadow-inner sm:aspect-[1/1]">
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-wine-deep border border-rule-chalk shadow-inner sm:aspect-square">
             <svg
               className="absolute inset-0 h-full w-full select-none"
               viewBox="0 0 100 100"
-              preserveAspectRatio="none"
+              // Was preserveAspectRatio="none", which on the 4:5 mobile
+              // container scales x and y ~25% apart: the rim (r=3) measured
+              // 20.0 x 25.0px and the free-throw circle (r=12) measured
+              // 80.0 x 100.1px, i.e. every circle rendered as an ellipse and
+              // every strokeWidth was anisotropic. "xMidYMid meet" keeps the
+              // aspect ratio square and centres the drawing instead.
+              preserveAspectRatio="xMidYMid meet"
               aria-hidden="true"
             >
               {/* Court Boundary Lines */}
@@ -377,7 +398,7 @@ export function TheBlock() {
                   value={time}
                   onChange={(e) => {
                     setPlaying(false);
-                    setTime(parseFloat(e.target.value));
+                    setTimeTracked(parseFloat(e.target.value));
                   }}
                   aria-label="Play timeline scrubber"
                   className="h-2 w-full cursor-pointer accent-gold outline-none"
@@ -402,7 +423,7 @@ export function TheBlock() {
                       type="button"
                       onClick={() => {
                         setPlaying(false);
-                        setTime(k.time);
+                        setTimeTracked(k.time);
                       }}
                       className={cn(
                         "narrow border px-2.5 py-1.5 text-[0.75rem] transition-colors",

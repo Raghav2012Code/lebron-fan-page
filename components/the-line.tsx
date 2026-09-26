@@ -61,11 +61,26 @@ export function TheLine() {
             {CAREER.headline.map((stat, i) => (
               <React.Fragment key={stat.label}>
                 <div className="flex min-w-0 flex-1 flex-col lg:flex-none">
+                  {/* `dt` must come first in the HTML content model for a
+                      `dl`; the figure is still displayed above it via
+                      `order`. Emitting `dd` first announces a dangling
+                      number before its label. */}
+                  <dt className="order-2 mt-4">
+                    <Caption bold className="block text-chalk">
+                      {stat.label}
+                    </Caption>
+                    <Caption
+                      className="block"
+                      style={{ color: "var(--chalk-dim)" }}
+                    >
+                      per game
+                    </Caption>
+                  </dt>
                   {/* the slash travels with its own figure rather than
                       sitting on the column edge, so the three read as one
                       written stat line however wide the columns get */}
                   <dd
-                    className="figure flex items-baseline leading-none text-chalk"
+                    className="figure order-1 flex items-baseline leading-none text-chalk"
                     style={{ fontSize: "clamp(2rem, 10vw, 7.5rem)" }}
                   >
                     <Counter to={stat.avg} decimals={1} duration={1.8} />
@@ -78,17 +93,6 @@ export function TheLine() {
                       </span>
                     ) : null}
                   </dd>
-                  <dt className="mt-4">
-                    <Caption bold className="block text-chalk">
-                      {stat.label}
-                    </Caption>
-                    <Caption
-                      className="block"
-                      style={{ color: "var(--chalk-dim)" }}
-                    >
-                      per game
-                    </Caption>
-                  </dt>
 
                   <span
                     aria-hidden

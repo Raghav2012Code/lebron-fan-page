@@ -185,24 +185,24 @@ describe("Tier 1: Feature Coverage Suite", () => {
     const { data } = getBuzzerBeaters();
 
     // Shot 1: Marv Albert
-    assert.strictEqual(data[0].broadcastCall.caller, "Marv Albert");
-    assert.ok(data[0].broadcastCall.quote.includes("LEBRON JAMES DELIVERS AT THE BUZZER"));
+    assert.strictEqual(data[0].broadcastCallObj?.caller, "Marv Albert");
+    assert.ok((data[0].broadcastCallObj?.quote ?? "").includes("LEBRON JAMES DELIVERS AT THE BUZZER"));
 
     // Shot 2: Marv Albert
-    assert.strictEqual(data[1].broadcastCall.caller, "Marv Albert");
-    assert.ok(data[1].broadcastCall.quote.includes("He makes the layup at the buzzer"));
+    assert.strictEqual(data[1].broadcastCallObj?.caller, "Marv Albert");
+    assert.ok((data[1].broadcastCallObj?.quote ?? "").includes("He makes the layup at the buzzer"));
 
     // Shot 3: Mike Breen
-    assert.strictEqual(data[2].broadcastCall.caller, "Mike Breen");
-    assert.ok(data[2].broadcastCall.quote.includes("IT'S GOOD! AT THE BUZZER"));
+    assert.strictEqual(data[2].broadcastCallObj?.caller, "Mike Breen");
+    assert.ok((data[2].broadcastCallObj?.quote ?? "").includes("IT'S GOOD! AT THE BUZZER"));
 
     // Shot 4: Mike Breen
-    assert.strictEqual(data[3].broadcastCall.caller, "Mike Breen");
-    assert.ok(data[3].broadcastCall.quote.includes("HE HITS IT! LEBRON JAMES WITH A THREE"));
+    assert.strictEqual(data[3].broadcastCallObj?.caller, "Mike Breen");
+    assert.ok((data[3].broadcastCallObj?.quote ?? "").includes("HE HITS IT! LEBRON JAMES WITH A THREE"));
 
     // Shot 5: Brian Anderson
-    assert.strictEqual(data[4].broadcastCall.caller, "Brian Anderson");
-    assert.ok(data[4].broadcastCall.quote.includes("HE BANKS IT IN AT THE BUZZER"));
+    assert.strictEqual(data[4].broadcastCallObj?.caller, "Brian Anderson");
+    assert.ok((data[4].broadcastCallObj?.quote ?? "").includes("HE BANKS IT IN AT THE BUZZER"));
   });
 
   test("Tier 1.9 - Clutch Anthology: Chalkboard keyframe timeline and telemetry synchronization", () => {
@@ -273,8 +273,8 @@ describe("Tier 1: Feature Coverage Suite", () => {
     for (const td of playoffs) {
       const r = td.round || "";
       if (r.startsWith("First Round")) firstRound++;
-      else if (r.startsWith("Conf Semifinals")) semis++;
-      else if (r.startsWith("Conf Finals")) confFinals++;
+      else if (r.startsWith("Conference Semifinals")) semis++;
+      else if (r.startsWith("Conference Finals")) confFinals++;
       else if (r.startsWith("NBA Finals")) finals++;
       else assert.fail(`Unrecognized playoff round format: ${r}`);
     }
@@ -328,7 +328,9 @@ describe("Tier 1: Feature Coverage Suite", () => {
     );
 
     // Verify milestone game on Nov 19, 2019 vs OKC
-    const okcMilestone = regularSeason.find((td) => td.date === "2019-11-19" && td.opponent === "OKC");
+    const okcMilestone = regularSeason.find(
+      (td) => td.date === "2019-11-19" && td.opponentAbbr === "OKC",
+    );
     assert.ok(okcMilestone, "Milestone Nov 19, 2019 vs OKC must be present");
     assert.strictEqual(okcMilestone.pts, 25);
     assert.strictEqual(okcMilestone.reb, 11);

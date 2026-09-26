@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -90,24 +91,78 @@ export function PlayoffMatrix() {
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = React.useRef<HTMLElement | null>(null);
 
-  // Close drawer on Escape key and manage focus
+  // Modal behaviour for the drawer: Escape to close, focus moved in on open,
+  // focus TRAPPED while open, background scroll locked, and focus restored to
+  // the triggering card on close. `aria-modal="true"` on its own enforces
+  // none of this, so without this effect a keyboard user tabs straight out of
+  // the open dialog and starts operating the page behind it.
   React.useEffect(() => {
+    if (!inspectSeries) {
+      // Restore focus to whatever opened the drawer. If that card has since
+      // been filtered out of the grid it is detached, and focusing it is a
+      // no-op that strands the user on <body> — so fall back to the section.
+      const el = lastActiveElementRef.current;
+      lastActiveElementRef.current = null;
+      if (el && el.isConnected) {
+        el.focus();
+      } else {
+        document.getElementById("playoff-matrix")?.focus();
+      }
+      return;
+    }
+
+    lastActiveElementRef.current = document.activeElement as HTMLElement;
+
+    // Lock background scroll. `body` sets `overflow-x: clip`, so the original
+    // inline value has to be captured and put back exactly.
+    const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
+
+    const main = document.getElementById("main");
+    const previouslyInert = main?.hasAttribute("inert") ?? false;
+    main?.setAttribute("inert", "");
+
+    const focusables = () =>
+      Array.from(
+        drawerRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && inspectSeries) {
+      if (e.key === "Escape") {
         e.preventDefault();
         setInspectSeries(null);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !drawerRef.current?.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !drawerRef.current?.contains(active))) {
+        e.preventDefault();
+        first.focus();
       }
     }
-    if (inspectSeries) {
-      lastActiveElementRef.current = document.activeElement as HTMLElement;
-      window.addEventListener("keydown", handleKeyDown);
-      // Focus drawer close button
-      setTimeout(() => closeButtonRef.current?.focus(), 50);
-    } else if (lastActiveElementRef.current) {
-      lastActiveElementRef.current.focus();
-      lastActiveElementRef.current = null;
-    }
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    document.addEventListener("keydown", handleKeyDown);
+    const raf = requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      cancelAnimationFrame(raf);
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+      if (!previouslyInert) main?.removeAttribute("inert");
+    };
   }, [inspectSeries]);
 
   // Filter series based on user selections
@@ -133,7 +188,9 @@ export function PlayoffMatrix() {
       }
       // Text search
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+        // Match against the TRIMMED query. Using the raw input meant a stray
+        // leading or trailing space (" 2018 ") matched nothing at all.
+        const q = searchQuery.trim().toLowerCase();
         const matchYear = s.year.toString().includes(q);
         const matchOpponent = (s.opponentName ?? s.opponent).toLowerCase().includes(q);
         const matchAbbr = s.opponentAbbr.toLowerCase().includes(q);
@@ -147,6 +204,30 @@ export function PlayoffMatrix() {
     });
   }, [activeRound, outcomeFilter, sweepsOnly, selectedFranchise, searchQuery]);
 
+  // Counts for the outcome chips. These must be computed from the subset
+  // filtered by everything EXCEPT `outcomeFilter`, otherwise the chips
+  // describe their own effect: selecting LOST made "Won" read 0 even though
+  // won series exist in the current round.
+  const recordForOutcomeChips = React.useMemo(() => {
+    const base = PLAYOFF_SERIES.filter((s) => {
+      if (activeRound !== "ALL" && s.roundCategory !== activeRound) return false;
+      if (sweepsOnly && !s.isSweep) return false;
+      if (selectedFranchise && s.opponentAbbr !== selectedFranchise) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const hay = `${s.opponent} ${s.opponentAbbr} ${s.year} ${s.season} ${s.team} ${s.signatureMoment ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    return {
+      all: base.length,
+      wins: base.filter((s) => s.result === "W").length,
+      losses: base.filter((s) => s.result === "L").length,
+      sweeps: base.filter((s) => s.isSweep).length,
+    };
+  }, [activeRound, sweepsOnly, selectedFranchise, searchQuery]);
+
   // Totals for filtered subset
   const filteredRecord = React.useMemo(() => {
     const wins = filteredSeries.filter((s) => s.result === "W").length;
@@ -157,6 +238,36 @@ export function PlayoffMatrix() {
     const totalGames = filteredSeries.reduce((acc, s) => acc + s.games, 0);
     return { wins, losses, sweeps, swept, totalPoints, totalGames };
   }, [filteredSeries]);
+
+  // Career totals, derived from the ledger so the tiles cannot drift from it.
+  const career = React.useMemo(() => {
+    // `wins`/`losses` are the required fields; `gamesWon`/`gamesLost` are
+    // optional duplicates that are not populated on every row, so the
+    // authoritative pair is used here.
+    const gamesWon = PLAYOFF_SERIES.reduce((a, s) => a + s.wins, 0);
+    const gamesLost = PLAYOFF_SERIES.reduce((a, s) => a + s.losses, 0);
+    const games = PLAYOFF_SERIES.reduce((a, s) => a + s.games, 0);
+    const wins = PLAYOFF_SERIES.filter((s) => s.result === "W").length;
+    const losses = PLAYOFF_SERIES.filter((s) => s.result === "L").length;
+    const points = PLAYOFF_SERIES.reduce(
+      (a, s) => a + (s.boxScoreTotals?.pts ?? s.lebronStats.totalPoints),
+      0,
+    );
+    return {
+      gamesWon,
+      gamesLost,
+      games,
+      gamesWinPct: (gamesWon / games) * 100,
+      series: PLAYOFF_SERIES.length,
+      wins,
+      losses,
+      seriesWinPct: (wins / PLAYOFF_SERIES.length) * 100,
+      points,
+      ppg: points / games,
+      sweepsWon: PLAYOFF_SERIES.filter((s) => s.isSweep && s.result === "W").length,
+      sweepsLost: PLAYOFF_SERIES.filter((s) => s.isSweep && s.result === "L").length,
+    };
+  }, []);
 
   // Keyboard navigation for round tabs
   const handleTabKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -181,6 +292,9 @@ export function PlayoffMatrix() {
   return (
     <section
       id="playoff-matrix"
+      // Focus fallback target when the drawer closes and the card that opened
+      // it has been filtered out of the grid and is no longer focusable.
+      tabIndex={-1}
       aria-labelledby="playoff-matrix-heading"
       className="floor relative py-20 sm:py-28 overflow-hidden"
     >
@@ -265,33 +379,41 @@ export function PlayoffMatrix() {
           <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">All-Time Series</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={42} />–<Counter to={15} />
+              <Counter to={career.wins} />–<Counter to={career.losses} />
             </div>
-            <Caption className="text-muted mt-1 block">57 series • 73.7% Win Rate</Caption>
+            <Caption className="text-muted mt-1 block">
+              {career.series} series • {career.seriesWinPct.toFixed(1)}% Win Rate
+            </Caption>
           </div>
 
           <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Playoff Games</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={302} />
+              <Counter to={career.games} />
             </div>
-            <Caption className="text-muted mt-1 block">182–120 • 60.3% game mark</Caption>
+            <Caption className="text-muted mt-1 block">
+              {career.gamesWon}–{career.gamesLost} • {career.gamesWinPct.toFixed(1)}% game mark
+            </Caption>
           </div>
 
           <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Playoff Scoring</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={8521} />
+              <Counter to={career.points} />
             </div>
-            <Caption className="text-muted mt-1 block">28.2 PPG • Most in history</Caption>
+            <Caption className="text-muted mt-1 block">
+              {career.ppg.toFixed(1)} PPG • Most in history
+            </Caption>
           </div>
 
           <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
             <Caption bold className="text-muted block">Sweeps Mastery</Caption>
             <div className="figure text-2xl sm:text-3xl lg:text-4xl text-gold mt-1">
-              <Counter to={12} />W – <Counter to={4} />L
+              <Counter to={career.sweepsWon} />W – <Counter to={career.sweepsLost} />L
             </div>
-            <Caption className="text-muted mt-1 block">12 sweeps won (NBA record)</Caption>
+            <Caption className="text-muted mt-1 block">
+              {career.sweepsWon} sweeps won, {career.sweepsLost} swept
+            </Caption>
           </div>
         </div>
 
@@ -375,7 +497,7 @@ export function PlayoffMatrix() {
                       outcomeFilter === "ALL" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
-                    All ({filteredRecord.wins + filteredRecord.losses})
+                    All ({recordForOutcomeChips.all})
                   </button>
                   <button
                     type="button"
@@ -385,7 +507,7 @@ export function PlayoffMatrix() {
                       outcomeFilter === "W" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
-                    Won ({filteredRecord.wins})
+                    Won ({recordForOutcomeChips.wins})
                   </button>
                   <button
                     type="button"
@@ -395,7 +517,7 @@ export function PlayoffMatrix() {
                       outcomeFilter === "L" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
-                    Lost ({filteredRecord.losses})
+                    Lost ({recordForOutcomeChips.losses})
                   </button>
                 </div>
 
@@ -412,7 +534,7 @@ export function PlayoffMatrix() {
                   )}
                 >
                   <span aria-hidden className="text-sm">★</span>
-                  <span>Sweeps Only ({sweepsOnly ? filteredSeries.length : "16"})</span>
+                  <span>Sweeps Only ({recordForOutcomeChips.sweeps})</span>
                 </button>
 
                 {/* Active Franchise Filter Pill if selected */}
@@ -457,7 +579,10 @@ export function PlayoffMatrix() {
             {/* Series Cards Grid */}
             <div
               id="playoff-matrix-grid"
-              role="region"
+              // Must be a tabpanel: the round tabs point `aria-controls`
+              // here, and a tab whose controlled element is a plain region
+              // leaves assistive tech unable to resolve the relationship.
+              role="tabpanel"
               aria-label="Playoff series results"
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 mt-6"
             >
@@ -479,7 +604,7 @@ export function PlayoffMatrix() {
                     }}
                     className={cn(
                       "group relative flex flex-col justify-between p-4 rounded-md border text-left cursor-pointer transition-all duration-200",
-                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine hover:shadow-md",
+                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
                     whileHover={{ y: -2 }}
@@ -559,9 +684,12 @@ export function PlayoffMatrix() {
                         </div>
                       </div>
 
-                      {/* Signature Moment Snippet */}
-                      <p className="mt-2.5 text-xs prose-copy line-clamp-2 text-muted italic">
-                        &ldquo;{series.signatureMoment}&rdquo;
+                      {/* Signature moment. Deliberately NOT wrapped in quote
+                          marks: this is the site's own editorial narration,
+                          not a quotation from anyone, and presenting it as
+                          verbatim speech would be a fabricated attribution. */}
+                      <p className="mt-2.5 text-xs prose-copy line-clamp-2 text-muted">
+                        {series.signatureMoment}
                       </p>
                     </div>
 
@@ -635,7 +763,7 @@ export function PlayoffMatrix() {
                     }}
                     className={cn(
                       "group p-4 rounded-md border text-left cursor-pointer transition-all duration-150",
-                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine hover:shadow-md",
+                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
                   >
@@ -687,15 +815,24 @@ export function PlayoffMatrix() {
         )}
       </div>
 
-      {/* Detail Inspection Drawer / Modal */}
-      <AnimatePresence>
-        {inspectSeries && (
-          <div
-            className="fixed inset-0 z-50 flex justify-end"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="drawer-series-title"
-          >
+      {/* Detail Inspection Drawer / Modal.
+          Portalled to <body> deliberately: the modal effect marks #main
+          `inert` so the page behind cannot be tabbed into, and the drawer
+          lives inside #main. Without the portal it would be inside its own
+          inert subtree and could never receive focus. */}
+      {/* `document` does not exist during static prerender. The drawer can
+          only ever be open from a click, so this guard never differs between
+          the server and client render and cannot cause a mismatch. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+        <AnimatePresence>
+          {inspectSeries && (
+            <div
+              className="fixed inset-0 z-50 flex justify-end"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="drawer-series-title"
+            >
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -773,7 +910,7 @@ export function PlayoffMatrix() {
                     LeBron James Series Averages & Totals
                   </Caption>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-3 rounded bg-chalk border border-rule">
+                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
                       <Caption className="text-muted block text-xs">Points / Game</Caption>
                       <div className="figure text-2xl text-wine mt-1">
                         {inspectSeries.ppg ?? inspectSeries.lebronStats.ppg}
@@ -783,7 +920,7 @@ export function PlayoffMatrix() {
                       </Caption>
                     </div>
 
-                    <div className="p-3 rounded bg-chalk border border-rule">
+                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
                       <Caption className="text-muted block text-xs">Rebounds / Game</Caption>
                       <div className="figure text-2xl text-wine mt-1">
                         {inspectSeries.rpg ?? inspectSeries.lebronStats.rpg}
@@ -793,7 +930,7 @@ export function PlayoffMatrix() {
                       </Caption>
                     </div>
 
-                    <div className="p-3 rounded bg-chalk border border-rule">
+                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
                       <Caption className="text-muted block text-xs">Assists / Game</Caption>
                       <div className="figure text-2xl text-wine mt-1">
                         {inspectSeries.apg ?? inspectSeries.lebronStats.apg}
@@ -803,7 +940,7 @@ export function PlayoffMatrix() {
                       </Caption>
                     </div>
 
-                    <div className="p-3 rounded bg-chalk border border-rule">
+                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
                       <Caption className="text-muted block text-xs">Defense / Game</Caption>
                       <div className="figure text-xl text-wine mt-1">
                         {inspectSeries.spg ?? 0}S / {inspectSeries.bpg ?? 0}B
@@ -821,7 +958,7 @@ export function PlayoffMatrix() {
                     <Caption bold className="text-wine uppercase tracking-wider text-xs block mb-3">
                       Shooting Efficiency & Detailed Box Score
                     </Caption>
-                    <div className="p-4 rounded-md bg-chalk border border-rule space-y-3">
+                    <div className="p-4 rounded-md bg-maple-deep/40 border border-rule space-y-3">
                       <div className="grid grid-cols-3 gap-2 pb-3 border-b border-rule/60 text-center">
                         <div>
                           <Caption className="text-muted block text-xs">Field Goals</Caption>
@@ -866,9 +1003,11 @@ export function PlayoffMatrix() {
                   <Caption bold className="text-wine uppercase tracking-wider text-xs block mb-2">
                     Signature Moment & Historical Context
                   </Caption>
-                  <blockquote className="p-4 rounded-md bg-gold/10 border-l-4 border-gold text-wine prose-copy text-sm sm:text-base leading-relaxed">
-                    &ldquo;{inspectSeries.signatureMoment}&rdquo;
-                  </blockquote>
+                  {/* Narration, not speech: see the note on the card. Kept
+                      as a div rather than a blockquote for the same reason. */}
+                  <div className="p-4 rounded-md bg-gold/10 border-l-4 border-gold text-wine prose-copy text-sm sm:text-base leading-relaxed">
+                    {inspectSeries.signatureMoment}
+                  </div>
                 </div>
 
                 {/* Box Summary Callout */}
@@ -890,8 +1029,10 @@ export function PlayoffMatrix() {
               </div>
             </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </section>
   );
 }

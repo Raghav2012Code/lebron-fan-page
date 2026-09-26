@@ -35,11 +35,24 @@ export function BackToTop({ className }: { className?: string }) {
   );
 
   const scrollToTop = () => {
+    // Respect the OS reduced-motion preference. An explicit
+    // `behavior: "smooth"` argument overrides the element's computed
+    // `scroll-behavior`, so globals.css cannot catch this JS path — it has
+    // to be read here. ("auto" then defers to the stylesheet, which already
+    // neutralises smooth scrolling under reduce.)
+    const behavior: ScrollBehavior = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches
+      ? "auto"
+      : "smooth";
     const main = document.getElementById("main");
     if (main) {
-      main.scrollIntoView({ behavior: "smooth" });
+      main.scrollIntoView({ behavior });
+      // The button unmounts at scrollY <= 600, so focus must be handed to a
+      // node that survives the scroll rather than dropped on <body>.
+      main.focus({ preventScroll: true });
     } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior });
     }
   };
 

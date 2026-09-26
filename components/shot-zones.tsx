@@ -17,6 +17,22 @@ interface CourtZoneConfig {
   labelY: number;
 }
 
+/**
+ * Efficiency bands, declared once and consumed by BOTH `getZoneColor` and the
+ * legend. These thresholds used to be hardcoded in each, so a change to the
+ * encoder silently desynchronised the legend from the colours it documents.
+ * `min` is inclusive.
+ */
+const ZONE_BANDS = {
+  elite: { min: 70, label: "Elite (70%+)" },
+  high: { min: 44, label: "High (44–69%)" },
+  solid: { min: 38, label: "Solid (38–43%)" },
+  perimeter: { min: 33, label: "Perimeter (33–37%)" },
+  // Previously undocumented and sharing the Perimeter swatch, so a 32% sector
+  // and a 33% sector were indistinguishable via the legend.
+  below: { min: 0, label: "Low (<33%)" },
+} as const;
+
 const COURT_ZONES: CourtZoneConfig[] = [
   {
     id: "restricted",
@@ -28,7 +44,7 @@ const COURT_ZONES: CourtZoneConfig[] = [
     id: "paint",
     path: "M 170,440 L 170,250 L 330,250 L 330,440 L 290,440 L 290,390 A 40,40 0 0,0 210,390 L 210,440 Z",
     labelX: 250,
-    labelY: 320,
+    labelY: 345,
   },
   {
     id: "mid-left",
@@ -52,13 +68,13 @@ const COURT_ZONES: CourtZoneConfig[] = [
     id: "corner-3-l",
     path: "M 25,440 L 25,300 L 55,300 L 55,440 Z",
     labelX: 40,
-    labelY: 370,
+    labelY: 360,
   },
   {
     id: "corner-3-r",
     path: "M 445,440 L 445,300 L 475,300 L 475,440 Z",
     labelX: 460,
-    labelY: 370,
+    labelY: 360,
   },
   {
     id: "above-break-3",
@@ -81,16 +97,16 @@ function getZoneColor(fgPct: number, isSelected: boolean, isHovered: boolean) {
   if (isHovered) {
     return "rgba(224, 167, 44, 0.4)";
   }
-  if (fgPct >= 70) {
+  if (fgPct >= ZONE_BANDS.elite.min) {
     return "rgba(224, 167, 44, 0.38)";
   }
-  if (fgPct >= 44) {
+  if (fgPct >= ZONE_BANDS.high.min) {
     return "rgba(224, 167, 44, 0.24)";
   }
-  if (fgPct >= 38) {
+  if (fgPct >= ZONE_BANDS.solid.min) {
     return "rgba(184, 107, 30, 0.22)";
   }
-  if (fgPct >= 33) {
+  if (fgPct >= ZONE_BANDS.perimeter.min) {
     return "rgba(90, 22, 38, 0.28)";
   }
   return "rgba(90, 22, 38, 0.16)";
@@ -106,7 +122,11 @@ export function ShotZones() {
   const activeZone: ShotZoneData =
     era.zones[activeZoneId] ?? era.zones["restricted"];
 
-  const diffVsLeague = +(activeZone.fgPct - activeZone.leagueAvg).toFixed(1);
+  // This is a difference of two percentages, i.e. PERCENTAGE POINTS. Labelling
+  // it "%" invited the reader to compute it relatively (77.2 vs 61.2 is
+  // +26%, not +16%). Kept as a number so the precision is not discarded by a
+  // unary +.
+  const diffVsLeague = Math.round((activeZone.fgPct - activeZone.leagueAvg) * 10) / 10;
 
   return (
     <section
@@ -140,15 +160,39 @@ export function ShotZones() {
           return (
             <button
               key={e.id}
+              id={`shot-zones-era-tab-${e.id}`}
               role="tab"
               aria-selected={isCurrent}
-              tabIndex={0}
+              aria-controls="shot-zones-era-panel"
+              // Roving tabindex: one tab stop for the whole group, with
+              // arrow keys moving between eras. Previously every tab was
+              // tabbable and arrow keys did nothing.
+              tabIndex={isCurrent ? 0 : -1}
+              onKeyDown={(ev) => {
+                const last = SHOT_ZONES.eras.length - 1;
+                let next: number | null = null;
+                if (ev.key === "ArrowRight" || ev.key === "ArrowDown") {
+                  next = idx === last ? 0 : idx + 1;
+                } else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") {
+                  next = idx === 0 ? last : idx - 1;
+                } else if (ev.key === "Home") {
+                  next = 0;
+                } else if (ev.key === "End") {
+                  next = last;
+                }
+                if (next === null) return;
+                ev.preventDefault();
+                setSelectedEraIndex(next);
+                document
+                  .getElementById(`shot-zones-era-tab-${SHOT_ZONES.eras[next].id}`)
+                  ?.focus();
+              }}
               onClick={() => setSelectedEraIndex(idx)}
               className={cn(
                 "group relative flex flex-col p-3 text-left transition-all border sm:p-4",
                 isCurrent
                   ? "bg-wine text-chalk border-wine shadow-lg"
-                  : "bg-maple-light/60 text-ink border-rule hover:border-wine hover:bg-maple-dark",
+                  : "bg-maple-deep/50 text-ink border-rule hover:border-wine hover:bg-maple-shadow",
               )}
             >
               <span
@@ -176,7 +220,12 @@ export function ShotZones() {
       </div>
 
       {/* --- Era Narrative & Headline Metrics --- */}
-      <div className="mt-6 border border-rule bg-maple-light/30 p-4 sm:p-6">
+      <div
+        id="shot-zones-era-panel"
+        role="tabpanel"
+        aria-labelledby={`shot-zones-era-tab-${era.id}`}
+        className="mt-6 border border-rule bg-maple-deep/40 p-4 sm:p-6"
+      >
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-wine">
@@ -261,6 +310,9 @@ export function ShotZones() {
                     className="cursor-pointer transition-colors duration-150 focus:outline-none"
                     tabIndex={0}
                     role="button"
+                    // Without aria-pressed a screen reader announces a plain
+                    // button and never says which sector is selected.
+                    aria-pressed={isSelected}
                     aria-label={`${zoneData?.name ?? zone.id}: ${zoneData?.fgPct}% FG, ${zoneData?.frequency}% frequency`}
                     onClick={() => setSelectedZoneId(zone.id)}
                     onMouseEnter={() => setHoveredZoneId(zone.id)}
@@ -278,13 +330,18 @@ export function ShotZones() {
                     }}
                   />
                   {/* Zone FG% readout rendered directly on hardwood floor */}
+                  {/* These are SVG user units, so they scale with the
+                      viewBox. At a 375px viewport the court renders 343px
+                      wide against a 500-unit viewBox — a 0.686 scale that
+                      turned `fontSize="9"` into 6.15 rendered px. Sizes are
+                      now set so the smallest lands near 9.5px on mobile. */}
                   <text
                     x={zone.labelX}
                     y={zone.labelY}
                     textAnchor="middle"
                     pointerEvents="none"
                     fill={isSelected || isHovered ? "var(--gold)" : "var(--chalk)"}
-                    fontSize={zone.id === "restricted" ? "15" : "13"}
+                    fontSize={zone.id === "restricted" ? "24" : "20"}
                     fontWeight="800"
                     fontFamily="var(--font-display), sans-serif"
                     className="select-none tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
@@ -293,11 +350,11 @@ export function ShotZones() {
                   </text>
                   <text
                     x={zone.labelX}
-                    y={zone.labelY + 12}
+                    y={zone.labelY + 17}
                     textAnchor="middle"
                     pointerEvents="none"
                     fill="rgba(251, 247, 239, 0.65)"
-                    fontSize="9"
+                    fontSize="14"
                     fontWeight="600"
                     fontFamily="monospace"
                     className="select-none uppercase tracking-wider"
@@ -350,7 +407,11 @@ export function ShotZones() {
               strokeWidth="1.25"
               pointerEvents="none"
             />
-            {/* Free throw circle: upper arc solid */}
+            {/* Free throw circle. The basket is at the BOTTOM of this
+                schematic (baseline y=440, rim cy=390), and on a real court the
+                half of the circle nearest the basket is solid while the half
+                beyond the line is dashed. Sweep 1 bulges toward y=310, i.e.
+                toward the basket, so that is the solid half. */}
             <path
               d="M 190,250 A 60,60 0 0,1 310,250"
               fill="none"
@@ -358,7 +419,7 @@ export function ShotZones() {
               strokeWidth="1"
               pointerEvents="none"
             />
-            {/* Free throw circle: lower arc dashed */}
+            {/* Free throw circle: arc away from the basket, dashed */}
             <path
               d="M 190,250 A 60,60 0 0,0 310,250"
               fill="none"
@@ -422,7 +483,14 @@ export function ShotZones() {
         </div>
 
         {/* ZONE DETAIL INSPECTOR CARD */}
-        <div className="flex flex-col justify-between border border-rule bg-maple-light/40 p-6 sm:p-8">
+        <div className="flex flex-col justify-between border border-rule bg-maple-deep/40 p-6 sm:p-8">
+          {/* The panel's league average, delta and signature moment are
+              conveyed only through this visually-updated region. Without a
+              live region a screen-reader user gets no announcement when the
+              selected sector changes. */}
+          <p aria-live="polite" className="sr-only">
+            {`${activeZone.name}: ${activeZone.fgPct.toFixed(1)} percent field goal, league average ${activeZone.leagueAvg.toFixed(1)} percent, ${diffVsLeague >= 0 ? "plus" : "minus"} ${Math.abs(diffVsLeague)} percentage points, ${activeZone.frequency.toFixed(1)} percent of shots.`}
+          </p>
           <div>
             <div className="flex items-center justify-between gap-2">
               <span className="inline-block bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
@@ -448,10 +516,12 @@ export function ShotZones() {
                   <span
                     className={cn(
                       "text-xs font-bold font-mono",
-                      diffVsLeague >= 0 ? "text-leather" : "text-muted",
+                      diffVsLeague >= 0 ? "text-wine" : "text-muted",
                     )}
                   >
-                    {diffVsLeague >= 0 ? `+${diffVsLeague}%` : `${diffVsLeague}%`}
+                    {diffVsLeague >= 0
+                      ? `+${diffVsLeague} pts`
+                      : `${diffVsLeague} pts`}
                   </span>
                 </div>
                 <span className="text-[0.6875rem] text-muted">
@@ -477,32 +547,33 @@ export function ShotZones() {
               <Caption bold className="text-wine">
                 Signature Moment & Impact
               </Caption>
-              <p className="mt-2 font-serif text-sm italic leading-relaxed text-ink/90 sm:text-base">
-                “{activeZone.signatureMoment}”
+              <p className="mt-2 text-sm italic leading-relaxed text-ink/90 sm:text-base">
+                {activeZone.signatureMoment}
               </p>
             </div>
           </div>
 
-          {/* Efficiency Color Legend */}
+          {/* Efficiency Color Legend. Swatch opacity is raised above the zone
+              fill alpha so the key stays legible against maple; the band
+              labels and thresholds come from ZONE_BANDS so they cannot drift
+              from the encoder. */}
           <div className="mt-8 border-t border-rule pt-4">
             <Caption className="text-muted mb-2">Efficiency Legend</Caption>
             <div className="flex flex-wrap items-center gap-4 text-[0.6875rem] font-mono text-muted">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#E0A72C]" />
-                <span>Elite (70%+)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#E0A72C]/60" />
-                <span>High (44–69%)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#B86B1E]/60" />
-                <span>Solid (38–43%)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-3 w-3 bg-[#5A1626]/70" />
-                <span>Perimeter (33–37%)</span>
-              </div>
+              {(
+                [
+                  [ZONE_BANDS.elite.label, "bg-gold"],
+                  [ZONE_BANDS.high.label, "bg-gold/60"],
+                  [ZONE_BANDS.solid.label, "bg-[#B86B1E]/70"],
+                  [ZONE_BANDS.perimeter.label, "bg-wine/70"],
+                  [ZONE_BANDS.below.label, "bg-wine/40"],
+                ] as const
+              ).map(([label, swatch]) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span className={cn("inline-block h-3 w-3", swatch)} />
+                  <span>{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -43,7 +43,18 @@ This repository is **The King — an unofficial LeBron James tribute**, a high-c
 - **Milestone 3 (Queued)**: Triple-Double Constellation — interactive visual breakdown of 150+ career triple-doubles.
 
 ## 5. Quality Verification Gates
-Always verify changes with all three gates before committing:
+Always verify changes with all four gates before committing:
 1. `npm run lint` — ESLint must pass with 0 errors and 0 warnings.
 2. `npm run typecheck` — `tsc --noEmit` must pass cleanly.
-3. `npm run build` — Next.js Turbopack production build must compile and statically prerender all routes without errors.
+3. `npm test` — all suites must pass. The suite asserts on `lib/lebron-data.ts`, and `tests/smoke.test.ts` additionally guards the figures the UI now derives from it (playoff W-L, points, sweeps, shot-zone volume sums) plus an `isLive` assertion so a silent fallback to `tests/fixtures/authoritative-data.ts` fails loudly instead of passing.
+4. `npm run build` — Next.js Turbopack production build must compile and statically prerender all routes without errors.
+
+### Known limits of the test suite
+- It exercises the **data module only**. No test imports a component, because the custom loader resolves `.tsx` but Node's type stripping then refuses it. A rendering, interaction or accessibility regression will not fail a test — verify those in the browser.
+- Milestones 2 and 3 are **not rendered**, so their data is tested but unreachable by a user. That is expected while they are queued.
+
+## 6. Rendering Without JavaScript
+The page must stay readable and truthful with JS disabled. Two rules follow from this:
+- Anything animated by Framer carries a `data-reveal` attribute. `app/globals.css` uses it to land the element in its final position under `prefers-reduced-motion: reduce`, because Framer's own `reducedMotion` only suppresses transform keys and leaves `opacity` and stagger delays running.
+- **Counters must render their final value, not their start value.** `Counter` seeds the DOM with `to` and animates *from* `from` after hydration. Seeding it with `from` shipped every statistic on the page as a literal `0`.
+- Any section whose content is gated behind scroll-linked state needs a `<noscript>` fallback.

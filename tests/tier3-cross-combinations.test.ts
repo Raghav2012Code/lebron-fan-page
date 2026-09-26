@@ -114,7 +114,7 @@ describe("Tier 3: Cross-Feature Combinations Suite", () => {
     // Triple-double on 2013-05-22 vs IND
     const tdGame = tds.find((t) => t.date === "2013-05-22");
     assert.ok(tdGame, "May 22, 2013 triple-double must exist");
-    assert.strictEqual(tdGame.opponent, "IND");
+    assert.strictEqual(tdGame.opponentAbbr, "IND");
     assert.strictEqual(tdGame.pts, 30);
     assert.strictEqual(tdGame.reb, 10);
     assert.strictEqual(tdGame.ast, 10);
@@ -135,7 +135,9 @@ describe("Tier 3: Cross-Feature Combinations Suite", () => {
 
     for (const td of tds) {
       const match = series.find(
-        (s) => s.year === td.year && (s.opponentAbbr === td.opponent || s.franchise === td.opponent),
+        (s) =>
+        s.year === td.year &&
+        (s.opponentAbbr === td.opponentAbbr || s.franchise === td.franchise),
       );
       assert.ok(
         match,
@@ -211,7 +213,7 @@ describe("Tier 3: Cross-Feature Combinations Suite", () => {
     }
 
     // Filter "Conf Finals" (6 games)
-    const cfOnly = playoffs.filter((g) => g.round?.startsWith("Conf Finals"));
+    const cfOnly = playoffs.filter((g) => g.round?.startsWith("Conference Finals"));
     assert.strictEqual(cfOnly.length, 6);
     for (let i = 1; i < cfOnly.length; i++) {
       assert.ok(cfOnly[i].date >= cfOnly[i - 1].date);

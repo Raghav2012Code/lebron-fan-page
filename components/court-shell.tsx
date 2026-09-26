@@ -16,7 +16,13 @@ export function CourtShell({ children }: { children: React.ReactNode }) {
   return (
     <MotionConfig reducedMotion="user">
       <SoundProvider>
-        <main id="main" className="relative">
+        {/* `tabIndex={-1}` makes <main> programmatically focusable. Without
+            it the skip link can only move the viewport, never keyboard focus,
+            so the next Tab lands back in the region the link exists to bypass;
+            and Back to Top unmounts the focused button mid-scroll, stranding
+            focus on <body>. `outline-none` keeps it from drawing a ring on
+            pointer click, while :focus-visible still shows one. */}
+        <main id="main" tabIndex={-1} className="relative outline-none">
           {children}
         </main>
         <BackToTop />

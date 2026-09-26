@@ -11,9 +11,17 @@ import { cn } from "@/lib/utils";
 import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
 
 export function FatherAndSon() {
-  const [activeMilestoneIdx, setActiveMilestoneIdx] = React.useState(5); // Default to the Oct 22, 2024 history night
+  // Index into a data array, so it is clamped on read: if the timeline is ever
+  // shortened, `activeMilestone` would be undefined and take the section down
+  // with it. The default (the Oct 22, 2024 history night) is expressed as
+  // "last entry" rather than a magic 5 that only means that today.
+  const [activeMilestoneIdx, setActiveMilestoneIdx] = React.useState(
+    FATHER_AND_SON.timeline.length - 1,
+  );
   const activeMilestone: FatherSonMilestone =
-    FATHER_AND_SON.timeline[activeMilestoneIdx];
+    FATHER_AND_SON.timeline[
+      Math.min(activeMilestoneIdx, FATHER_AND_SON.timeline.length - 1)
+    ];
 
   const debut = FATHER_AND_SON.debutNight;
   const history = FATHER_AND_SON.historyNight;
@@ -41,7 +49,7 @@ export function FatherAndSon() {
 
       {/* --- Headline Figures Plaque --- */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="border border-rule bg-maple-light/40 p-5">
+        <div className="border border-rule bg-maple-deep/40 p-5">
           <Caption className="text-muted">Span Between Games</Caption>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
@@ -56,7 +64,7 @@ export function FatherAndSon() {
           </span>
         </div>
 
-        <div className="border border-rule bg-maple-light/40 p-5">
+        <div className="border border-rule bg-maple-deep/40 p-5">
           <Caption className="text-muted">Generational Span</Caption>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
@@ -71,7 +79,7 @@ export function FatherAndSon() {
           </span>
         </div>
 
-        <div className="border border-rule bg-maple-light/40 p-5">
+        <div className="border border-rule bg-maple-deep/40 p-5">
           <Caption className="text-muted">NBA Precedent</Caption>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
@@ -92,7 +100,9 @@ export function FatherAndSon() {
         <span className="font-mono text-xs font-bold uppercase tracking-wider text-gold">
           Scorer&apos;s Table · 4:00 2nd Quarter · Oct 22, 2024
         </span>
-        <blockquote className="mt-3 font-serif text-lg italic leading-relaxed text-chalk sm:text-xl md:text-2xl">
+        {/* AGENTS.md: all reading copy is Plus Jakarta Sans, and bookish /
+          Victorian serifs are explicitly ruled out. */}
+      <blockquote className="mt-3 text-lg italic leading-relaxed text-chalk sm:text-xl md:text-2xl">
           {FATHER_AND_SON.quote}
         </blockquote>
         <p className="mt-3 text-xs font-mono tracking-wider uppercase text-chalk/70">
@@ -103,7 +113,7 @@ export function FatherAndSon() {
       {/* --- Two Parallel Split Columns: Debut vs History --- */}
       <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
         {/* LEFT COLUMN: THE DEBUT (OCT 29, 2003) */}
-        <div className="relative flex flex-col justify-between border border-rule bg-maple-light/30 p-6 sm:p-8">
+        <div className="relative flex flex-col justify-between border border-rule bg-maple-deep/40 p-6 sm:p-8">
           <div>
             <div className="flex items-center justify-between">
               <span className="bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
@@ -141,32 +151,32 @@ export function FatherAndSon() {
           <div className="mt-6 border-t border-rule pt-4">
             <Caption className="text-muted mb-2">Debut Box Score</Caption>
             <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">PTS</span>
                 <span className="figure text-lg font-black text-wine">{debut.boxScore.pts}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">REB</span>
                 <span className="figure text-lg font-black text-wine">{debut.boxScore.reb}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">AST</span>
                 <span className="figure text-lg font-black text-wine">{debut.boxScore.ast}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">STL</span>
                 <span className="figure text-lg font-black text-wine">{debut.boxScore.stl}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">FG</span>
-                <span className="figure text-xs font-bold text-wine leading-5">12-20</span>
+                <span className="figure text-xs font-bold text-wine leading-5">{debut.boxScore.fg}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: HISTORY NIGHT (OCT 22, 2024) */}
-        <div className="relative flex flex-col justify-between border-2 border-wine bg-maple-light/40 p-6 shadow-xl sm:p-8">
+        <div className="relative flex flex-col justify-between border-2 border-wine bg-maple-deep/40 p-6 shadow-xl sm:p-8">
           <div>
             <div className="flex items-center justify-between">
               <span className="bg-gold px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-wine-deep font-mono">
@@ -204,25 +214,25 @@ export function FatherAndSon() {
           <div className="mt-6 border-t border-rule pt-4">
             <Caption className="text-muted mb-2">Opening Night Box Score</Caption>
             <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">PTS</span>
                 <span className="figure text-lg font-black text-wine">{history.boxScore.pts}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">REB</span>
                 <span className="figure text-lg font-black text-wine">{history.boxScore.reb}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">AST</span>
                 <span className="figure text-lg font-black text-wine">{history.boxScore.ast}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">STL</span>
                 <span className="figure text-lg font-black text-wine">{history.boxScore.stl}</span>
               </div>
-              <div className="bg-maple-dark/40 p-2">
+              <div className="bg-maple-deep/50 p-2">
                 <span className="block text-[0.625rem] font-mono text-muted uppercase">FG</span>
-                <span className="figure text-xs font-bold text-wine leading-5">7-16</span>
+                <span className="figure text-xs font-bold text-wine leading-5">{history.boxScore.fg}</span>
               </div>
             </div>
           </div>
@@ -230,7 +240,7 @@ export function FatherAndSon() {
       </div>
 
       {/* --- The 21-Year Interactive Timeline Spine --- */}
-      <div className="mt-14 border border-rule bg-maple-light/30 p-6 sm:p-8">
+      <div className="mt-14 border border-rule bg-maple-deep/40 p-6 sm:p-8">
         <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Caption bold className="text-wine">
@@ -256,15 +266,37 @@ export function FatherAndSon() {
             return (
               <button
                 key={`${m.year}-${m.title}`}
+                id={`father-son-tab-${idx}`}
                 role="tab"
                 aria-selected={isSelected}
-                tabIndex={0}
+                aria-controls="father-son-panel"
+                // Roving tabindex + arrow keys: the APG tabs pattern, which
+                // was previously declared but not implemented (every tab was
+                // tabbable and arrow keys did nothing).
+                tabIndex={isSelected ? 0 : -1}
+                onKeyDown={(ev) => {
+                  const last = FATHER_AND_SON.timeline.length - 1;
+                  let next: number | null = null;
+                  if (ev.key === "ArrowRight" || ev.key === "ArrowDown") {
+                    next = idx === last ? 0 : idx + 1;
+                  } else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") {
+                    next = idx === 0 ? last : idx - 1;
+                  } else if (ev.key === "Home") {
+                    next = 0;
+                  } else if (ev.key === "End") {
+                    next = last;
+                  }
+                  if (next === null) return;
+                  ev.preventDefault();
+                  setActiveMilestoneIdx(next);
+                  document.getElementById(`father-son-tab-${next}`)?.focus();
+                }}
                 onClick={() => setActiveMilestoneIdx(idx)}
                 className={cn(
                   "flex flex-col p-3 text-left transition-all border",
                   isSelected
                     ? "bg-wine text-chalk border-wine shadow-md"
-                    : "bg-maple-light/60 text-ink border-rule hover:border-wine hover:bg-maple-dark",
+                    : "bg-maple-deep/50 text-ink border-rule hover:border-wine hover:bg-maple-shadow",
                 )}
               >
                 <span
@@ -286,6 +318,9 @@ export function FatherAndSon() {
         {/* Active Milestone Highlight Card */}
         <motion.div
           key={activeMilestone.title}
+          id="father-son-panel"
+          role="tabpanel"
+          aria-labelledby={`father-son-tab-${activeMilestoneIdx}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
