@@ -70,8 +70,23 @@ export function CourtDiagram({
   const common = {
     fill: "none",
     stroke,
-    strokeWidth: 2,
-    vectorEffect: "non-scaling-stroke" as const,
+    // 1.7 user units renders at ~2px on a desktop court (the drawing scales
+    // at 1.198 there) and ~1.45px on a 320px one. It is 1.7 rather than 2
+    // because the stroke is no longer pinned — see the note below.
+    strokeWidth: 1.7,
+    // `vector-effect: non-scaling-stroke` used to live here. It MUST NOT come
+    // back. Chromium computes `stroke-dasharray` in SCREEN space when the
+    // stroke is non-scaling, so the dash that Framer's `pathLength` reveal
+    // leaves behind (`1px, 1px` with `pathLength="1"`) under-covers the path.
+    // The free-throw circle rendered with a gap across its upper-right
+    // quadrant — roughly the last quarter of the path — and every other line
+    // was short by the same fraction, just invisibly, because their endpoints
+    // coincide with a corner or the frame edge.
+    //
+    // Verified in Chromium: dash `1 1` + non-scaling-stroke leaves the gap;
+    // dash `1 1` without it draws the full circumference. The trade is that
+    // line weight now scales with the drawing instead of being constant,
+    // which is why `strokeWidth` is tuned to 1.7 above.
   };
 
   const draw = (i: number) =>
