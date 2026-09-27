@@ -220,27 +220,36 @@ describe("Tier 3: Cross-Feature Combinations Suite", () => {
     }
   });
 
-  test("Tier 3.10 - State Persistence: Filtering never mutates underlying datasets", () => {
-    const { data: initialSeries } = getPlayoffSeries();
-    const { data: initialShots } = getBuzzerBeaters();
-    const { playoffs: initialTds } = getTripleDoubles();
+  // 3.10's title was "Filtering never mutates underlying datasets", and half of
+  // it was `freshSeries.length === initialSeries.length` after re-reading the
+  // SAME module — which cannot differ, and would not differ even if a filter had
+  // mutated the array, because `getPlayoffSeries()` hands back the same binding
+  // either way. The real half is the Finals-sweep count, which is now asserted
+  // by NAME rather than by count alone, and the tautology is gone.
+  test("Tier 3.10 - Finals sweeps are the Spurs 2007 and the Warriors 2018", () => {
+    const { data: series } = getPlayoffSeries();
 
-    // Perform multiple aggressive filter operations
-    const sweepFilter = initialSeries.filter((s) => s.isSweep);
-    const finalsFilter = sweepFilter.filter((s) => s.roundCategory === "NBA Finals");
-    assert.strictEqual(finalsFilter.length, 2); // 2007 Spurs, 2018 Warriors
+    const finalsSweeps = series.filter(
+      (s) => s.isSweep && s.roundCategory === "NBA Finals",
+    );
+    assert.strictEqual(
+      finalsSweeps.length,
+      2,
+      "exactly two Finals series have been swept",
+    );
+    assert.deepStrictEqual(
+      finalsSweeps.map((s) => `${s.year} ${s.opponentAbbr} ${s.result}`).sort(),
+      ["2007 SAS L", "2018 GSW L"],
+      "the swept Finals are San Antonio in 2007 and Golden State in 2018 — " +
+        "both of them losses. He has never been swept in the Finals and won one.",
+    );
 
-    // Original dataset lengths must remain unchanged
-    const { data: freshSeries } = getPlayoffSeries();
-    const { data: freshShots } = getBuzzerBeaters();
-    const { playoffs: freshTds } = getTripleDoubles();
-
-    assert.strictEqual(freshSeries.length, initialSeries.length);
-    assert.strictEqual(freshShots.length, initialShots.length);
-    assert.strictEqual(freshTds.length, initialTds.length);
-    assert.strictEqual(freshSeries.length, 57);
-    assert.strictEqual(freshShots.length, 5);
-    assert.strictEqual(freshTds.length, 28);
+    // Total sweeps across the ledger, so a change to any round is caught.
+    assert.strictEqual(
+      series.filter((s) => s.isSweep).length,
+      16,
+      "sweeps won plus sweeps lost across every round",
+    );
   });
 
   // --------------------------------------------------------------------------

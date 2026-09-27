@@ -224,22 +224,45 @@ describe("Tier 2: Boundary & Corner Cases Suite", () => {
   // --------------------------------------------------------------------------
   // Category D: Empty Filter Sets & Out-of-Bounds Queries (3 tests)
   // --------------------------------------------------------------------------
-  test("Tier 2.12 - Out-of-Bounds: Filtering by non-existent opponent franchise returns empty array gracefully", () => {
+  // 2.12 and 2.13 each asserted `Array.isArray(data.filter(...))`, which is a
+  // fact about the language, not about this dataset — `.filter` always returns an
+  // array. The `length === 0` beside it was a real assertion, so the fix is to drop
+  // the tautology and make the real half specific: an unknown filter value must
+  // match nothing, and it must be unknown for a reason we can name.
+  test("Tier 2.12 - Out-of-Bounds: an unknown opponent franchise matches no series", () => {
     const { data } = getPlayoffSeries();
+    const known = new Set(data.map((s) => s.opponent));
     const fakeFranchise = "ZZZ";
-    const filtered = data.filter((s) => s.opponent === fakeFranchise);
 
-    assert.ok(Array.isArray(filtered), "Filtered result must be an array");
-    assert.strictEqual(filtered.length, 0);
+    assert.ok(
+      !known.has(fakeFranchise),
+      `"${fakeFranchise}" must not be a real opponent, or this test is vacuous`,
+    );
+    const filtered = data.filter((s) => s.opponent === fakeFranchise);
+    assert.strictEqual(
+      filtered.length,
+      0,
+      "an opponent nobody has played cannot match a series",
+    );
   });
 
-  test("Tier 2.13 - Out-of-Bounds: Filtering by non-existent playoff round returns empty array gracefully", () => {
+  test("Tier 2.13 - Out-of-Bounds: an unknown playoff round matches no series", () => {
     const { data } = getPlayoffSeries();
+    const known = new Set(data.map((s) => s.roundCategory));
     const fakeRound = "Wildcard Round";
-    const filtered = data.filter((s) => (s.roundCategory as string) === fakeRound);
 
-    assert.ok(Array.isArray(filtered));
-    assert.strictEqual(filtered.length, 0);
+    assert.ok(
+      !known.has(fakeRound as (typeof data)[number]["roundCategory"]),
+      `"${fakeRound}" must not be a real round category, or this test is vacuous`,
+    );
+    const filtered = data.filter(
+      (s) => (s.roundCategory as string) === fakeRound,
+    );
+    assert.strictEqual(
+      filtered.length,
+      0,
+      "a round that does not exist cannot match a series",
+    );
   });
 
   test("Tier 2.14 - Out-of-Bounds: Querying season bounds outside career range returns empty array", () => {

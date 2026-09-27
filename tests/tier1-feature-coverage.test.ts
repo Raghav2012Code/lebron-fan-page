@@ -1,5 +1,7 @@
 import test, { describe } from "node:test";
 import assert from "node:assert";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   getPlayoffSeries,
   getBuzzerBeaters,
@@ -8,6 +10,10 @@ import {
   HARDWOOD_TOKENS,
   LebronData,
 } from "./helpers/test-loader";
+
+const ROOT = join(import.meta.dirname, "..");
+const readSource = (...p: string[]) =>
+  readFileSync(join(ROOT, ...p), "utf8");
 
 describe("Tier 1: Feature Coverage Suite", () => {
   // --------------------------------------------------------------------------
@@ -368,25 +374,34 @@ describe("Tier 1: Feature Coverage Suite", () => {
   // --------------------------------------------------------------------------
   // Feature 4: Design System & SECTIONS Registration (5 tests)
   // --------------------------------------------------------------------------
-  test("Tier 1.16 - Design System: All 3 new features are registered in SECTIONS navigation registry", () => {
-    const liveSections = LebronData.SECTIONS as readonly { id: string; label: string }[];
-    const required = HARDWOOD_TOKENS.requiredSections;
-
-    // Check if live SECTIONS in lib/lebron-data includes the new IDs or verify contract
+  // This test used to be unfailable. Both of its branches were
+  // unconditionally true: if every required section was registered it asserted
+  // three `Set.has` calls that had just been checked, and if any was missing it
+  // asserted `HARDWOOD_TOKENS.requiredSections` — a literal in the test loader —
+  // against itself. Neither branch could fail, and the count of "passing" tests
+  // included it.
+  //
+  // What it should have said is the rule AGENTS.md §3 actually states: a
+  // RENDERED section is registered and a QUEUED milestone is not. Two of the
+  // three entries in `requiredSections` are Milestones 2 and 3, which are
+  // deliberately unrendered, so "all three registered" was the wrong assertion
+  // and the loader's own array could not stand in for it.
+  test("Tier 1.16 - Design System: SECTIONS registers rendered sections and omits queued milestones", () => {
+    const liveSections = LebronData.SECTIONS as readonly { id: string }[];
     const sectionIds = new Set(liveSections.map((s) => s.id));
-    const missing = required.filter((r) => !sectionIds.has(r.id));
 
-    // If worker has registered them, verify match; otherwise document required contract
-    if (missing.length === 0) {
-      assert.ok(sectionIds.has("playoff-matrix"));
-      assert.ok(sectionIds.has("clutch-anthology"));
-      assert.ok(sectionIds.has("triple-doubles"));
-    } else {
-      // Validates that required section contract is explicitly defined
-      assert.strictEqual(required.length, 3);
-      assert.strictEqual(required[0].id, "playoff-matrix");
-      assert.strictEqual(required[1].id, "clutch-anthology");
-      assert.strictEqual(required[2].id, "triple-doubles");
+    assert.ok(
+      sectionIds.has("playoff-matrix"),
+      "the playoff matrix is rendered, so its anchor must be in SECTIONS",
+    );
+
+    for (const queued of ["clutch-anthology", "triple-doubles"]) {
+      assert.ok(
+        !sectionIds.has(queued),
+        `SECTIONS registers "${queued}", which is a queued milestone with no ` +
+          `rendered section. AGENTS.md §3 forbids an anchor for it, and a footer ` +
+          `index link to it would navigate nowhere.`,
+      );
     }
   });
 
@@ -398,41 +413,91 @@ describe("Tier 1: Feature Coverage Suite", () => {
     }
   });
 
-  test("Tier 1.18 - Design System: Hardwood color palette tokens strictly match specifications", () => {
-    const c = HARDWOOD_TOKENS.colors;
-    assert.strictEqual(c.maple, "#E9D6B0");
-    assert.strictEqual(c.wine, "#5A1626");
-    assert.strictEqual(c.chalk, "#FBF7EF");
-    assert.strictEqual(c.gold, "#E0A72C");
-    assert.strictEqual(c.leather, "#C24A16");
+  // 1.18 and 1.19 both asserted `HARDWOOD_TOKENS` — a literal object in
+  // `tests/helpers/test-loader.ts` — against itself. Renaming `--maple` in
+  // `globals.css` or `W` in `court-diagram.tsx` left both green, which is the
+  // definition of a test that certifies nothing. They now read the real sources,
+  // so the literals in the loader are a SPECIFICATION being checked against an
+  // implementation rather than a copy of that implementation.
+  test("Tier 1.18 - Design System: the hardwood palette in globals.css matches the specification", () => {
+    const css = readSource("app", "globals.css");
+    const declared = (name: string) => {
+      const m = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(css);
+      assert.ok(m, `globals.css no longer declares --${name}`);
+      return m[1].toUpperCase();
+    };
+
+    for (const [token, name] of [
+      ["maple", "maple"],
+      ["mapleDeep", "maple-deep"],
+      ["wine", "wine"],
+      ["wineDeep", "wine-deep"],
+      ["chalk", "chalk"],
+      ["gold", "gold"],
+      ["leather", "leather"],
+      ["ochre", "ochre"],
+    ] as const) {
+      assert.strictEqual(
+        declared(name),
+        HARDWOOD_TOKENS.colors[token],
+        `--${name} in globals.css no longer matches the specified palette. If ` +
+          `the colour changed on purpose, update HARDWOOD_TOKENS too — that is ` +
+          `what makes this a check rather than a copy.`,
+      );
+    }
   });
 
-  test("Tier 1.19 - Design System: Court SVG coordinate system adheres to 10 units = 1 foot standard", () => {
+  test("Tier 1.19 - Design System: the court's SVG coordinate system is 10 units to the foot", () => {
+    const src = readSource("components", "court-diagram.tsx");
+    const constant = (name: string) => {
+      const m = new RegExp(`const ${name} = ([\\d.]+)`).exec(src);
+      assert.ok(m, `court-diagram.tsx no longer declares ${name}`);
+      return Number(m[1]);
+    };
+
+    // 50 ft wide, 47 ft deep, at 10 units to the foot.
+    const W = constant("W");
+    const H = constant("H");
     const geom = HARDWOOD_TOKENS.courtGeometry;
+    assert.strictEqual(W, geom.halfCourt.width, "court width is no longer 500");
+    assert.strictEqual(H, geom.halfCourt.height, "court depth is no longer 470");
+    assert.strictEqual(
+      W / 10,
+      50,
+      "50 ft wide at 10 units to the foot is 500 units",
+    );
+    assert.strictEqual(
+      H / 10,
+      47,
+      "47 ft deep at 10 units to the foot is 470 units",
+    );
 
-    // Half court: 50 ft wide x 47 ft deep = 500 x 470
-    assert.strictEqual(geom.halfCourt.width, 500);
-    assert.strictEqual(geom.halfCourt.height, 470);
-    assert.strictEqual(geom.halfCourt.viewBox, "0 0 500 470");
+    // The rim sits 5.25 ft (52.5 units) off the baseline, and BASKET_Y is derived
+    // from H rather than typed, so it cannot drift from the court's depth.
+    const basketY = /const BASKET_Y = H - ([\d.]+)/.exec(src);
+    assert.ok(basketY, "BASKET_Y must stay derived from H, not a literal");
+    assert.strictEqual(
+      H - Number(basketY[1]),
+      geom.halfCourt.rim.cy,
+      "the rim is no longer 5.25 ft off the baseline",
+    );
 
-    // Rim center: 250 across, 417.5 deep (5.25 ft from baseline)
-    assert.strictEqual(geom.halfCourt.rim.cx, 250);
-    assert.strictEqual(geom.halfCourt.rim.cy, 417.5);
-
-    // Full court: 50 ft wide x 94 ft length = 500 x 940
-    assert.strictEqual(geom.fullCourt.width, 500);
-    assert.strictEqual(geom.fullCourt.height, 940);
-    assert.strictEqual(geom.fullCourt.viewBox, "0 0 500 940");
+    // And the viewBox is built from those constants, not re-typed.
+    assert.match(
+      src,
+      /viewBox=\{`0 \$\{top\} \$\{W\} \$\{H - top\}`\}/,
+      "the half-court viewBox must be derived from W and H",
+    );
   });
 
-  test("Tier 1.20 - Design System: Accessibility contracts - keyboard navigation, ARIA roles and labels", () => {
-    // Contractual accessibility invariants
-    const expectedRoles = ["region", "tablist", "tab", "tabpanel", "button", "dialog"];
-    assert.ok(expectedRoles.includes("tab"));
-    assert.ok(expectedRoles.includes("region"));
-
-    // Typography rules: Oswald for monument/figures, Plus Jakarta Sans for editorial copy
-    assert.strictEqual(HARDWOOD_TOKENS.typography.headings, "Oswald");
-    assert.strictEqual(HARDWOOD_TOKENS.typography.prose, "Plus Jakarta Sans");
-  });
+  // 1.20 is DELETED rather than rewritten. It asserted that a local array
+  // contained the literals "tab" and "region", and that the loader's typography
+  // strings equalled themselves — so "Accessibility contracts - keyboard
+  // navigation, ARIA roles and labels" was the name of a test that asserted
+  // nothing about the app. There is no honest version of it here: every property
+  // it claimed to cover is a runtime DOM property, and `AGENTS.md` §5 records that
+  // this suite cannot see the DOM. What IS assertable is asserted elsewhere —
+  // guard G7 for the navigation registry, G2 for anchor clearance, and the
+  // source-level a11y assertions in the design guards. Deleting it drops the
+  // passing count by one, which is the correct direction.
 });
