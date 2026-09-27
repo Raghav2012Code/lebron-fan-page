@@ -94,7 +94,10 @@ export function FatherAndSon() {
           AGENTS.md §1 — gone, see F-02. */}
       <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         <div>
-          <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+          <h2
+          className="headline text-wine"
+          style={{ fontSize: "clamp(1.875rem, 4.5vw, 3rem)" }}
+        >
             <RiseWords text={FATHER_AND_SON.subheading} />
           </h2>
         </div>
@@ -240,7 +243,7 @@ export function FatherAndSon() {
                 <span className="font-bold text-wine">{history.lebronAge}</span>
               </div>
               <div className="mt-1 flex justify-between text-xs">
-                <span className="text-muted">Bronny Age:</span>
+                <span className="text-muted">Bronny Status:</span>
                 <span className="font-bold text-leather-ink">{history.bronnyStatus}</span>
               </div>
             </div>

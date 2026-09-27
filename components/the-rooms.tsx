@@ -20,6 +20,25 @@ const PINNED_HEIGHT = "420vh";
 const REST_RATIO = 0.35;
 
 /**
+ * Where room `i` sits along the pinned scroll, as a fraction of 0 to 1.
+ *
+ * ONE definition, because the section had two and they disagreed across a fifth
+ * of it. `RoomPanel` placed each panel at `(i + 0.5) / N` — deliberately 1/N
+ * rather than 1/(N-1), so every chapter gets an equal share of the pin and the
+ * first one's fade-in range is not entirely below zero — while `PinnedRooms`
+ * derived the floor colour, the PAINT, the active index and `goTo` from
+ * `i / (N-1)`.
+ *
+ * With N = 6, panel 0 rests across progress [0, 0.167] but `active` flips to 1 at
+ * 0.1, so for that stretch the Akron panel is at full opacity while the nav
+ * underline, the label colour and the `aria-live` region all name Cleveland.
+ * `round(v * (N-1))` becomes `round(v * N - 0.5)`, which is the same rounding
+ * against the centres the panels are actually drawn at.
+ */
+const roomSeg = 1 / N;
+const roomCenter = (i: number) => (i + 0.5) * roomSeg;
+
+/**
  * The rooms he has played in.
  *
  * A pinned sequence where the floor itself changes colour, because each room
@@ -52,8 +71,8 @@ function RoomPanel({
   // (unreachable, so Akron never slid in) and gave it half the scroll
   // distance of every other chapter. The last chapter's exit range is
   // likewise allowed to run past 1, which is unreachable by design.
-  const seg = 1 / N;
-  const center = (i + 0.5) * seg;
+  const seg = roomSeg;
+  const center = roomCenter(i);
   const range = [
     center - seg * 0.5,
     center - seg * REST_RATIO,
@@ -145,11 +164,14 @@ function PinnedRooms() {
 
   // Each room's colour is held flat while you are in it and repainted
   // quickly at the handover, so the floor is never a muddy blend of two
-  // clubs' colours for half the section.
-  const seg = 1 / (N - 1);
+  // clubs' colours for half the section. Centred on `roomCenter`, the same
+  // place `RoomPanel` draws the chapter — previously this used 1/(N-1) while
+  // the panels used 1/N, so the floor changed hands while the previous
+  // chapter was still fully on screen.
+  const seg = roomSeg;
   const stops = ROOMS.flatMap((_, i) => [
-    i * seg - seg * REST_RATIO,
-    i * seg + seg * REST_RATIO,
+    roomCenter(i) - seg * REST_RATIO,
+    roomCenter(i) + seg * REST_RATIO,
   ]);
   const floor = useTransform(
     progress,
@@ -164,7 +186,8 @@ function PinnedRooms() {
 
   const [active, setActive] = React.useState(0);
   useMotionValueEvent(progress, "change", (v) => {
-    const idx = Math.max(0, Math.min(N - 1, Math.round(v * (N - 1))));
+    // Rounding against the panel CENTRES, not against i/(N-1). See `roomCenter`.
+    const idx = Math.max(0, Math.min(N - 1, Math.round(v * N - 0.5)));
     setActive((p) => (p === idx ? p : idx));
   });
 
@@ -173,7 +196,9 @@ function PinnedRooms() {
     if (!el) return;
     const top = el.getBoundingClientRect().top + window.scrollY;
     const dist = el.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + (i / (N - 1)) * dist, behavior: "smooth" });
+    // To the room's centre, not to i/(N-1) — otherwise clicking the first nav
+    // item scrolls past it and lands on the second.
+    window.scrollTo({ top: top + roomCenter(i) * dist, behavior: "smooth" });
   }, []);
 
   return (

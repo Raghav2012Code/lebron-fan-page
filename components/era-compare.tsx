@@ -160,7 +160,10 @@ export function EraCompare() {
           restatement of the heading beneath it and is gone — see F-02. */}
       <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
         <div>
-          <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+          <h2
+          className="headline text-wine"
+          style={{ fontSize: "clamp(1.875rem, 4.5vw, 3rem)" }}
+        >
             <RiseWords text={ERA_COMPARE_INTRO.subheading} />
           </h2>
         </div>

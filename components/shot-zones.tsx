@@ -148,7 +148,10 @@ export function ShotZones() {
           straight into the instrument. The eyebrow that stood here restated the
           heading and is gone (F-02). */}
       <div className="max-w-3xl">
-        <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+        <h2
+          className="headline text-wine"
+          style={{ fontSize: "clamp(1.875rem, 4.5vw, 3rem)" }}
+        >
           <RiseWords text={SHOT_ZONES.subheading} />
         </h2>
         <p className="mt-3 text-base text-ink sm:text-lg">{SHOT_ZONES.copy}</p>

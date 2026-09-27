@@ -425,7 +425,10 @@ export function PlayoffMatrix() {
                 indicator is conventionally round. One of four rounded-full
                 shapes on the page; the budget and the survivor list are asserted
                 by the test gate (F-08). */}
-            <span className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse" aria-hidden="true" />
+            <span
+      className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse data-reveal-loop"
+      aria-hidden
+    />
             <h2
               id="playoff-matrix-heading"
               className="headline text-wine"
@@ -1030,7 +1033,7 @@ export function PlayoffMatrix() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
               className={cn(
-                "relative z-10 w-full max-w-2xl bg-chalk h-full shadow-2xl border-l-2 border-wine",
+                "relative z-10 w-full max-w-2xl bg-maple h-full shadow-2xl border-l-2 border-wine",
                 "flex flex-col justify-between overflow-y-auto p-6 sm:p-8",
               )}
             >

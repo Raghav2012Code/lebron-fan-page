@@ -406,7 +406,16 @@ body {
   }
 
   /* Repeating attention animations are the one thing that cannot be fixed by
-     landing on a final value, so they are stopped outright. */
+     landing on a final value, so they are stopped outright.
+
+     This reaches CSS animations only — `animation: none` cannot touch a
+     JavaScript rAF loop. The two elements that carry `data-reveal-loop` in
+     `center-court` are driven by Framer's `repeat: Infinity` and were never
+     what this rule is for; they handle reduced motion with a `reduce ? … : …`
+     ternary instead, which is why the attribute there is harmless rather than
+     load-bearing. The one element this DOES fix is the live-status dot in
+     `playoff-matrix`, a genuine `animate-pulse`, which was pulsing forever for
+     a reader who had asked for reduced motion. */
   [data-reveal-loop] {
     animation: none !important;
     transition: none !important;

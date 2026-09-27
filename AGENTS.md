@@ -49,6 +49,12 @@ would be wrong. Enforced by `tests/design-guards.test.ts` G2.
   it is Tailwind's **default system stack** (`-apple-system, BlinkMacSystemFont, "Segoe UI", …`),
   *not* `--font-text`, so it silently introduces a third family. Use `font-text` or one of the
   declared classes.
+- **Section headings are display-face, with one stated exception.** Thirteen of the fourteen `<h2>`s
+  are `.headline` or `.monument` in Oswald, sized with a `clamp()`. `the-line`'s is `.narrow` — 16px,
+  uppercase, body face — because that section's opener *is* the written line: the heading is a label
+  inside the painted band rather than a monument stacked above a standfirst, and it is the only
+  silhouette on the page that does that (F-01). It is still a real `<h2>`, so the section keeps its
+  accessible name. Do not "fix" it, and do not copy that treatment to a section that opens on maple.
 - **Route a label by its role, not mechanically.** A field label is `.narrow` (or the `Caption`
   component); a coloured badge is `.narrow-bold`; a data string inside a sentence wants
   `tabular-nums` with its case preserved (`Age 27` should not become `AGE 27`); prose is
