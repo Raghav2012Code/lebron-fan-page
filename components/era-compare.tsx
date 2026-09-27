@@ -20,6 +20,17 @@ interface MetricRowProps {
   higherIsBetter?: boolean;
 }
 
+/**
+ * A single comparison row: label, the better value, the worse value, and the
+ * gap between them.
+ *
+ * The face is `font-text`, not `font-sans`. `font-sans` is Tailwind's default
+ * system stack — `-apple-system, BlinkMacSystemFont, "Segoe UI", …` — which is
+ * NOT the declared body face. This table was therefore rendering in a third
+ * family that no `font-mono` grep could see, because the defect was a utility
+ * pointing at the wrong token rather than a raw monospace. Two families, full
+ * stop: `font-text` and `font-display`.
+ */
 function MetricRow({
   label,
   valA,
@@ -42,16 +53,16 @@ function MetricRow({
 
   return (
     <div className="group border-b border-rule py-3 transition-colors hover:bg-maple-shadow/30">
-      <div className="flex items-center justify-between gap-4 text-xs font-mono uppercase tracking-wider text-muted">
+      <div className="flex items-center justify-between gap-4 narrow text-xs text-muted">
         <span
           className={cn(
-            "text-base font-black font-sans tracking-tight",
+            "text-base font-black font-text tracking-tight",
             aWins ? "text-wine font-extrabold" : "text-ink/80",
           )}
         >
           {displayA}
           {aWins && (
-            <span className="ml-1.5 inline-block text-[0.6875rem] font-mono font-bold text-wine">
+            <span className="ml-1.5 inline-block text-[0.6875rem] font-bold tabular-nums text-wine">
               <span aria-hidden>▲</span>
               <span className="sr-only">
                 {" "}
@@ -62,19 +73,19 @@ function MetricRow({
           )}
         </span>
 
-        <span className="text-center text-xs font-semibold normal-case text-ink font-sans">
+        <span className="text-center text-xs font-semibold normal-case text-ink font-text">
           {label}
           {isTie && <span className="sr-only">, tied</span>}
         </span>
 
         <span
           className={cn(
-            "text-base font-black font-sans tracking-tight text-right",
+            "text-base font-black font-text tracking-tight text-right",
             bWins ? "text-wine font-extrabold" : "text-ink/80",
           )}
         >
           {bWins && (
-            <span className="mr-1.5 inline-block text-[0.6875rem] font-mono font-bold text-wine">
+            <span className="mr-1.5 inline-block text-[0.6875rem] font-bold tabular-nums text-wine">
               <span aria-hidden>▲</span>
               <span className="sr-only">
                 {" "}
@@ -159,10 +170,10 @@ export function EraCompare() {
         {/* ERA A SELECTOR CARD */}
         <div className="border-2 border-wine bg-maple-deep/40 p-6 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
+            <span className="narrow-bold bg-wine px-2.5 py-1 text-[0.6875rem] text-chalk">
               Profile A
             </span>
-            <span className="font-mono text-xs font-bold text-wine">
+            <span className="text-xs font-bold tabular-nums text-wine">
               Age {eraA.age}
             </span>
           </div>
@@ -170,7 +181,7 @@ export function EraCompare() {
           <div className="mt-4">
             <label
               htmlFor="era-a-select"
-              className="block text-xs font-mono font-semibold uppercase text-muted"
+              className="narrow block text-xs text-muted"
             >
               Select Peak Season:
             </label>
@@ -209,7 +220,7 @@ export function EraCompare() {
 
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraA.archetype}</h3>
-            <p className="mt-1 text-xs font-mono uppercase text-leather">
+            <p className="narrow mt-1 text-xs text-leather">
               {eraA.team} · {eraA.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
@@ -221,10 +232,10 @@ export function EraCompare() {
         {/* ERA B SELECTOR CARD */}
         <div className="border-2 border-gold bg-maple-deep/40 p-6 shadow-md">
           <div className="flex items-center justify-between">
-            <span className="bg-gold px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-wine-deep font-mono">
+            <span className="narrow-bold bg-gold px-2.5 py-1 text-[0.6875rem] text-wine-deep">
               Profile B
             </span>
-            <span className="font-mono text-xs font-bold text-leather">
+            <span className="text-xs font-bold tabular-nums text-leather">
               Age {eraB.age}
             </span>
           </div>
@@ -232,7 +243,7 @@ export function EraCompare() {
           <div className="mt-4">
             <label
               htmlFor="era-b-select"
-              className="block text-xs font-mono font-semibold uppercase text-muted"
+              className="narrow block text-xs text-muted"
             >
               Select Peak Season:
             </label>
@@ -265,7 +276,7 @@ export function EraCompare() {
 
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraB.archetype}</h3>
-            <p className="mt-1 text-xs font-mono uppercase text-leather">
+            <p className="narrow mt-1 text-xs text-leather">
               {eraB.team} · {eraB.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
@@ -278,13 +289,13 @@ export function EraCompare() {
       {/* --- Head-to-Head Comparative Metric Rows --- */}
       <div className="mt-10 border border-rule bg-maple-deep/40 p-6 sm:p-8">
         <div className="flex items-center justify-between border-b border-rule pb-4">
-          <span className="font-mono text-xs font-bold uppercase text-wine">
+          <span className="narrow text-xs text-wine">
             {eraA.seasonLabel} ({eraA.city})
           </span>
           <Caption bold className="text-wine">
             Metric Audit & Edge
           </Caption>
-          <span className="font-mono text-xs font-bold uppercase text-leather">
+          <span className="narrow text-xs text-leather">
             {eraB.seasonLabel} ({eraB.city})
           </span>
         </div>
@@ -395,7 +406,7 @@ export function EraCompare() {
           <Caption bold className="text-wine">
             {eraA.seasonLabel} Hardware & Accolades
           </Caption>
-          <ul className="mt-4 space-y-2 font-mono text-xs text-ink">
+          <ul className="narrow mt-4 space-y-2 text-xs text-ink">
             {eraA.hardware.map((hw) => (
               <li key={`hw-a-${hw}`} className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 bg-wine" />
@@ -409,7 +420,7 @@ export function EraCompare() {
           <Caption bold className="text-leather">
             {eraB.seasonLabel} Hardware & Accolades
           </Caption>
-          <ul className="mt-4 space-y-2 font-mono text-xs text-ink">
+          <ul className="narrow mt-4 space-y-2 text-xs text-ink">
             {eraB.hardware.map((hw) => (
               <li key={`hw-b-${hw}`} className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 bg-gold" />

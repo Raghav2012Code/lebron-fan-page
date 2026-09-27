@@ -278,7 +278,15 @@ export function ShotZones() {
         {/* THE HALF COURT SCHEMATIC */}
         <div className="relative aspect-[500/470] w-full overflow-hidden border border-rule-chalk bg-wine-deep shadow-2xl">
           <svg
-            className="absolute inset-0 h-full w-full select-none"
+            /* `font-text` on the root, and no font-family attribute on any
+               <text>. SVG <text> has no family of its own, so without this the
+               nine sector labels ("37.5% vol" and friends) fall back to the
+               browser's default monospace — a third family on the page that no
+               `font-mono` grep in components/ could ever catch, because the
+               monospace was a presentation ATTRIBUTE, not a class. Note the
+               sibling percentage labels are deliberately `var(--font-display)`:
+               those are scoreboard figures, so Oswald is correct there. */
+            className="absolute inset-0 h-full w-full select-none font-text"
             viewBox="0 0 500 470"
             preserveAspectRatio="xMidYMid meet"
             aria-label={`Interactive half court shot chart for ${era.name}`}
@@ -365,8 +373,12 @@ export function ShotZones() {
                     fill="rgba(251, 247, 239, 0.65)"
                     fontSize="14"
                     fontWeight="600"
-                    fontFamily="monospace"
-                    className="select-none uppercase tracking-wider"
+                    /* Was fontFamily="monospace" — a presentation attribute, so
+                       it beat the `font-text` on the <svg> root and put nine
+                       labels on the page in a third family. `tracking-wider` is
+                       kept because the tracking-widest ban is about eyebrows,
+                       not about a volume label set small on a diagram. */
+                    className="select-none font-text uppercase tracking-wider"
                   >
                     {zoneData?.frequency.toFixed(1)}% vol
                   </text>
@@ -486,7 +498,7 @@ export function ShotZones() {
           </svg>
 
           {/* Quick instructions indicator overlay on court */}
-          <div className="pointer-events-none absolute bottom-3 left-3 bg-wine-deep/80 px-2 py-1 text-[0.6875rem] font-mono uppercase text-chalk/70 backdrop-blur-sm border border-rule-chalk/30">
+          <div className="pointer-events-none absolute bottom-3 left-3 bg-wine-deep/80 px-2 py-1 text-[0.6875rem] narrow text-chalk-dim backdrop-blur-sm border border-rule-chalk/30">
             Tap / hover sector to inspect
           </div>
         </div>
@@ -502,10 +514,10 @@ export function ShotZones() {
           </p>
           <div>
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-block bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
+              <span className="narrow-bold inline-block bg-wine px-2.5 py-1 text-[0.6875rem] text-chalk">
                 {activeZone.area}
               </span>
-              <span className="text-xs font-mono font-medium text-muted">
+              <span className="text-xs font-medium tabular-nums text-muted">
                 {era.name} ({era.period})
               </span>
             </div>
@@ -524,7 +536,7 @@ export function ShotZones() {
                   </span>
                   <span
                     className={cn(
-                      "text-xs font-bold font-mono",
+                      "narrow text-xs",
                       diffVsLeague >= 0 ? "text-wine" : "text-muted",
                     )}
                   >
@@ -568,7 +580,7 @@ export function ShotZones() {
               from the encoder. */}
           <div className="mt-8 border-t border-rule pt-4">
             <Caption className="text-muted mb-2">Efficiency Legend</Caption>
-            <div className="flex flex-wrap items-center gap-4 text-[0.6875rem] font-mono text-muted">
+            <div className="narrow flex flex-wrap items-center gap-4 text-[0.6875rem] text-muted">
               {(
                 [
                   [ZONE_BANDS.elite.label, "bg-gold"],

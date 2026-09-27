@@ -113,7 +113,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               <Counter to={FATHER_AND_SON.daysApart} />
             </span>
-            <span className="font-mono text-xs font-bold uppercase text-leather">
+            <span className="narrow text-xs text-leather">
               Days
             </span>
           </div>
@@ -128,7 +128,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               <Counter to={FATHER_AND_SON.yearsSpan} />
             </span>
-            <span className="font-mono text-xs font-bold uppercase text-leather">
+            <span className="narrow text-xs text-leather">
               Full Seasons
             </span>
           </div>
@@ -143,7 +143,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               1st
             </span>
-            <span className="font-mono text-xs font-bold uppercase text-leather">
+            <span className="narrow text-xs text-leather">
               In History
             </span>
           </div>
@@ -155,7 +155,7 @@ export function FatherAndSon() {
 
       {/* --- Scorer's Table Mic'd Up Quote Banner --- */}
       <div className="mt-6 border-l-4 border-gold bg-wine p-6 text-chalk shadow-lg sm:p-8">
-        <span className="font-mono text-xs font-bold uppercase tracking-wider text-gold">
+        <span className="narrow text-xs text-gold">
           Scorer&apos;s Table · 4:00 2nd Quarter · Oct 22, 2024
         </span>
         {/* AGENTS.md: all reading copy is Plus Jakarta Sans, and bookish /
@@ -163,7 +163,7 @@ export function FatherAndSon() {
       <blockquote className="mt-3 text-lg italic leading-relaxed text-chalk sm:text-xl md:text-2xl">
           {FATHER_AND_SON.quote}
         </blockquote>
-        <p className="mt-3 text-xs font-mono tracking-wider uppercase text-chalk/70">
+        <p className="narrow mt-3 text-xs text-chalk-dim">
           — {FATHER_AND_SON.quoteAuthor}
         </p>
       </div>
@@ -174,10 +174,10 @@ export function FatherAndSon() {
         <div className="relative flex flex-col justify-between border border-rule bg-maple-deep/40 p-6 sm:p-8">
           <div>
             <div className="flex items-center justify-between">
-              <span className="bg-wine px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-chalk font-mono">
+              <span className="narrow-bold bg-wine px-2.5 py-1 text-[0.6875rem] text-chalk">
                 The Debut
               </span>
-              <span className="font-mono text-xs text-muted">
+              <span className="text-xs tabular-nums text-muted">
                 {debut.date}
               </span>
             </div>
@@ -185,7 +185,7 @@ export function FatherAndSon() {
             <h3 className="mt-4 text-2xl font-black text-wine sm:text-3xl">
               {debut.venue}
             </h3>
-            <p className="mt-1 font-mono text-xs uppercase text-leather">
+            <p className="narrow mt-1 text-xs text-leather">
               {debut.city} · vs {debut.opponent}
             </p>
 
@@ -216,10 +216,10 @@ export function FatherAndSon() {
         <div className="relative flex flex-col justify-between border-2 border-wine bg-maple-deep/40 p-6 shadow-xl sm:p-8">
           <div>
             <div className="flex items-center justify-between">
-              <span className="bg-gold px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wider text-wine-deep font-mono">
+              <span className="narrow-bold bg-gold px-2.5 py-1 text-[0.6875rem] text-wine-deep">
                 History Made
               </span>
-              <span className="font-mono text-xs font-bold text-wine">
+              <span className="text-xs font-bold tabular-nums text-wine">
                 {history.date}
               </span>
             </div>
@@ -227,7 +227,7 @@ export function FatherAndSon() {
             <h3 className="mt-4 text-2xl font-black text-wine sm:text-3xl">
               {history.venue}
             </h3>
-            <p className="mt-1 font-mono text-xs uppercase text-leather">
+            <p className="narrow mt-1 text-xs text-leather">
               {history.city} · vs {history.opponent}
             </p>
 
@@ -266,7 +266,7 @@ export function FatherAndSon() {
               Select any milestone to trace the journey from unborn son to NBA teammate.
             </p>
           </div>
-          <span className="mt-2 font-mono text-xs font-bold uppercase text-leather sm:mt-0">
+          <span className="mt-2 narrow text-xs text-leather sm:mt-0">
             2003 — 2024
           </span>
         </div>
@@ -317,7 +317,7 @@ export function FatherAndSon() {
               >
                 <span
                   className={cn(
-                    "font-mono text-xs font-bold",
+                    "narrow text-xs",
                     isSelected ? "text-gold" : "text-muted",
                   )}
                 >
@@ -345,7 +345,7 @@ export function FatherAndSon() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-baseline sm:justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <span className="font-mono text-sm font-black text-wine">
+                <span className="text-sm font-black tabular-nums text-wine">
                   {activeMilestone.date}
                 </span>
                 <span className="text-xs text-muted">·</span>
@@ -357,7 +357,7 @@ export function FatherAndSon() {
                 {activeMilestone.description}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-4 text-xs font-mono">
+            <div className="flex shrink-0 items-center gap-4 text-xs tabular-nums">
               <div>
                 <span className="text-muted">LeBron:</span>{" "}
                 <span className="font-bold text-wine">Age {activeMilestone.lebronAge}</span>
