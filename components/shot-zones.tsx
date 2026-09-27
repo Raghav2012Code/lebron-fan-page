@@ -274,7 +274,7 @@ export function ShotZones() {
       </div>
 
       {/* --- Main Court & Detail Grid --- */}
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1.3fr_1fr]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         {/* THE HALF COURT SCHEMATIC */}
         <div className="relative aspect-[500/470] w-full overflow-hidden border border-rule-chalk bg-wine-deep shadow-2xl">
           <svg

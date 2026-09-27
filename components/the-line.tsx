@@ -140,7 +140,7 @@ export function TheLine() {
 
       {/* everything else the record holds */}
       <div className="mx-auto mt-16 max-w-6xl px-5 sm:px-8 md:px-14">
-        <div className="grid grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-[1.1fr_1fr]">
+        <div className="grid grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
           <motion.dl
             className="flex flex-col"
             initial="hidden"

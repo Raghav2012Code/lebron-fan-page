@@ -35,7 +35,7 @@ function NightBand({ night, index }: { night: Night; index: number }) {
         show: { transition: { staggerChildren: 0.1 } },
       }}
     >
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-14 gap-y-4 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(9rem,14rem)_1fr] md:px-14">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-14 gap-y-4 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(9rem,14rem)_minmax(0,1fr)] md:px-14">
         <motion.span
           className="figure leading-none"
           style={{

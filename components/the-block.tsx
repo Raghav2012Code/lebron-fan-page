@@ -194,7 +194,7 @@ export function TheBlock() {
         />
 
         {/* --- Interactive Court & Controls Grid --- */}
-        <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr]">
+        <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {/* THE COURT SCHEMATIC */}
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-wine-deep border border-rule-chalk shadow-inner sm:aspect-square">
             <svg

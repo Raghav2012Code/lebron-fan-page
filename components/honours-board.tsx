@@ -25,7 +25,7 @@ import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/component
 function LedgerRow({ honour, index }: { honour: Honour; index: number }) {
   return (
     <motion.div
-      className="grid grid-cols-1 gap-x-8 gap-y-2 py-7 sm:grid-cols-[minmax(5rem,8rem)_1fr] sm:py-9"
+      className="grid grid-cols-1 gap-x-8 gap-y-2 py-7 sm:grid-cols-[minmax(5rem,8rem)_minmax(0,1fr)] sm:py-9"
       initial="hidden"
       whileInView="show"
       viewport={VIEWPORT_SOON}

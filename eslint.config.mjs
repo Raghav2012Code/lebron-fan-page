@@ -26,8 +26,19 @@ import nextTs from "eslint-config-next/typescript";
  *     `value.value` selector alone matched the bare cases and silently passed
  *     every composed one -- which is most of them.
  *
- * The `className` selectors are anchored so they cannot fire on a lookalike:
- * `grid-cols-[1fr` must not match `grid-cols-[1.3fr_1fr]`, which is already safe.
+ * The `className` selectors are anchored so they cannot fire on a lookalike.
+ * The `fr` rule is the one that needed real care, and its previous form was
+ * inert: it matched `/grid-cols-\[1fr/`, a string that occurs ZERO times in the
+ * repository, so it could never fire on anything while AGENTS.md §1 documented
+ * it as enforced. Its justifying comment here also claimed that
+ * `grid-cols-[1.3fr_1fr]` "is already safe", which is false -- an `fr` track has
+ * an automatic minimum of `min-content`, so `1.3fr` can be forced just as open as
+ * `1fr` by a long unbroken string. The rule now matches a bare `fr` token
+ * anywhere in a track list, and is careful in one direction only: an `fr` that is
+ * the max of a `minmax(...)` is followed by `)`, not by `_`, a space or `]`, so
+ * `minmax(0,1fr)_auto` is correctly left alone. `minmax(9rem,14rem)_1fr` is NOT
+ * left alone -- the minmax is on the other track, and the bare one still has its
+ * min-content floor.
  */
 
 /** A className attribute holding a bare string literal. */
@@ -95,8 +106,11 @@ const eslintConfig = defineConfig([
             "A uniform vertical hover-lift across a card grid is a named AI tell (DESIGN-AUDIT.md F-09). Use an affordance that carries information about that card, such as inverting the result badge, rather than moving it.",
         },
         ...classNameHas(
-          "/grid-cols-\\[1fr/",
-          "A bare flexible grid track can be forced open by a long unbroken string. Use minmax(0,1fr) so the track can shrink (DESIGN-AUDIT.md F-12).",
+          // A bare `fr` token: the character after the unit must be `_`, a space
+          // or the closing bracket. Inside `minmax(...)` the `fr` is followed by
+          // `)`, which is what keeps the safe form out of the match.
+          "/grid-cols-\\[[^\\]]*fr(?=[\\s_\\]])/",
+          "A bare flexible grid track has an automatic min-content minimum, so a long unbroken string can force it open. Use minmax(0,1fr) so the track can shrink (DESIGN-AUDIT.md F-12). Every bare `fr` in the list needs it, not only a leading one.",
         ),
       ],
     },

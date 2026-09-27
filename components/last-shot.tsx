@@ -389,7 +389,7 @@ export function LastShot() {
         </motion.p>
 
         <div className="px-5 pb-8 pt-8 sm:px-7">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.45fr_1fr]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
           {/* THE COURT — chalk lines on painted floor. Revealed by pulling a
               maple cover off it rather than by transforming the panel itself,
               so the court markings never distort and the panel is the right
