@@ -48,8 +48,15 @@ export function TwentyThree() {
           numeral's right edge to the section's own padding edge instead of
           pushing it off-canvas by a viewport-relative amount. `inset-y-0` plus
           `right-0` inside the padding box means the glyph stops exactly where
-          the text column does, at 320 and at 1440 alike, because the offset no
-          longer scales with the viewport. */}
+          the text column does.
+
+          "at 320 and at 1440 alike" is what this used to claim, and it is only
+          true of the BASE offset. The class is `right-0 sm:right-7 md:right-14`,
+          so the numeral steps IN with the text column's own padding: flush below
+          640px, 1.75rem in from `sm`, 3.5rem from `md` up. The point that
+          survives is the narrower one — the offset is a REM constant stepped
+          at the same two breakpoints as everything else, not a viewport-relative
+          amount that scaled with the window. */}
       <motion.span
         aria-hidden
         className="figure pointer-events-none absolute inset-y-0 right-0 flex select-none items-center text-chalk sm:right-7 md:right-14"

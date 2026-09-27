@@ -18,9 +18,21 @@ interface CourtZoneConfig {
 }
 
 /**
- * Efficiency bands, declared once and consumed by BOTH `getZoneColor` and the
- * legend. These thresholds used to be hardcoded in each, so a change to the
- * encoder silently desynchronised the legend from the colours it documents.
+ * Efficiency bands. The THRESHOLDS and LABELS are declared once here and read by
+ * both `getZoneColor` and the legend, so the boundaries the chart draws are the
+ * boundaries the legend names. These used to be hardcoded in each, and a change
+ * to one silently desynchronised the other.
+ *
+ * What is deliberately NOT shared is the colour. `getZoneColor` returns
+ * translucent `rgba()` fills that composite over the court's paint; the legend
+ * shows opaque-ish Tailwind swatches on the panel beside the chart. They are the
+ * same hues at comparable weight, rendered for two different grounds. Collapsing
+ * them into one value would be the fix for a desynchronisation that does not
+ * exist, at the cost of making one of them wrong.
+ *
+ * This comment used to claim the colours were shared too, and that is the
+ * misleading part: "declared once and consumed by BOTH" implied that editing an
+ * `rgba()` in the encoder would move the legend swatch with it. It would not.
  * `min` is inclusive.
  */
 const ZONE_BANDS = {

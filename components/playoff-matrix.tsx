@@ -658,10 +658,10 @@ export function PlayoffMatrix() {
                         />
                       )}
                       <div className="relative z-10 flex flex-col">
-                        <span className="narrow-bold text-xs uppercase tracking-wider sm:inline hidden">
+                        <span className="narrow-bold text-xs uppercase tracking-wider hidden sm:inline">
                           {tab.label}
                         </span>
-                        <span className="narrow-bold text-xs uppercase tracking-wider sm:hidden inline">
+                        <span className="narrow-bold text-xs uppercase tracking-wider inline sm:hidden">
                           {tab.shortLabel}
                         </span>
                         {/* The two states sit on DIFFERENT grounds, which is why this

@@ -450,14 +450,32 @@ single source of truth — but no user can reach them yet.
   includes `.tsx`, which is the documented cause of the "no test imports a
   component" limitation — removing it would make the limitation impossible to hit.
   `tsconfig` has `target: ES2017` against `lib: esnext`.
-- **M3** · comment-accuracy, ~12 sites. The notable ones: `court-shell.tsx:12-13`
-  claims `MotionConfig reducedMotion` neutralises "every" Framer animation, which
-  `globals.css` and `lib/motion.ts` both contradict; `shot-zones.tsx:20-24`
-  claims the legend and the encoder share their colours when they are two
-  independent hardcoded lists; `twenty-three.tsx:44-52` claims the numeral aligns
-  "at 320 and at 1440 alike" when only `md:right-14` matches;
-  `playoff-matrix.tsx:490-495` relies on `.hidden` being emitted before `.inline`,
-  which works and is the reverse of the conventional idiom.
+- ~~**M3** ·~~ **CLOSED for the four named sites; the rest of the ~12 is a sweep**
+  not yet done and is not claimed here.**
+  `court-shell.tsx` said `MotionConfig reducedMotion` "neutralises every Framer
+  animation", which is false and contradicted by the README, by the
+  `[data-reveal]` rule in `globals.css` and by `lib/motion.ts`: it snaps transform
+  and layout keys and leaves `opacity`, `delay` and `staggerChildren` running. It
+  now names all three mechanisms and says it is the first of them, not the whole.
+  `shot-zones.tsx` said `ZONE_BANDS` was "declared once and consumed by BOTH
+  `getZoneColor` and the legend", implying the colours were shared too. The
+  thresholds and labels genuinely are; the colours deliberately are not — the
+  encoder returns translucent `rgba()` fills that composite over the court paint
+  and the legend shows opaque-ish swatches on the adjacent panel. The comment now
+  says which is which, because "declared once and consumed by BOTH" is exactly
+  the phrasing that made a `rgba()` edit look like it would move the legend, and it
+  would not.
+  `twenty-three.tsx` said the numeral aligns "at 320 and at 1440 alike". The class is
+  `right-0 sm:right-7 md:right-14`, so that is true only of the base offset; the
+  numeral steps IN with the text column's padding. The narrower true claim — a
+  rem constant stepped at the same two breakpoints, rather than a
+  viewport-relative offset that scaled with the window — is what it says now.
+  `playoff-matrix.tsx` wrote its responsive pair variant-first (`sm:inline hidden`).
+  That works — Tailwind emits variants after base utilities, so attribute order is
+  irrelevant — but it reads backwards, and there was no comment explaining it, so
+  the finding was right that it invited a question. Reordered to base-then-variant
+  and measured at 375 / 639 / 640 / 1440: the short label shows below 640 and the
+  long label from 640 up, unchanged.
 - ~~**M2** · dead code ·~~ **CLOSED, with a correction to the finding.**
   `CourtDiagram`'s `variant="full"` branch is gone — one call site existed and it never
   passed `variant`, so ten lines rendered nothing, under a comment claiming the variant
