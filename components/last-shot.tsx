@@ -317,7 +317,7 @@ export function LastShot() {
     <section
       id="shot"
       aria-labelledby="shot-heading"
-      className="floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
+      className="scroll-clearance floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
     >
       {/* Opener: instrument. The shot challenge is the mechanism, so the court
           is the first thing on screen and the heading, the copy and the sound
@@ -398,7 +398,7 @@ export function LastShot() {
                 transition={{ duration: 0.5 }}
               />
               <div
-                className="mx-auto -mt-4 h-2 w-9 rounded-[50%] border-2"
+                className="mx-auto -mt-4 h-2 w-9 rounded-none border-2"
                 style={{ borderColor: "var(--gold)" }}
               />
             </div>
@@ -416,7 +416,9 @@ export function LastShot() {
               }}
             />
 
-            {/* the ball */}
+            {/* the ball. One of four rounded-full shapes on the page, and the
+             * four all encode a genuinely round object -- a ball is round. The
+             * budget and the survivor list are asserted by the test gate (F-08). */}
             <motion.div
               aria-hidden
               className="pointer-events-none absolute z-10 flex h-9 w-9 items-center justify-center rounded-full bg-leather sm:h-10 sm:w-10"
@@ -462,6 +464,10 @@ export function LastShot() {
               {result?.made ? (
                 <motion.div
                   key={`ring-${result.id}`}
+                  /* The made-shot ring. Survives the square commitment: a shot
+                   * ring is round, like a ball. One of four rounded-full shapes
+                   * on the page; the budget and the survivor list are asserted
+                   * by the test gate (F-08). */
                   className="pointer-events-none absolute left-1/2 top-[22%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-gold"
                   initial={{ width: 10, height: 10, opacity: 0.9 }}
                   animate={{ width: 170, height: 170, opacity: 0 }}

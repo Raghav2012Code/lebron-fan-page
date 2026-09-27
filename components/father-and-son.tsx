@@ -84,8 +84,8 @@ export function FatherAndSon() {
   return (
     <section
       id="father-son"
-      aria-label="Father and son — the 21-year arc and NBA history"
-      className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
+      aria-label="Father and son: the 21-year arc and NBA history"
+      className="scroll-clearance relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
       {/* --- Section Header ---
           Opener: margin-note. Heading in a narrow left column, the 21-year
@@ -164,7 +164,7 @@ export function FatherAndSon() {
           {FATHER_AND_SON.quote}
         </blockquote>
         <p className="narrow mt-3 text-xs text-chalk-dim">
-          — {FATHER_AND_SON.quoteAuthor}
+          {FATHER_AND_SON.quoteAuthor}
         </p>
       </div>
 
@@ -267,7 +267,7 @@ export function FatherAndSon() {
             </p>
           </div>
           <span className="mt-2 narrow text-xs text-leather sm:mt-0">
-            2003 — 2024
+            2003 to 2024
           </span>
         </div>
 

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --import ./tests/register.mjs --test tests/smoke.test.ts tests/tier1-feature-coverage.test.ts tests/tier2-boundary-corner.test.ts tests/tier3-cross-combinations.test.ts"
+    "test": "node --import ./tests/register.mjs --test tests/smoke.test.ts tests/design-guards.test.ts tests/tier1-feature-coverage.test.ts tests/tier2-boundary-corner.test.ts tests/tier3-cross-combinations.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.1.21",

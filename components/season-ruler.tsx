@@ -40,7 +40,7 @@ function Marker({ season }: { season: Season }) {
       {season.olympic ? (
         <span
           aria-hidden
-          className="h-[7px] w-[7px] rounded-full border border-rule"
+          className="h-[7px] w-[7px] rounded-none border border-rule"
           style={{
             // Bronze was painted with `--muted`, a body-copy TEXT token, and
             // the legend only ever showed a gold swatch, so a bronze season
@@ -54,7 +54,7 @@ function Marker({ season }: { season: Season }) {
       {season.mvp ? (
         <span
           aria-hidden
-          className="h-[7px] w-[7px] rounded-full border-2 border-ochre"
+          className="h-[7px] w-[7px] rounded-none border-2 border-ochre"
         />
       ) : null}
       {season.title ? (
@@ -119,7 +119,7 @@ export function SeasonRuler() {
     <section
       id="span"
       aria-labelledby="span-heading"
-      className="floor relative px-5 py-20 sm:px-8 sm:py-24 md:px-14"
+      className="scroll-clearance floor relative px-5 py-20 sm:px-8 sm:py-24 md:px-14"
     >
       {/* Opener: instrument. The ruler is a control surface and the map for the
           whole page, so it is set as one: the heading, the copy and the season
@@ -228,7 +228,12 @@ export function SeasonRuler() {
                       ? `. ${honoursFor(season).join(". ")}`
                       : ""
                   }`}
-                  className="group flex min-w-[24px] flex-1 flex-col items-center py-2 outline-offset-2 sm:min-w-0 sm:py-2.5"
+                  /* `scroll-clearance` because these 23 targets are focusable
+                     and sit directly beneath a min-h-[92svh] hero: tabbing or
+                     arrowing onto one makes the browser scroll it into view, and
+                     without clearance it lands flush against the top of the
+                     viewport (F-05). */
+                  className="scroll-clearance group flex min-w-[24px] flex-1 flex-col items-center py-2 outline-offset-2 sm:min-w-0 sm:py-2.5"
                   variants={{
                     hidden: { opacity: 0 },
                     show: {
@@ -315,15 +320,15 @@ export function SeasonRuler() {
                 {l.key === "mvp" ? (
                   <span
                     aria-hidden
-                    className="h-[9px] w-[9px] rounded-full border-2 border-ochre"
+                    className="h-[9px] w-[9px] rounded-none border-2 border-ochre"
                   />
                 ) : null}
                 {l.key === "olympic" ? (
                   // Both medal colours are keyed, because the ruler draws
                   // two: gold for a title, leather for a bronze.
                   <span aria-hidden className="flex items-center gap-1.5">
-                    <span className="h-[9px] w-[9px] rounded-full bg-gold" />
-                    <span className="h-[9px] w-[9px] rounded-full border border-rule bg-leather" />
+                    <span className="h-[9px] w-[9px] rounded-none bg-gold" />
+                    <span className="h-[9px] w-[9px] rounded-none border border-rule bg-leather" />
                   </span>
                 ) : null}
                 <Caption className="text-muted">{l.text}</Caption>

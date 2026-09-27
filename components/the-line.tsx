@@ -29,7 +29,7 @@ export function TheLine() {
     <section
       id="line"
       aria-labelledby="line-heading"
-      className="floor relative py-20 sm:py-28"
+      className="scroll-clearance floor relative py-20 sm:py-28"
     >
       <div className="mx-auto max-w-6xl px-5 sm:px-8 md:px-14">
         <motion.p

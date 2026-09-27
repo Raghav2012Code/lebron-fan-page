@@ -73,7 +73,7 @@ function RoomPanel({
   return (
     <motion.div
       aria-hidden={!active}
-      className="absolute inset-0 grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_auto]"
+      className="absolute inset-0 grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_auto]"
       style={{ opacity, color: room.type }}
     >
       <motion.div className="max-w-2xl" style={{ x }}>
@@ -346,7 +346,7 @@ export function TheRooms() {
   const reduce = usePrefersReducedMotion();
 
   return (
-    <section id="rooms" aria-labelledby="rooms-heading" className="relative">
+    <section id="rooms" aria-labelledby="rooms-heading" className="scroll-clearance relative">
       <div className="floor px-5 py-20 sm:px-8 sm:py-24 md:px-14">
         <div className="mx-auto max-w-6xl">
           <h2

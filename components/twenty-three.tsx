@@ -37,12 +37,22 @@ export function TwentyThree() {
       ref={ref}
       id="number"
       aria-labelledby="number-heading"
-      className="on-paint relative flex min-h-[100svh] items-center overflow-clip bg-wine px-5 py-24 text-chalk sm:px-8 md:px-14"
+      className="scroll-clearance on-paint relative flex min-h-[100svh] items-center overflow-clip bg-wine px-5 py-24 text-chalk sm:px-8 md:px-14"
     >
-      {/* the numeral, cropped by the edge of the floor */}
+      {/* The numeral, cropped by the edge of the floor.
+
+          F-13: this was `-right-[8vw]`, which cut the second digit off
+          mid-glyph at every width, so it read as a rendering fault rather than
+          a decision. Large ghosted numerals are themselves a familiar
+          editorial tic, so the fix is to crop to a CLEAN edge — align the
+          numeral's right edge to the section's own padding edge instead of
+          pushing it off-canvas by a viewport-relative amount. `inset-y-0` plus
+          `right-0` inside the padding box means the glyph stops exactly where
+          the text column does, at 320 and at 1440 alike, because the offset no
+          longer scales with the viewport. */}
       <motion.span
         aria-hidden
-        className="figure pointer-events-none absolute -right-[8vw] top-1/2 -translate-y-1/2 select-none text-chalk"
+        className="figure pointer-events-none absolute inset-y-0 right-0 flex select-none items-center text-chalk sm:right-7 md:right-14"
         style={{
           y: numeralY,
           fontSize: "clamp(20rem, 46vw, 44rem)",

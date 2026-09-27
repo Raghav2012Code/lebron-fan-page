@@ -139,8 +139,8 @@ export function ShotZones() {
   return (
     <section
       id="shot-zones"
-      aria-label="The heat map — career shot zones and scoring evolution"
-      className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
+      aria-label="The heat map: career shot zones and scoring evolution"
+      className="scroll-clearance relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
       {/* --- Section Header ---
           Opener: device. The heat map below is this section's opener, so the
@@ -297,7 +297,7 @@ export function ShotZones() {
               y="0"
               width="500"
               height="470"
-              fill="#220A12"
+              fill="var(--court-paint)"
             />
 
             {/* --- INTERACTIVE SHOT SECTORS --- */}
@@ -585,7 +585,7 @@ export function ShotZones() {
                 [
                   [ZONE_BANDS.elite.label, "bg-gold"],
                   [ZONE_BANDS.high.label, "bg-gold/60"],
-                  [ZONE_BANDS.solid.label, "bg-[#B86B1E]/70"],
+                  [ZONE_BANDS.solid.label, "bg-band-solid/70"],
                   [ZONE_BANDS.perimeter.label, "bg-wine/70"],
                   [ZONE_BANDS.below.label, "bg-wine/40"],
                 ] as const

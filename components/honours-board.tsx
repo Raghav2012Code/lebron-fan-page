@@ -189,7 +189,7 @@ export function HonoursBoard() {
     <section
       id="hardware"
       aria-labelledby="hardware-heading"
-      className="floor relative py-20 sm:py-28"
+      className="scroll-clearance floor relative py-20 sm:py-28"
     >
       {/* Opener: ruled-ledger. This section is already typeset as a ledger —
           figure against description, ruled off row by row — so the heading is

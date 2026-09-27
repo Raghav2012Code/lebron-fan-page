@@ -358,7 +358,7 @@ export function TheLedger() {
     <section
       id="ledger"
       aria-labelledby="ledger-heading"
-      className="floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
+      className="scroll-clearance floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
     >
       {/* Opener: instrument. The accumulation rule and the stint tabs are this
           section's controls, so they sit in the top edge of one inset panel

@@ -97,7 +97,7 @@ export const OPENER: Opener = "ruled-ledger";
 
 export function FourNights() {
   return (
-    <section id="nights" aria-labelledby="nights-heading" className="relative">
+    <section id="nights" aria-labelledby="nights-heading" className="scroll-clearance relative">
       <div className="floor px-5 pb-10 pt-20 sm:px-8 sm:pt-28 md:px-14">
         {/* Opener: ruled-ledger. Same masthead grammar as the honours ledger —
             heading on the chronology's opening rule, standfirst beside it,

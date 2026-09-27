@@ -143,8 +143,8 @@ export function EraCompare() {
   return (
     <section
       id="era-compare"
-      aria-label="Era versus era — peak seasons comparative tool"
-      className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
+      aria-label="Era versus era: peak seasons comparative tool"
+      className="scroll-clearance relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
       {/* --- Section Header ---
           Opener: margin-note. The heading sits in a narrow left column and the
@@ -204,7 +204,7 @@ export function EraCompare() {
                     value={e.id}
                     disabled={e.id === eraBId}
                   >
-                    {e.seasonLabel} ({e.city}) — {e.name}
+                    {e.seasonLabel} ({e.city}): {e.name}
                   </option>
                 ))}
               </select>
@@ -260,7 +260,7 @@ export function EraCompare() {
                     value={e.id}
                     disabled={e.id === eraAId}
                   >
-                    {e.seasonLabel} ({e.city}) — {e.name}
+                    {e.seasonLabel} ({e.city}): {e.name}
                   </option>
                 ))}
               </select>

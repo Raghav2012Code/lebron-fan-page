@@ -150,7 +150,7 @@ export function TheBlock() {
     <section
       id="the-block"
       aria-labelledby="the-block-heading"
-      className="on-paint relative bg-wine px-5 py-20 text-chalk sm:px-8 sm:py-28 md:px-14"
+      className="scroll-clearance on-paint relative bg-wine px-5 py-20 text-chalk sm:px-8 sm:py-28 md:px-14"
     >
       <div className="mx-auto max-w-6xl">
         {/* Opener: device. The scrubber re-enactment below is this section's
@@ -311,7 +311,7 @@ export function TheBlock() {
                   animate={{ scale: 2.8, opacity: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="pointer-events-none absolute left-[50%] top-[87.5%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gold"
+                  className="pointer-events-none absolute left-[50%] top-[87.5%] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-none border-2 border-gold"
                 />
               )}
             </AnimatePresence>
@@ -319,7 +319,7 @@ export function TheBlock() {
             {/* --- Player Tokens on Floor --- */}
             {/* JR Smith (No. 5) */}
             <div
-              className="pointer-events-none absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-chalk/40 bg-wine/90 text-[0.6875rem] font-bold text-chalk transition-transform"
+              className="pointer-events-none absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border border-chalk/40 bg-wine/90 text-[0.6875rem] font-bold text-chalk transition-transform"
               style={{
                 left: `${current.jrSmith.x}%`,
                 top: `${current.jrSmith.y}%`,
@@ -331,7 +331,7 @@ export function TheBlock() {
 
             {/* Andre Iguodala (No. 9) */}
             <div
-              className="pointer-events-none absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-chalk/60 bg-wine-deep text-[0.75rem] font-bold text-chalk/90 transition-transform"
+              className="pointer-events-none absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border border-chalk/60 bg-wine-deep text-[0.75rem] font-bold text-chalk/90 transition-transform"
               style={{
                 left: `${current.iguodala.x}%`,
                 top: `${current.iguodala.y}%`,
@@ -343,7 +343,7 @@ export function TheBlock() {
 
             {/* LeBron James (No. 23) — Scales up slightly with elevation */}
             <motion.div
-              className="pointer-events-none absolute z-20 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-gold bg-wine text-[0.8125rem] font-black text-gold shadow-lg"
+              className="pointer-events-none absolute z-20 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border-2 border-gold bg-wine text-[0.8125rem] font-black text-gold shadow-lg"
               style={{
                 left: `${current.lebron.x}%`,
                 top: `${current.lebron.y}%`,
@@ -358,7 +358,8 @@ export function TheBlock() {
               23
             </motion.div>
 
-            {/* The Ball */}
+            {/* The ball. Survives the square commitment: a ball is round. One of
+             * four, budget asserted by the test gate (F-08). */}
             <div
               className="pointer-events-none absolute z-30 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-leather shadow-sm"
               style={{
@@ -496,8 +497,12 @@ export function TheBlock() {
               <blockquote className="prose-copy italic text-[1.0625rem] text-chalk">
                 {THE_BLOCK.quote}
               </blockquote>
+              {/* Attribution on its own line in the caption register, with no
+                  leading dash. `AGENTS.md` §1 bans spaced-em-dash labels, and
+                  the dash was a machine-applied separator rather than a piece
+                  of the sentence (F-06). */}
               <Caption className="mt-3 block text-gold">
-                — {THE_BLOCK.caller}
+                {THE_BLOCK.caller}
               </Caption>
             </div>
           </div>

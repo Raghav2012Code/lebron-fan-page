@@ -65,14 +65,22 @@ const ROUND_TABS: readonly RoundTabMeta[] = [
   },
 ] as const;
 
+/**
+ * Team paint for the series badge. These are team colours, not brand colours,
+ * and they used to be bare hex literals in this component — which is exactly the
+ * leak DESIGN-AUDIT.md F-07 describes, because a value living in a component
+ * cannot be restyled from the stylesheet. They are tokens now; the values are
+ * unchanged (CLE was already the wine token, and Miami's and the Lakers' were
+ * the same hexes as before).
+ */
 function teamColor(team: string) {
   switch (team) {
     case "CLE":
-      return "#5A1626"; // wine
+      return "var(--team-cle)";
     case "MIA":
-      return "#7A1810"; // crimson
+      return "var(--team-mia)";
     case "LAL":
-      return "#3B2352"; // purple
+      return "var(--team-lal)";
     default:
       return "var(--wine)";
   }
@@ -304,7 +312,7 @@ export function PlayoffMatrix() {
       // it has been filtered out of the grid and is no longer focusable.
       tabIndex={-1}
       aria-labelledby="playoff-matrix-heading"
-      className="floor relative py-20 sm:py-28 overflow-hidden"
+      className="scroll-clearance floor relative py-20 sm:py-28 overflow-hidden"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 md:px-14">
         {/* Opener: instrument. The 57-series grid and its filters are this
@@ -317,6 +325,10 @@ export function PlayoffMatrix() {
             restatement of the heading and is gone (F-02). */}
         <div className="flex flex-col gap-4 border-b-2 border-rule-strong pb-4 md:flex-row md:items-end md:justify-between">
           <div className="flex items-center gap-3">
+            {/* The live-status dot. Survives the square commitment: a status
+                indicator is conventionally round. One of four rounded-full
+                shapes on the page; the budget and the survivor list are asserted
+                by the test gate (F-08). */}
             <span className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse" aria-hidden="true" />
             <h2
               id="playoff-matrix-heading"
@@ -331,20 +343,20 @@ export function PlayoffMatrix() {
           <div
             role="group"
             aria-label="View toggle"
-            className="inline-flex rounded-md p-1 bg-maple-deep/50 border border-rule self-start md:self-end"
+            className="inline-flex rounded-none p-1 bg-maple-deep/50 border border-rule self-start md:self-end"
           >
             <button
               type="button"
               onClick={() => setViewMode("matrix")}
               className={cn(
-                "relative px-4 py-2 text-xs uppercase tracking-wider narrow-bold rounded transition-colors duration-150",
+                "relative px-4 py-2 text-xs uppercase tracking-wider narrow-bold rounded-none transition-colors duration-150",
                 viewMode === "matrix" ? "text-chalk" : "text-wine hover:text-wine-deep",
               )}
             >
               {viewMode === "matrix" && (
                 <motion.div
                   layoutId="view-pill-bg"
-                  className="absolute inset-0 rounded bg-wine"
+                  className="absolute inset-0 rounded-none bg-wine"
                   transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                 />
               )}
@@ -354,14 +366,14 @@ export function PlayoffMatrix() {
               type="button"
               onClick={() => setViewMode("franchises")}
               className={cn(
-                "relative px-4 py-2 text-xs uppercase tracking-wider narrow-bold rounded transition-colors duration-150",
+                "relative px-4 py-2 text-xs uppercase tracking-wider narrow-bold rounded-none transition-colors duration-150",
                 viewMode === "franchises" ? "text-chalk" : "text-wine hover:text-wine-deep",
               )}
             >
               {viewMode === "franchises" && (
                 <motion.div
                   layoutId="view-pill-bg"
-                  className="absolute inset-0 rounded bg-wine"
+                  className="absolute inset-0 rounded-none bg-wine"
                   transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                 />
               )}
@@ -445,7 +457,7 @@ export function PlayoffMatrix() {
               <div
                 role="tablist"
                 aria-label="Playoff rounds"
-                className="flex flex-wrap gap-2 sm:gap-3 p-1 rounded-md bg-maple-deep/40 border border-rule"
+                className="flex flex-wrap gap-2 sm:gap-3 p-1 rounded-none bg-maple-deep/40 border border-rule"
               >
                 {ROUND_TABS.map((tab, idx) => {
                   const isActive = activeRound === tab.id;
@@ -463,14 +475,14 @@ export function PlayoffMatrix() {
                       }}
                       onKeyDown={(e) => handleTabKeyDown(e, idx)}
                       className={cn(
-                        "relative flex-1 min-w-[120px] sm:min-w-[140px] px-3 py-2.5 rounded text-left transition-colors duration-150",
+                        "relative flex-1 min-w-[120px] sm:min-w-[140px] px-3 py-2.5 rounded-none text-left transition-colors duration-150",
                         isActive ? "text-chalk shadow-xs" : "text-wine hover:bg-maple/70",
                       )}
                     >
                       {isActive && (
                         <motion.div
                           layoutId="active-round-tab-bg"
-                          className="absolute inset-0 rounded bg-wine"
+                          className="absolute inset-0 rounded-none bg-wine"
                           transition={{ type: "spring", bounce: 0.18, duration: 0.35 }}
                         />
                       )}
@@ -495,12 +507,12 @@ export function PlayoffMatrix() {
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="flex flex-wrap items-center gap-2">
                 {/* Outcome Toggle */}
-                <div role="group" aria-label="Outcome filter" className="inline-flex rounded border border-rule bg-maple-deep/50 p-0.5">
+                <div role="group" aria-label="Outcome filter" className="inline-flex rounded-none border border-rule bg-maple-deep/50 p-0.5">
                   <button
                     type="button"
                     onClick={() => setOutcomeFilter("ALL")}
                     className={cn(
-                      "px-2.5 py-1 text-xs narrow-bold rounded transition-colors",
+                      "px-2.5 py-1 text-xs narrow-bold rounded-none transition-colors",
                       outcomeFilter === "ALL" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
@@ -510,7 +522,7 @@ export function PlayoffMatrix() {
                     type="button"
                     onClick={() => setOutcomeFilter("W")}
                     className={cn(
-                      "px-2.5 py-1 text-xs narrow-bold rounded transition-colors",
+                      "px-2.5 py-1 text-xs narrow-bold rounded-none transition-colors",
                       outcomeFilter === "W" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
@@ -520,7 +532,7 @@ export function PlayoffMatrix() {
                     type="button"
                     onClick={() => setOutcomeFilter("L")}
                     className={cn(
-                      "px-2.5 py-1 text-xs narrow-bold rounded transition-colors",
+                      "px-2.5 py-1 text-xs narrow-bold rounded-none transition-colors",
                       outcomeFilter === "L" ? "bg-wine text-chalk" : "text-wine hover:text-wine-deep",
                     )}
                   >
@@ -534,7 +546,7 @@ export function PlayoffMatrix() {
                   aria-pressed={sweepsOnly}
                   onClick={() => setSweepsOnly(!sweepsOnly)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1 rounded border text-xs narrow-bold transition-colors",
+                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-none border text-xs narrow-bold transition-colors",
                     sweepsOnly
                       ? "bg-gold text-wine border-gold shadow-xs"
                       : "bg-maple-deep/40 border-rule text-wine hover:border-wine hover:bg-maple-deep/60",
@@ -546,7 +558,7 @@ export function PlayoffMatrix() {
 
                 {/* Active Franchise Filter Pill if selected */}
                 {selectedFranchise && (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-wine text-chalk text-xs narrow-bold">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-wine text-chalk text-xs narrow-bold">
                     <span>vs {selectedFranchise}</span>
                     <button
                       type="button"
@@ -568,7 +580,7 @@ export function PlayoffMatrix() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search opponent, year..."
                   aria-label="Search playoff series"
-                  className="w-full px-3 py-1.5 rounded border border-rule bg-maple-deep/40 text-wine text-xs narrow placeholder:text-muted/70 focus:bg-maple-deep/60 focus:border-wine focus:ring-1 focus:ring-wine outline-none"
+                  className="w-full px-3 py-1.5 rounded-none border border-rule bg-maple-deep/40 text-wine text-xs narrow placeholder:text-muted/70 focus:bg-maple-deep/60 focus:border-wine focus:ring-1 focus:ring-wine outline-none"
                 />
                 {searchQuery && (
                   <button
@@ -610,19 +622,25 @@ export function PlayoffMatrix() {
                       }
                     }}
                     className={cn(
-                      "group relative flex flex-col justify-between p-4 rounded-md border text-left cursor-pointer transition-all duration-200",
-                      "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine",
+                      "group relative flex flex-col justify-between p-4 rounded-none border text-left cursor-pointer transition-colors duration-200",
+                      "bg-maple-deep/40 border-rule",
+                      // The affordance, replacing a uniform `whileHover={{ y: -2 }}`
+                      // across all 57 cards (F-09). Moving every card the same
+                      // two pixels says nothing about any of them. Hovering now
+                      // paints the W/L result badge solid and reverses it, so the
+                      // interaction reports THIS series' outcome — the one fact
+                      // the card exists to convey — and it does so on every card
+                      // because every card has a result.
+                      "hover:border-wine",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
-                    whileHover={{ y: -2 }}
-                    transition={{ duration: 0.15 }}
                   >
                     {/* Top Metadata Row */}
                     <div>
                       <div className="flex items-center justify-between gap-2 border-b border-rule/60 pb-2.5">
                         <div className="flex items-center gap-1.5">
                           <span
-                            className="px-1.5 py-0.5 rounded text-[0.6875rem] narrow-bold text-chalk"
+                            className="px-1.5 py-0.5 rounded-none text-[0.6875rem] narrow-bold text-chalk"
                             style={{ backgroundColor: teamColor(series.team) }}
                           >
                             {series.team}
@@ -634,17 +652,25 @@ export function PlayoffMatrix() {
                           {series.isSweep && (
                             <span
                               className={cn(
-                                "px-1.5 py-0.5 rounded text-[0.625rem] narrow-bold uppercase tracking-wider",
+                                "px-1.5 py-0.5 rounded-none text-[0.625rem] narrow-bold uppercase tracking-wider",
                                 isWon ? "bg-gold text-wine" : "bg-leather/20 text-leather",
                               )}
                             >
                               {isWon ? "★ Sweep" : "Swept"}
                             </span>
                           )}
+                          {/* The result badge is the hover affordance. Won
+                              series read chalk-on-wine at rest and invert to
+                              wine-on-chalk on hover; lost series read
+                              wine-on-tint and invert to chalk-on-wine. Either
+                              way hovering names the outcome of this specific
+                              series, which is what the card is a record of. */}
                           <span
                             className={cn(
-                              "px-2 py-0.5 rounded text-xs narrow-bold",
-                              isWon ? "bg-wine text-chalk" : "bg-wine/15 text-wine border border-wine/25",
+                              "px-2 py-0.5 rounded-none text-xs narrow-bold transition-colors duration-200",
+                              isWon
+                                ? "bg-wine text-chalk group-hover:bg-chalk group-hover:text-wine"
+                                : "bg-wine/15 text-wine border border-wine/25 group-hover:bg-wine group-hover:text-chalk group-hover:border-wine",
                             )}
                           >
                             {series.result} {series.seriesScore ?? `${series.wins}–${series.losses}`}
@@ -664,7 +690,14 @@ export function PlayoffMatrix() {
                       </div>
 
                       {/* LeBron Series Slash Stats */}
-                      <div className="mt-3 p-2.5 rounded bg-maple-deep/60 border border-rule/50">
+                      {/* One frame per level (F-10). This stat group had a
+                          border inside a card that already has one, so the card
+                          carried six border edges and two background fills
+                          before any content. The border and fill are gone; the
+                          figures sit on the card's own fill and are held in
+                          line by `.figure`'s tabular numerals, which is what
+                          the numbers are for. */}
+                      <div className="mt-3 pl-2.5">
                         <div className="flex items-baseline justify-between text-wine">
                           <div className="flex items-baseline gap-1">
                             <span className="figure text-lg font-bold">
@@ -712,7 +745,7 @@ export function PlayoffMatrix() {
 
             {/* Empty state */}
             {filteredSeries.length === 0 && (
-              <div className="p-12 text-center rounded-md border border-dashed border-rule bg-maple-deep/30">
+              <div className="p-12 text-center rounded-none border border-dashed border-rule bg-maple-deep/30">
                 <Caption bold className="text-wine text-base block">No series found matching these criteria</Caption>
                 <Caption className="text-muted mt-1 block">Try clearing the search query or resetting the filters.</Caption>
                 <button
@@ -724,7 +757,7 @@ export function PlayoffMatrix() {
                     setSelectedFranchise(null);
                     setSearchQuery("");
                   }}
-                  className="mt-4 px-4 py-2 rounded bg-wine text-chalk narrow-bold text-xs uppercase tracking-wider hover:bg-wine-deep"
+                  className="mt-4 px-4 py-2 rounded-none bg-wine text-chalk narrow-bold text-xs uppercase tracking-wider hover:bg-wine-deep"
                 >
                   Reset All Filters
                 </button>
@@ -769,7 +802,7 @@ export function PlayoffMatrix() {
                       }
                     }}
                     className={cn(
-                      "group p-4 rounded-md border text-left cursor-pointer transition-all duration-150",
+                      "group p-4 rounded-none border text-left cursor-pointer transition-all duration-150",
                       "bg-maple-deep/40 hover:bg-maple-deep/75 border-rule hover:border-wine",
                       "focus-visible:outline focus-visible:outline-2 focus-visible:outline-wine focus-visible:outline-offset-2",
                     )}
@@ -783,13 +816,13 @@ export function PlayoffMatrix() {
                           {f.years.join(", ")}
                         </div>
                       </div>
-                      <span className="px-2 py-0.5 rounded text-xs narrow-bold bg-maple-deep/70 text-wine border border-rule">
+                      <span className="px-2 py-0.5 rounded-none text-xs narrow-bold bg-maple-deep/70 text-wine border border-rule">
                         {f.abbr}
                       </span>
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="mt-4 grid grid-cols-3 gap-2 p-2 rounded bg-maple-deep/60 border border-rule/50">
+                    <div className="mt-4 grid grid-cols-3 gap-2 p-2 rounded-none bg-maple-deep/60 border border-rule/50">
                       <div>
                         <Caption className="text-muted block text-[0.6875rem]">Series</Caption>
                         <div className={cn("figure text-base font-bold", hasWonSeries ? "text-wine" : isTied ? "text-muted" : "text-leather")}>
@@ -859,7 +892,7 @@ export function PlayoffMatrix() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
               className={cn(
-                "relative z-10 w-full max-w-2xl bg-[#FBF7EF] h-full shadow-2xl border-l-2 border-wine",
+                "relative z-10 w-full max-w-2xl bg-chalk h-full shadow-2xl border-l-2 border-wine",
                 "flex flex-col justify-between overflow-y-auto p-6 sm:p-8",
               )}
             >
@@ -869,7 +902,7 @@ export function PlayoffMatrix() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span
-                        className="px-2 py-0.5 rounded text-xs narrow-bold text-chalk"
+                        className="px-2 py-0.5 rounded-none text-xs narrow-bold text-chalk"
                         style={{ backgroundColor: teamColor(inspectSeries.team) }}
                       >
                         {inspectSeries.team}
@@ -888,7 +921,7 @@ export function PlayoffMatrix() {
                     type="button"
                     onClick={() => setInspectSeries(null)}
                     aria-label="Close series details"
-                    className="p-2 rounded-full text-muted hover:text-wine hover:bg-maple/80 transition-colors focus-visible:outline-wine"
+                    className="p-2 rounded-none text-muted hover:text-wine hover:bg-maple/80 transition-colors focus-visible:outline-wine"
                   >
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -897,7 +930,7 @@ export function PlayoffMatrix() {
                 </div>
 
                 {/* Series Outcome Summary Banner */}
-                <div className="mt-6 p-4 rounded-md bg-maple/50 border border-rule flex items-center justify-between">
+                <div className="mt-6 p-4 rounded-none bg-maple/50 border border-rule flex items-center justify-between">
                   <div>
                     <div className="text-xs narrow uppercase text-muted tracking-wider">Series Result</div>
                     <div className="figure text-xl sm:text-2xl text-wine font-bold mt-0.5">
@@ -905,7 +938,7 @@ export function PlayoffMatrix() {
                     </div>
                   </div>
                   {inspectSeries.isSweep && (
-                    <span className="px-3 py-1 rounded bg-gold text-wine narrow-bold text-xs uppercase tracking-wider">
+                    <span className="px-3 py-1 rounded-none bg-gold text-wine narrow-bold text-xs uppercase tracking-wider">
                       {inspectSeries.result === "W" ? "4–0 Sweep Victory" : "0–4 Sweep Loss"}
                     </span>
                   )}
@@ -968,7 +1001,7 @@ export function PlayoffMatrix() {
                     <Caption bold className="text-wine uppercase tracking-wider text-xs block mb-3">
                       Shooting Efficiency & Detailed Box Score
                     </Caption>
-                    <div className="p-4 rounded-md bg-maple-deep/40 border border-rule space-y-3">
+                    <div className="p-4 rounded-none bg-maple-deep/40 border border-rule space-y-3">
                       <div className="grid grid-cols-3 gap-2 pb-3 border-b border-rule/60 text-center">
                         <div>
                           <Caption className="text-muted block text-xs">Field Goals</Caption>
@@ -1015,7 +1048,7 @@ export function PlayoffMatrix() {
                   </Caption>
                   {/* Narration, not speech: see the note on the card. Kept
                       as a div rather than a blockquote for the same reason. */}
-                  <div className="p-4 rounded-md bg-gold/10 border-l-4 border-gold text-wine prose-copy text-sm sm:text-base leading-relaxed">
+                  <div className="p-4 rounded-none bg-gold/10 border-l-4 border-gold text-wine prose-copy text-sm sm:text-base leading-relaxed">
                     {inspectSeries.signatureMoment}
                   </div>
                 </div>
@@ -1032,7 +1065,7 @@ export function PlayoffMatrix() {
                 <button
                   type="button"
                   onClick={() => setInspectSeries(null)}
-                  className="px-4 py-2 rounded bg-wine text-chalk narrow-bold text-xs uppercase tracking-wider hover:bg-wine-deep transition-colors"
+                  className="px-4 py-2 rounded-none bg-wine text-chalk narrow-bold text-xs uppercase tracking-wider hover:bg-wine-deep transition-colors"
                 >
                   Close Inspection
                 </button>
