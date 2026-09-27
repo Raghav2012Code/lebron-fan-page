@@ -283,13 +283,23 @@ Severity as it affects a reader of the page today.
 
 **Serious — rendered**
 
-- **F-5** · 9 text/background pairs below 4.5:1 (or 3:1 large). All `text-gold`
-  and `text-leather` on `bg-maple-deep/40` and `/50` inset grounds; worst is
-  `typeset.tsx`'s StatBand gold figure at **1.39:1** against a 3.0 requirement.
-  Needs two darker ground-legible tokens (`--gold-ink`, `--leather-ink`) applied
-  only at the failing sites, then a re-measure of all 99 token-coloured text
-  nodes. Most `text-gold` uses are on *painted* grounds and pass — the fix must be
-  per-site, not a blanket find-and-replace.
+- **F-5** · ~~9 text/background pairs below 4.5:1 (or 3:1 large)~~ **REMAINING: 3, all
+  marginal.** Fixed by adding `--gold-ink` (#5E3B05) and `--leather-ink` (#7A2E08)
+  and applying them on maple-family grounds only, darkening `--muted` one step
+  (#6E5039 → #6A4C36), and dropping the `/80` alpha from three `text-muted/80`
+  sites that measured 3.23:1 at 80% and 4.62:1 at full. Measured by painting the
+  page with text hidden and reading the real pixels — not by compositing the
+  ancestor chain, which cannot see this page's absolutely-positioned bars, pills
+  and court floors and reported 1,191 false failures. Failures across eleven
+  scroll-invariant sections: **89 → 3**, worst 1.36 → 4.01. Still failing: the
+  playoff-matrix card `→` glyph at 4.40 against a maple-deep track (2% short, and
+  decorative); the block's court player token at 4.01, chalk on a `--leather`
+  marker fill; and one `→` sample at 1.52 that is a mid-hover-transition reading,
+  not a resting state. The three ink-on-paint regressions this introduced — the
+  matrix tab caption, the Scorer's Table banner and the milestone pill — were all
+  caught by re-measuring and are conditional on the ground, which is the actual
+  lesson: a blanket find-and-replace cannot be right when two states of one
+  control sit on different grounds.
 - **S1** · Tailwind's automatic content detection scans the whole repo, so
   `AGENTS.md`, `README.md`, `DESIGN-AUDIT.md`, `eslint.config.mjs`,
   `docs/plans/*.md` and the guards all inject the *banned* utilities into the

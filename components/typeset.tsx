@@ -451,8 +451,16 @@ export interface StatBandItem {
   label: string;
   value: React.ReactNode;
   caption?: React.ReactNode;
-  /** `gold` for a figure that is a highlight rather than a total. */
-  tone?: "wine" | "gold";
+  /**
+   * `gold` for a figure that is a highlight rather than a total, and `gold-ink`
+   * for the same highlight on a maple-family ground.
+   *
+   * The two are not interchangeable and the error is invisible until measured:
+   * `--gold` is 1.36:1 on a maple-deep inset and `--gold-ink` is far worse than
+   * it on wine. A band's ground is decided by its call site, not by the
+   * primitive, so the tone is named rather than inferred.
+   */
+  tone?: "wine" | "gold" | "gold-ink";
   /** Overrides the item's label colour, e.g. to a chalk token on paint. */
   labelClassName?: string;
 }
@@ -484,7 +492,11 @@ export function StatBand({
             <span
               className={cn(
                 "figure text-[2.25rem] sm:text-[3rem]",
-                item.tone === "gold" ? "text-gold" : "text-wine",
+                item.tone === "gold"
+        ? "text-gold"
+        : item.tone === "gold-ink"
+          ? "text-gold-ink"
+          : "text-wine",
               )}
             >
               {item.value}
@@ -521,6 +533,7 @@ export function StatBand({
             className={cn(
               "figure mt-1 text-2xl text-wine sm:text-3xl lg:text-4xl",
               item.tone === "gold" && "text-gold",
+              item.tone === "gold-ink" && "text-gold-ink",
             )}
           >
             {item.value}

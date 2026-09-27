@@ -226,7 +226,7 @@ export function EraCompare() {
 
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraA.archetype}</h3>
-            <p className="narrow mt-1 text-xs text-leather">
+            <p className="narrow mt-1 text-xs text-leather-ink">
               {eraA.team} · {eraA.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
@@ -241,7 +241,7 @@ export function EraCompare() {
             <span className="narrow-bold bg-gold px-2.5 py-1 text-[0.6875rem] text-wine-deep">
               Profile B
             </span>
-            <span className="text-xs font-bold tabular-nums text-leather">
+            <span className="text-xs font-bold tabular-nums text-leather-ink">
               Age {eraB.age}
             </span>
           </div>
@@ -282,7 +282,7 @@ export function EraCompare() {
 
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraB.archetype}</h3>
-            <p className="narrow mt-1 text-xs text-leather">
+            <p className="narrow mt-1 text-xs text-leather-ink">
               {eraB.team} · {eraB.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
@@ -301,7 +301,7 @@ export function EraCompare() {
           <Caption bold className="text-wine">
             Metric Audit & Edge
           </Caption>
-          <span className="narrow text-xs text-leather">
+          <span className="narrow text-xs text-leather-ink">
             {eraB.seasonLabel} ({eraB.city})
           </span>
         </div>
@@ -423,7 +423,7 @@ export function EraCompare() {
         </div>
 
         <div className="border border-rule bg-maple-deep/40 p-6">
-          <Caption bold className="text-leather">
+          <Caption bold className="text-leather-ink">
             {eraB.seasonLabel} Hardware & Accolades
           </Caption>
           <ul className="narrow mt-4 space-y-2 text-xs text-ink">

@@ -193,7 +193,7 @@ export function SeasonRuler() {
                 ))
               ) : (
                 <li>
-                  <Caption className="text-muted/80">
+                  <Caption className="text-muted">
                     A season in the middle of it.
                   </Caption>
                 </li>
@@ -359,7 +359,7 @@ export function SeasonRuler() {
               </li>
             ))}
             <li>
-              <Caption className="text-muted/80">
+              <Caption className="text-muted">
                 Through {STATS_AS_OF}.
               </Caption>
             </li>

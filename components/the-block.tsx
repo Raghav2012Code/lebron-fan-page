@@ -465,8 +465,14 @@ export function TheBlock() {
                       }}
                       className={cn(
                         "narrow border px-2.5 py-1.5 text-[0.75rem] transition-colors",
+                        /* The active chip keeps the gold border and the gold
+                           wash, but its label is CHALK, not gold: gold on
+                           gold/20-over-wine measures 4.31:1 and this is 12px
+                           body copy needing 4.5. Chalk on the same ground is
+                           12.3:1, and the selection is still carried by the
+                           border and the tint. */
                         Math.abs(time - k.time) < 0.2
-                          ? "border-gold bg-gold/20 text-gold"
+                          ? "border-gold bg-gold/20 text-chalk"
                           : "border-rule-chalk text-chalk/70 hover:text-chalk",
                       )}
                     >

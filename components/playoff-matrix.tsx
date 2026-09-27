@@ -532,7 +532,8 @@ export function PlayoffMatrix() {
             },
             {
               label: "Sweeps Mastery",
-              tone: "gold",
+              // Maple ground, so the ink variant. `gold` here measured 1.38:1.
+              tone: "gold-ink",
               value: (
                 <>
                   <Counter to={career.sweepsWon} />W – <Counter to={career.sweepsLost} />L
@@ -601,7 +602,16 @@ export function PlayoffMatrix() {
                         <span className="narrow-bold text-xs uppercase tracking-wider sm:hidden inline">
                           {tab.shortLabel}
                         </span>
-                        <span className={cn("text-[0.6875rem] narrow font-normal mt-0.5", isActive ? "text-gold" : "text-muted")}>
+                        {/* The two states sit on DIFFERENT grounds, which is why this
+                    is a conditional rather than one colour: the active tab has
+                    the wine pill behind it and the inactive ones do not. Gold on
+                    the pill passes; gold-ink on maple-deep is 1.36:1 and fails. */}
+                <span
+                  className={cn(
+                    "text-[0.6875rem] narrow font-normal mt-0.5",
+                    isActive ? "text-gold" : "text-muted",
+                  )}
+                >
                           {tab.record} ({tab.count})
                         </span>
                       </div>
@@ -677,7 +687,7 @@ export function PlayoffMatrix() {
                          WCAG 2.2 SC 2.5.8 Target Size (Minimum) and gets no help
                          from the spacing exception, because it sits inside a
                          21px-tall pill. */
-                      className="-m-2 p-2 hover:text-gold ml-1 focus-visible:outline-none"
+                      className="-m-2 p-2 hover:text-gold-ink ml-1 focus-visible:outline-none"
                       aria-label={`Clear ${selectedFranchise} filter`}
                     >
                       ×
@@ -776,7 +786,7 @@ export function PlayoffMatrix() {
                             <span
                               className={cn(
                                 "px-1.5 py-0.5 rounded-none text-[0.625rem] narrow-bold uppercase tracking-wider",
-                                isWon ? "bg-gold text-wine" : "bg-leather/20 text-leather",
+                                isWon ? "bg-gold text-wine" : "bg-leather/20 text-leather-ink",
                               )}
                             >
                               {isWon ? "★ Sweep" : "Swept"}
@@ -953,7 +963,7 @@ export function PlayoffMatrix() {
                     <div className="mt-4 grid grid-cols-3 gap-2 p-2 rounded-none bg-maple-deep/60 border border-rule/50">
                       <div>
                         <Caption className="text-muted block text-[0.6875rem]">Series</Caption>
-                        <div className={cn("figure text-base font-bold", hasWonSeries ? "text-wine" : isTied ? "text-muted" : "text-leather")}>
+                        <div className={cn("figure text-base font-bold", hasWonSeries ? "text-wine" : isTied ? "text-muted" : "text-leather-ink")}>
                           {f.seriesWon}–{f.seriesLost}
                         </div>
                       </div>
@@ -965,7 +975,7 @@ export function PlayoffMatrix() {
                       </div>
                       <div>
                         <Caption className="text-muted block text-[0.6875rem]">Sweeps</Caption>
-                        <div className="figure text-base text-gold">
+                        <div className="figure text-base text-gold-ink">
                           {f.sweepsWon}W / {f.sweepsLost}L
                         </div>
                       </div>
@@ -1035,7 +1045,7 @@ export function PlayoffMatrix() {
                       >
                         {inspectSeries.team}
                       </span>
-                      <Caption bold className="text-gold uppercase tracking-wider text-xs">
+                      <Caption bold className="text-gold-ink uppercase tracking-wider text-xs">
                         {inspectSeries.year} {inspectSeries.roundName ?? inspectSeries.round}
                       </Caption>
                     </div>

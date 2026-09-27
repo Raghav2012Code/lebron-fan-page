@@ -113,7 +113,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               <Counter to={FATHER_AND_SON.daysApart} />
             </span>
-            <span className="narrow text-xs text-leather">
+            <span className="narrow text-xs text-leather-ink">
               Days
             </span>
           </div>
@@ -128,7 +128,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               <Counter to={FATHER_AND_SON.yearsSpan} />
             </span>
-            <span className="narrow text-xs text-leather">
+            <span className="narrow text-xs text-leather-ink">
               Full Seasons
             </span>
           </div>
@@ -143,7 +143,7 @@ export function FatherAndSon() {
             <span className="figure text-3xl font-extrabold text-wine sm:text-4xl">
               1st
             </span>
-            <span className="narrow text-xs text-leather">
+            <span className="narrow text-xs text-leather-ink">
               In History
             </span>
           </div>
@@ -153,7 +153,10 @@ export function FatherAndSon() {
         </div>
       </div>
 
-      {/* --- Scorer's Table Mic'd Up Quote Banner --- */}
+      {/* --- Scorer's Table Mic'd Up Quote Banner ---
+          A `bg-wine` panel, so this label takes the PAINTED gold. The rest of
+          this section is on maple and uses the ink variants; a blanket
+          find-and-replace put the ink one here and it measured 1.33:1. */}
       <div className="mt-6 border-l-4 border-gold bg-wine p-6 text-chalk shadow-lg sm:p-8">
         <span className="narrow text-xs text-gold">
           Scorer&apos;s Table · 4:00 2nd Quarter · Oct 22, 2024
@@ -185,7 +188,7 @@ export function FatherAndSon() {
             <h3 className="mt-4 text-2xl font-black text-wine sm:text-3xl">
               {debut.venue}
             </h3>
-            <p className="narrow mt-1 text-xs text-leather">
+            <p className="narrow mt-1 text-xs text-leather-ink">
               {debut.city} · vs {debut.opponent}
             </p>
 
@@ -227,7 +230,7 @@ export function FatherAndSon() {
             <h3 className="mt-4 text-2xl font-black text-wine sm:text-3xl">
               {history.venue}
             </h3>
-            <p className="narrow mt-1 text-xs text-leather">
+            <p className="narrow mt-1 text-xs text-leather-ink">
               {history.city} · vs {history.opponent}
             </p>
 
@@ -238,7 +241,7 @@ export function FatherAndSon() {
               </div>
               <div className="mt-1 flex justify-between text-xs">
                 <span className="text-muted">Bronny Age:</span>
-                <span className="font-bold text-leather">{history.bronnyStatus}</span>
+                <span className="font-bold text-leather-ink">{history.bronnyStatus}</span>
               </div>
             </div>
 
@@ -266,7 +269,7 @@ export function FatherAndSon() {
               Select any milestone to trace the journey from unborn son to NBA teammate.
             </p>
           </div>
-          <span className="mt-2 narrow text-xs text-leather sm:mt-0">
+          <span className="mt-2 narrow text-xs text-leather-ink sm:mt-0">
             2003 to 2024
           </span>
         </div>
@@ -315,6 +318,10 @@ export function FatherAndSon() {
                     : "bg-maple-deep/50 text-ink border-rule hover:border-wine hover:bg-maple-shadow",
                 )}
               >
+                {/* The two states sit on different grounds: the selected pill is
+                    `bg-wine`, the unselected one `bg-maple-deep/50`. Gold on
+                    wine passes; gold-ink on maple is 6.99:1 and gold-ink on wine
+                    is 1.33:1. A single colour here cannot be right for both. */}
                 <span
                   className={cn(
                     "narrow text-xs",
@@ -364,7 +371,7 @@ export function FatherAndSon() {
               </div>
               <div>
                 <span className="text-muted">Bronny:</span>{" "}
-                <span className="font-bold text-leather">
+                <span className="font-bold text-leather-ink">
                   {activeMilestone.bronnyAge === "Unborn"
                     ? "Unborn"
                     : `Age ${activeMilestone.bronnyAge}`}

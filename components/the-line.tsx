@@ -109,7 +109,7 @@ export function TheLine() {
                     {i < CAREER.headline.length - 1 ? (
                       <span
                         aria-hidden
-                        className="select-none pl-2 text-gold sm:pl-5"
+                        className="select-none pl-2 text-gold-ink sm:pl-5"
                       >
                         /
                       </span>
@@ -120,7 +120,7 @@ export function TheLine() {
                     aria-hidden
                     className="order-3 mt-5 block h-px w-full max-w-[9rem] bg-gold"
                   />
-                  <Caption bold className="order-4 mt-4 block text-gold">
+                  <Caption bold className="order-4 mt-4 block text-gold-ink">
                     {stat.total.toLocaleString("en-US")} in total
                   </Caption>
                   {stat.rank ? (

@@ -152,7 +152,7 @@ function Accumulation({
         ))}
       </div>
 
-      <Caption className="mt-3 block text-muted/80">
+      <Caption className="mt-3 block text-muted">
         {TOTAL.toLocaleString("en-US")} across the {STINTS.length} stints that
         scored, which is the career total exactly. Nothing here is rounded to
         make it land.

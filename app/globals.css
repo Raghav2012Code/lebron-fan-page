@@ -75,10 +75,38 @@
   --gold: #e0a72c;
   --leather: #c24a16;
 
+  /* --- ink variants of the two warm accents ------------------------------
+     `--gold` and `--leather` are PAINTED-ground colours: they are for text on
+     wine, where they are the brightest thing available. On maple they are
+     unusable, measured against the real painted pixels rather than the tokens:
+
+       --gold     1.51:1 on maple, 1.36 on a maple-deep/50 inset
+       --leather  3.43:1 on maple, 3.10 on a maple-deep/50 inset
+
+     Both are decorative accents in a palette whose reading colour is `--wine`,
+     and neither is remotely legible on the floor. These two are the same hues
+     taken down to a luminance that works there:
+
+       --gold-ink     6.99:1 on maple, 6.31 on a maple-deep/50 inset
+       --leather-ink  6.62:1 on maple, 5.97 on a maple-deep/50 inset
+
+     Use `-ink` on any maple-family ground, plain on any painted one. The two
+     are not interchangeable and the mistake is invisible until it is measured:
+     `--gold-ink` on wine is far worse than `--gold` on maple-deep. */
+  --gold-ink: #5e3b05;
+  --leather-ink: #7a2e08;
+
   /* --- type -------------------------------------------------------------- */
-  --muted: #6e5039;
+  --muted: #6a4c36;
   /* Reading-copy ink. Darker and more neutral than --wine, which is reserved
-     for accent, headings and figures. 9.4:1 on maple. */
+     for accent, headings and figures. 9.4:1 on maple.
+
+     `--muted` was #6e5039, which measures 5.13:1 on maple but only 4.62 on a
+     maple-deep/50 inset and 4.43 on the slightly deeper composite the shot
+     cards sit on — under the 4.5 requirement for body copy. It is rendered 470
+     times and every one of those is on a maple-family ground, so darkening the
+     one token fixes the whole class rather than 470 call sites. Same hue, two
+     steps down: 5.45 / 4.91 / 4.98 on the three grounds that occur. */
   --ink: #3f2a1c;
   --chalk-dim: rgba(251, 247, 239, 0.74);
 
@@ -121,6 +149,9 @@
   --color-ochre: var(--ochre);
   --color-gold: var(--gold);
   --color-leather: var(--leather);
+  /* For maple-family grounds only — see the note on the tokens themselves. */
+  --color-gold-ink: var(--gold-ink);
+  --color-leather-ink: var(--leather-ink);
   --color-muted: var(--muted);
   --color-ink: var(--ink);
   --color-rule: var(--rule);
