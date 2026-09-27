@@ -106,6 +106,16 @@ export function PlayoffMatrix() {
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   const lastActiveElementRef = React.useRef<HTMLElement | null>(null);
+  // Whether the drawer has ever been open. Without this the CLOSE branch below
+  // is also the branch that runs on mount: `inspectSeries` is null initially,
+  // `lastActiveElementRef.current` is null with it, so the effect fell through
+  // to focusing #playoff-matrix -- a `tabIndex={-1}` section -- and focus() with
+  // the default `preventScroll: false` scrolls it into view. Measured on a clean
+  // load: the page glided from scrollY 0 to 16,372 and parked focus on the
+  // section, so the first Tab press resumed 16k px from where the reader
+  // thought they were. Restoring focus only makes sense on the null->null
+  // transition that FOLLOWS a close.
+  const hasOpenedRef = React.useRef(false);
 
   // Modal behaviour for the drawer: Escape to close, focus moved in on open,
   // focus TRAPPED while open, background scroll locked, and focus restored to
@@ -114,19 +124,22 @@ export function PlayoffMatrix() {
   // the open dialog and starts operating the page behind it.
   React.useEffect(() => {
     if (!inspectSeries) {
+      if (!hasOpenedRef.current) return; // never opened: nothing to restore
       // Restore focus to whatever opened the drawer. If that card has since
       // been filtered out of the grid it is detached, and focusing it is a
       // no-op that strands the user on <body> — so fall back to the section.
       const el = lastActiveElementRef.current;
       lastActiveElementRef.current = null;
+      hasOpenedRef.current = false;
       if (el && el.isConnected) {
-        el.focus();
+        el.focus({ preventScroll: true });
       } else {
-        document.getElementById("playoff-matrix")?.focus();
+        document.getElementById("playoff-matrix")?.focus({ preventScroll: true });
       }
       return;
     }
 
+    hasOpenedRef.current = true;
     lastActiveElementRef.current = document.activeElement as HTMLElement;
 
     // Lock background scroll. `body` sets `overflow-x: clip`, so the original
