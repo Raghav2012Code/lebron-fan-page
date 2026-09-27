@@ -24,7 +24,7 @@ Some things are absent on purpose. There is **no custom cursor, no fixed scroll-
 - **UI primitives**: Radix `tabs` only, wrapped in `components/ui/tabs.tsx`
 - **Fonts**: Oswald (display) and Plus Jakarta Sans (body), self-hosted via `next/font/google`
 - **Audio**: Web Audio API only — no audio assets, opt-in and off by default
-- **Icons**: none. The one icon in the UI is hand-drawn SVG; `app/favicon.ico` and `app/apple-icon.png` are pre-rasterised so they never depend on the viewer's fonts.
+- **Icons**: none from a library, and no icon font. One navigational icon is drawn inline in `components/back-to-top.tsx`; the other seven inline `<svg>` elements are the court and chart illustrations, drawn rather than imported. `app/favicon.ico` and `app/apple-icon.png` are pre-rasterised so they never depend on the viewer's fonts.
 
 ## Getting started
 

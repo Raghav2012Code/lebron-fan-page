@@ -355,16 +355,16 @@ Severity as it affects a reader of the page today.
   since debut*, not an age — as "Bronny Age:". The clone at :198 uses the same
   field labelled "Bronny Status:". The timeline below uses a third field
   (`bronnyAge`).
-- **R8** · `playoff-matrix.tsx` `aria-expanded={inspectSeries?.id === series.id}`
+- ~~**R8** ·~~ **CLOSED** — `cardId()` now serves both the `aria-expanded` comparison and the React key; measured: exactly one element reports `aria-expanded="true"` in an open drawer. `playoff-matrix.tsx` `aria-expanded={inspectSeries?.id === series.id}`
   where `id` is `id?: string`. Harmless today (57/57 rows carry one), but
   `undefined === undefined` would make every id-less card report expanded.
-- **F-9** · the two `<select>`s in `era-compare` both have the accessible name
+- ~~**F-9** ·~~ **CLOSED** — the two selects are now "Profile A, peak season:" and "Profile B, peak season:". the two `<select>`s in `era-compare` both have the accessible name
   "Select Peak Season:", so a screen-reader user cannot tell them apart.
-- **F-10** · two live regions over-announce: `shot-zones` announces on
+- ~~**F-10** ·~~ **CLOSED** — the shot-zone live region reads the SELECTED zone, not the hovered one; the matrix result count debounces its announcement by 400ms in a `role="status"` region while the visible text still updates immediately. two live regions over-announce: `shot-zones` announces on
   `onMouseEnter` (hover is not a state change worth announcing, and leaving a
   sector fires a tenth announcement reverting to the selected zone), and
   `playoff-matrix`'s result count announces once per keystroke.
-- **F-12** · the `shot-zones` chart `<svg>` has `aria-label` but no role; the
+- ~~**F-12** ·~~ **CLOSED** — the chart `<svg>` is now `role="group"`, matching the sibling in `last-shot`. the `shot-zones` chart `<svg>` has `aria-label` but no role; the
   sibling in `last-shot` correctly uses `role="group"`.
 
 **Serious — queued-milestone data (not rendered; Milestones 2 and 3)**
@@ -432,7 +432,7 @@ single source of truth — but no user can reach them yet.
   Sans 900 at 48px on a hardcoded rem ladder) where the other ten use
   `.headline` with a `clamp()`. `the-line.tsx:70` is a third treatment again:
   `.narrow` — uppercase, 600, tracked, body face — as the section's only heading.
-- **S14** · the banned "tracked all-caps eyebrow with middle dots" survives inside
+- ~~**S14** ·~~ **CLOSED** — ten middle-dot sites reworded to commas; the lone dot in a `gap-3` flex row deleted rather than replaced; G12 added, proven red on 8 injections. Its first version keyed the exception by FILE, which exempted the whole of `playoff-matrix.tsx`. the banned "tracked all-caps eyebrow with middle dots" survives inside
   `.narrow`, which the lint rule cannot see because AGENTS.md §1 only bans
   `tracking-[0.2em]` and `tracking-widest`. Six sites join strings with `·` or `•`
   inside a `.narrow` class (`era-compare` :224/:280, `playoff-matrix`
@@ -458,7 +458,7 @@ single source of truth — but no user can reach them yet.
   "at 320 and at 1440 alike" when only `md:right-14` matches;
   `playoff-matrix.tsx:490-495` relies on `.hidden` being emitted before `.inline`,
   which works and is the reverse of the conventional idiom.
-- **M2** · dead code: `CourtDiagram`'s `full` variant, its `stroke`/`animate`/
+- ~~**M2** ·~~ **CLOSED, with a correction.** The audit called `stroke`/`animate`/`delay` dead. `delay` is passed by the only call site. What was dead: `variant="full"`, which gated a ten-line branch that rendered nothing, under a comment claiming it "is only used where the whole diagram can be seen at once". `stroke`, `animate` and `preserveAspectRatio` went too, for a different reason — the call site passed none of them, so each default was the entire behaviour and the prop was decoration. The interface is now exactly the set of things that differ between call sites. dead code: `CourtDiagram`'s `full` variant, its `stroke`/`animate`/
   `preserveAspectRatio` props, `MetricRow`'s `higherIsBetter={false}` branch and
   its `unit` prop at three call sites that also pass `format`, `BackToTop`'s
   `className`, and `StatBandItem` being exported but imported nowhere.
@@ -466,14 +466,16 @@ single source of truth — but no user can reach them yet.
   shells, three copies of the AGENTS.md §1 inset recipe, three number-formatting
   implementations, four hand-rolled roving-tabindex tablists, three team-colour
   resolvers, and four near-identical block pairs.
-- **M5** · `createPortal` is called on every render of `playoff-matrix` rather than
+- ~~**M5** ·~~ **NOT A DEFECT** — see §7.4. `createPortal` is a pure factory returning a
+  portal object, not a side effect, and calling it during render is React's own
+  documented pattern. Calling it in an effect would be strictly worse. `createPortal` is called on every render of `playoff-matrix` rather than
   once; three `AnimatePresence` children have no `key` where two siblings do;
   `the-rooms.tsx:176` calls `scrollTo({ behavior: "smooth" })` unconditionally
   while two other call sites branch on the media query and say why.
-- **M7** · `README.md:27` says "Icons: none" with at least four hand-drawn SVGs;
+- ~~**M7** ·~~ **CLOSED** — the README claimed "one icon in the UI is hand-drawn SVG". Counted with comments stripped: 8 live inline `<svg>` elements, 1 navigational and 7 illustrations. A naive grep says 10, because two are `` `<svg>` `` mentioned in comments — the same trap G5 documents. `README.md:27` says "Icons: none" with at least four hand-drawn SVGs;
   `README.md:62`/`:72` hand-type `26.8 / 7.5 / 7.4` and `2.8s`; `README.md:106`
   signs off a 375/768/1440 verification that predates every fix above.
-- **M8** · `playoff-matrix.tsx:143` launders `Element | null` through
+- ~~**M8** ·~~ **CLOSED** — `document.activeElement as HTMLElement | null`, matching the ref it is stored in. `playoff-matrix.tsx:143` launders `Element | null` through
   `as HTMLElement` without checking — the only cast in the codebase that could
   hide a real bug. Everywhere else is clean: zero `any`, zero `@ts-ignore`, zero
   non-null assertions.
@@ -504,6 +506,14 @@ single source of truth — but no user can reach them yet.
   and the 849-game Cleveland reconciliation for exactly this reason.
 - **Not** adding a DOM/browser test layer. It would add a dependency and still cannot judge the
   findings that motivated the design work.
+- **Not** "fixing" `createPortal` being called on every render of
+  `playoff-matrix`. `createPortal` is a pure factory that returns a portal
+  object; it is not a side effect, and calling it during render is React's
+  own documented pattern. Calling it in an effect would be strictly worse —
+  the portal's children could not be in the first client tree, and the
+  mount would need state to gate. The `typeof document !== "undefined"`
+  guard is sufficient because the drawer can only open from a click, so the
+  two renders cannot differ.
 - **Not** "fixing" `reb: 6, ast: 9` in the debut box score, or the `layout.tsx` title. Both were
   checked against source and are correct; the first looked wrong only because the widely-reported
   narrative orders those two stats the other way round.

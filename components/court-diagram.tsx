@@ -11,11 +11,22 @@ import { EASE_PAINT } from "@/lib/motion";
  * line that runs 14ft straight up from the baseline before arcing at 23ft 9in
  * from the basket.
  *
- * Two cuts. `paint` is everything from the baseline up to the top of the arc
- * and is what the hero uses — it stays legible when the hero's wine band
- * crosses it, because every line in it belongs to one recognisable shape.
- * `full` adds the sidelines and the centre circle and is only used where the
- * whole diagram can be seen at once.
+ * One cut: everything from the baseline up to the top of the arc. It stays
+ * legible when the hero's wine band crosses it, because every line in it belongs
+ * to one recognisable shape.
+ *
+ * There used to be a second cut, `variant="full"`, which added the sidelines and
+ * the centre circle, and a comment here claimed it was "only used where the
+ * whole diagram can be seen at once". There is exactly one call site —
+ * `center-court.tsx` — and it never passed `variant`, so the branch rendered
+ * nothing. A comment asserting a usage that does not exist is worse than no
+ * comment: it is the kind of thing that stops the next person looking.
+ *
+ * The `stroke`, `animate` and `preserveAspectRatio` props went with it, for a
+ * different reason: the call site passed none of them, so each one's default was
+ * the entire behaviour and the prop was decoration. What is left — `className`,
+ * `opacity`, `delay` — is exactly the set of things that differ between call
+ * sites, which is the whole interface.
  */
 
 const W = 500;
@@ -49,27 +60,18 @@ export const COURT_PAINT_ASPECT = `${W} / ${H - (ARC_TOP - 14)}`;
 
 export function CourtDiagram({
   className,
-  variant = "paint",
-  stroke = "var(--ochre)",
   opacity = 0.5,
-  animate = true,
   delay = 0,
-  preserveAspectRatio = "xMidYMax meet",
 }: {
   className?: string;
-  variant?: "paint" | "full";
-  stroke?: string;
   opacity?: number;
-  animate?: boolean;
   delay?: number;
-  preserveAspectRatio?: string;
 }) {
-  const full = variant === "full";
-  const top = full ? 0 : ARC_TOP - 14;
+  const top = ARC_TOP - 14;
 
   const common = {
     fill: "none",
-    stroke,
+    stroke: "var(--ochre)",
     // 1.7 user units renders at ~2px on a desktop court (the drawing scales
     // at 1.198 there) and ~1.45px on a 320px one. It is 1.7 rather than 2
     // because the stroke is no longer pinned — see the note below.
@@ -89,18 +91,21 @@ export function CourtDiagram({
     // which is why `strokeWidth` is tuned to 1.7 above.
   };
 
-  const draw = (i: number) =>
-    animate
-      ? {
-          initial: { pathLength: 0 },
-          animate: { pathLength: 1 },
-          transition: {
-            duration: 1.5,
-            ease: EASE_PAINT,
-            delay: delay + i * 0.1,
-          },
-        }
-      : {};
+  /**
+   * The reveal props for line `i`, staggered by a tenth of a second each.
+   *
+   * Lines 4 (backboard and rim) share an index deliberately, so the two move as
+   * one gesture rather than a beat apart.
+   */
+  const draw = (i: number) => ({
+    initial: { pathLength: 0 },
+    animate: { pathLength: 1 },
+    transition: {
+      duration: 1.5,
+      ease: EASE_PAINT,
+      delay: delay + i * 0.1,
+    },
+  });
 
   return (
     <svg
@@ -108,7 +113,7 @@ export function CourtDiagram({
       viewBox={`0 ${top} ${W} ${H - top}`}
       className={className}
       style={{ opacity }}
-      preserveAspectRatio={preserveAspectRatio}
+      preserveAspectRatio="xMidYMax meet"
     >
       {/* baseline */}
       <motion.path d={`M 0 ${H} L ${W} ${H}`} {...common} {...draw(0)} />
@@ -125,17 +130,6 @@ export function CourtDiagram({
       {/* backboard and rim */}
       <motion.path d="M 220 430 L 280 430" {...common} {...draw(4)} />
       <motion.circle cx="250" cy={BASKET_Y} r="7.5" {...common} {...draw(4)} />
-
-      {full ? (
-        <>
-          <motion.path
-            d={`M 0 0 L 0 ${H} M ${W} 0 L ${W} ${H} M 0 0 L ${W} 0`}
-            {...common}
-            {...draw(5)}
-          />
-          <motion.circle cx="250" cy="0" r="60" {...common} {...draw(6)} />
-        </>
-      ) : null}
     </svg>
   );
 }
