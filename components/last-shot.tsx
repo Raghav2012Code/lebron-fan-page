@@ -7,7 +7,6 @@ import {
   motion,
   useAnimationFrame,
   useMotionValue,
-  useReducedMotion,
   useTransform,
 } from "framer-motion";
 
@@ -98,11 +97,15 @@ function Readout({
 export const OPENER: Opener = "instrument";
 
 export function LastShot() {
-  const reduce = useReducedMotion();
-  // Structural branching needs the SSR-safe hook: framer's own reads the
-  // media query during the first client render, which would render a
-  // different tree than the server did.
-  const reduceLayout = usePrefersReducedMotion();
+  /* One hook, from this repo, for both jobs. This was two: framer's
+     `useReducedMotion` for the shot duration and animation branch, and the
+     repo's SSR-safe `usePrefersReducedMotion` for the structural branch at the
+     bottom. That split bought nothing and cost the live subscription — framer's
+     is a one-shot read, so `reduce` could not change after first paint, which is
+     exactly the case the duration and the `if (!reduce)` branch are about. The
+     comment claiming framer's was needed to avoid a first-render media-query
+     read argues for the repo's hook, which is the one built for it. */
+  const reduce = usePrefersReducedMotion();
   const { play } = useSound();
 
   const [phase, setPhase] = React.useState<Phase>("ready");
@@ -131,6 +134,30 @@ export function LastShot() {
   const courtRef = React.useRef<HTMLDivElement>(null);
   const timers = React.useRef<number[]>([]);
   const resultTimer = React.useRef<number | null>(null);
+  /**
+   * The in-flight `animate()` controls for the current shot.
+   *
+   * These four animations were previously started and their handles discarded,
+   * while the two `onComplete` callbacks call `finish()` — which does four
+   * setStates, a `localStorage` write and a `window.dispatchEvent`. Nothing
+   * stopped them, so unmounting inside the 0.9s window (0.35s under reduced
+   * motion) ran all of that against a dead fiber. The component already had a
+   * cleanup discipline for `setTimeout` and `the-block` cancels its rAF in both
+   * branches; this closes the one gap in it.
+   *
+   * Verdict on a related observation, recorded so it is not "fixed" later:
+   * `timers.current` only ever grows, by two ids per shot. It is read inside the
+   * unmount cleanup precisely so the cleanup sees the whole accumulated list,
+   * and the growth is a few hundred small integers over a whole visit of a fan
+   * page. Pruning it would add bookkeeping to chase nothing.
+   */
+  const flight = React.useRef<{ stop: () => void }[]>([]);
+
+  /** Stop anything in flight and forget it, so `onComplete` cannot fire later. */
+  const clearFlight = React.useCallback(() => {
+    for (const controls of flight.current) controls.stop();
+    flight.current = [];
+  }, []);
 
   // Motion values
   const power = useMotionValue(0);
@@ -151,8 +178,11 @@ export function LastShot() {
 
   React.useEffect(() => {
     const list = timers.current;
-    return () => list.forEach((t) => window.clearTimeout(t));
-  }, []);
+    return () => {
+      list.forEach((t) => window.clearTimeout(t));
+      clearFlight();
+    };
+  }, [clearFlight]);
 
   // Oscillate the power meter while ready
   useAnimationFrame((_, delta) => {
@@ -248,18 +278,25 @@ export function LastShot() {
 
     setPhaseSync("flying");
     const dur = reduce ? 0.35 : 0.9;
+    // A second shot replaces the first, so the previous flight's callbacks are
+    // cancelled before the new ones are registered.
+    clearFlight();
 
     if (made) {
-      animate(ballX, [ORIGIN.x, HOOP.x + a * 6, HOOP.x], {
-        duration: dur,
-        ease: "easeOut",
-      });
-      animate(ballY, [ORIGIN.y, 6, HOOP.y], {
-        duration: dur,
-        times: [0, 0.55, 1],
-        ease: "easeOut",
-        onComplete: () => finish(true, label),
-      });
+      flight.current.push(
+        animate(ballX, [ORIGIN.x, HOOP.x + a * 6, HOOP.x], {
+          duration: dur,
+          ease: "easeOut",
+        }),
+      );
+      flight.current.push(
+        animate(ballY, [ORIGIN.y, 6, HOOP.y], {
+          duration: dur,
+          times: [0, 0.55, 1],
+          ease: "easeOut",
+          onComplete: () => finish(true, label),
+        }),
+      );
     } else {
       let mx: number;
       let my: number;
@@ -273,24 +310,30 @@ export function LastShot() {
         mx = HOOP.x + a * 8;
         my = 42;
       }
-      animate(ballX, [ORIGIN.x, (ORIGIN.x + mx) / 2 + a * 10, mx], {
-        duration: dur,
-        ease: "easeOut",
-      });
-      animate(ballY, [ORIGIN.y, 8, my], {
-        duration: dur,
-        times: [0, 0.5, 1],
-        ease: "easeOut",
-        onComplete: () => finish(false, label),
-      });
+      flight.current.push(
+        animate(ballX, [ORIGIN.x, (ORIGIN.x + mx) / 2 + a * 10, mx], {
+          duration: dur,
+          ease: "easeOut",
+        }),
+      );
+      flight.current.push(
+        animate(ballY, [ORIGIN.y, 8, my], {
+          duration: dur,
+          times: [0, 0.5, 1],
+          ease: "easeOut",
+          onComplete: () => finish(false, label),
+        }),
+      );
     }
     if (!reduce) {
-      animate(ballRotate, ballRotate.get() + 720, {
-        duration: dur,
-        ease: "linear",
-      });
+      flight.current.push(
+        animate(ballRotate, ballRotate.get() + 720, {
+          duration: dur,
+          ease: "linear",
+        }),
+      );
     }
-  }, [aim, ballRotate, ballX, ballY, finish, power, reduce, setPhaseSync]);
+  }, [aim, ballRotate, ballX, ballY, clearFlight, finish, power, reduce, setPhaseSync]);
 
   const handlePointer = (e: React.PointerEvent) => {
     const el = courtRef.current;
@@ -530,7 +573,7 @@ export function LastShot() {
             {/* The cover, pulled off to the right. Not rendered at all under
                 reduced motion: a cover that depends on an animation running
                 is a cover that can leave the court hidden. */}
-            {reduceLayout ? null : (
+            {reduce ? null : (
               <motion.span
                 aria-hidden
                 className="pointer-events-none absolute inset-0 z-20 origin-right bg-maple"

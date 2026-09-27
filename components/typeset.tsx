@@ -5,11 +5,11 @@ import {
   animate,
   motion,
   useInView,
-  useReducedMotion,
   type Variants,
 } from "framer-motion";
 
 import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import {
   DUR,
   EASE_PAINT,
@@ -50,7 +50,17 @@ export function Counter({
 }) {
   const ref = React.useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, VIEWPORT);
-  const reduce = useReducedMotion();
+  /* The repo's `usePrefersReducedMotion`, NOT Framer's `useReducedMotion`.
+     Framer's is a one-shot read, not a subscription — its own source carries a
+     TODO about it — so the value is frozen at first render and never re-renders
+     the component. That made the `reduce` dep below inert, which in turn made
+     the mid-count branch unreachable: it could only ever be taken if the
+     preference was already set at first paint, so the comment promising to
+     handle a preference "flipped on while counting" described behaviour that
+     could not happen. This hook is a `useSyncExternalStore` over `matchMedia`,
+     so the flip is real. `center-court`, `the-rooms` and `last-shot` already
+     used it. */
+  const reduce = usePrefersReducedMotion();
   const started = React.useRef(false);
   const controlsRef = React.useRef<{ stop: () => void } | null>(null);
 

@@ -85,16 +85,35 @@ export function SeasonRuler() {
     itemRefs.current[clamped]?.focus();
   };
 
+  /**
+   * Map a touch on the ruler to a season.
+   *
+   * The mapping has to be in CONTENT coordinates, not viewport coordinates.
+   * `getBoundingClientRect()` returns the VISIBLE box, and below `sm` this
+   * container is `overflow-x-auto` with a 24px minimum per target, so at a 375px
+   * viewport the content is ~596px wide in a ~281px window and `scrollLeft` can
+   * reach ~315px. Arrow-keying along the ruler scrolls the container (each arrow
+   * calls `move()`, which focuses the next button, and focus scrolls it into
+   * view), and from then on a plain `clientX - rect.left` reads as though the
+   * reader were at the start of the ruler: measured, tapping the first fully
+   * visible season selected index 0 while the reader was looking at index 11.
+   *
+   * `scrollWidth / SEASONS.length` rather than `rect.width / SEASONS.length` also
+   * covers the `sm` case, where the buttons are `flex-1` and the content is
+   * exactly the visible width.
+   */
   const handleTouch = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
-    if (!touch || !rulerRef.current) return;
-    const rect = rulerRef.current.getBoundingClientRect();
-    if (rect.width <= 0) return;
-    const x = touch.clientX - rect.left;
-    const ratio = Math.max(0, Math.min(0.9999, x / rect.width));
+    const el = rulerRef.current;
+    if (!touch || !el) return;
+    const rect = el.getBoundingClientRect();
+    const contentWidth = el.scrollWidth;
+    if (rect.width <= 0 || contentWidth <= 0) return;
+    const pitch = contentWidth / SEASONS.length;
+    const contentX = el.scrollLeft + (touch.clientX - rect.left);
     const targetIndex = Math.min(
       SEASONS.length - 1,
-      Math.max(0, Math.floor(ratio * SEASONS.length)),
+      Math.max(0, Math.floor(contentX / pitch)),
     );
     setIndex(targetIndex);
   };
@@ -220,7 +239,12 @@ export function SeasonRuler() {
                   aria-checked={active}
                   tabIndex={active ? 0 : -1}
                   onClick={() => setIndex(i)}
-                  onTouchStart={() => setIndex(i)}
+                  // No `onTouchStart` here. It was redundant with `onClick` --
+                  // a tap fires both -- and because the container's handler is
+                  // on an ancestor it ran in the BUBBLE phase, after this one,
+                  // and won. Two handlers for one tap, disagreeing, is the whole
+                  // defect; the container's is the one that has to understand
+                  // `scrollLeft`, so it is the one that stays.
                   onMouseEnter={() => setIndex(i)}
                   onFocus={() => setIndex(i)}
                   aria-label={`${season.label}, ${season.team.club}${

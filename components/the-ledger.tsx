@@ -195,7 +195,16 @@ function MetricLine({ metric }: { metric: Metric }) {
           className="absolute inset-y-0 left-0 w-full origin-left bg-wine"
           initial={{ scaleX: 0 }}
           whileInView={{ scaleX: fill }}
-          viewport={{ once: false, amount: 0.5 }}
+          /* `once: true`, like every other `whileInView` on the page. These two
+             were the only `once: false` viewports in the codebase, and the
+             effect was that the ledger was the one section that is not
+             idempotent under scrolling: `once: false` reverts to `initial` on
+             exit, so scrolling back up to the hero collapsed all three metric
+             bars to scaleX 0 and re-faded every achievement row, and scrolling
+             back down replayed the whole reveal. Measured: bars at 0.953 /
+             0.913 / 0.927 in view, 0 / 0 / 0 at the top, 0.68 / 0.66 / 0.67 at
+             +250ms on the return, settling again at the original values. */
+          viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 1.1, ease: EASE_PAINT, delay: 0.1 }}
         />
       </div>
@@ -209,7 +218,7 @@ function LedgerPanel({ entry }: { entry: LedgerEntry }) {
       className="grid grid-cols-1 gap-x-14 gap-y-12 lg:grid-cols-2"
       initial="hidden"
       whileInView="show"
-      viewport={{ once: false, amount: 0.15 }}
+      viewport={{ once: true, amount: 0.15 }}
       variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
     >
       <div className="flex flex-col gap-8">

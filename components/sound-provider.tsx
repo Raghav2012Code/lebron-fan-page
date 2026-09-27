@@ -53,12 +53,38 @@ function writeEnabled(next: boolean) {
   window.dispatchEvent(new Event(SOUND_EVENT));
 }
 
+/**
+ * Adopt a value written by ANOTHER tab.
+ *
+ * Without this the `storage` listener below is dead code after the first local
+ * write. `readEnabled` short-circuits on `sessionValue`, so once the reader has
+ * toggled the switch in this tab it never touches `localStorage` again: the
+ * cross-tab event fires the subscriber, `getSnapshot` returns an identical
+ * boolean, and React bails on `Object.is` without re-rendering. Two tabs, sound
+ * on in one and off in the other, and the first tab's switch still reads "on".
+ *
+ * A `key` of null means the whole store was cleared, which reads as off. Any
+ * other key is somebody else's business.
+ */
+function adoptStorageEvent(e: StorageEvent) {
+  if (e.key !== null && e.key !== STORAGE_KEY) return;
+  try {
+    sessionValue = window.localStorage.getItem(STORAGE_KEY) === "on";
+  } catch {
+    /* storage unavailable; the in-memory value still drives this session */
+  }
+}
+
 function subscribe(cb: () => void) {
+  const onStorage = (e: StorageEvent) => {
+    adoptStorageEvent(e);
+    cb();
+  };
   window.addEventListener(SOUND_EVENT, cb);
-  window.addEventListener("storage", cb);
+  window.addEventListener("storage", onStorage);
   return () => {
     window.removeEventListener(SOUND_EVENT, cb);
-    window.removeEventListener("storage", cb);
+    window.removeEventListener("storage", onStorage);
   };
 }
 
