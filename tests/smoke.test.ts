@@ -1,5 +1,9 @@
 import test from "node:test";
 import assert from "node:assert";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { SEASONS, SECTIONS, NEXT_MARK, CAREER, THE_BLOCK } from "@/lib/lebron-data";
 import {
   getBuzzerBeaters,
@@ -11,6 +15,47 @@ import {
 test("smoke test - imports lebron-data via path alias", () => {
   assert.strictEqual(SEASONS.length, 23);
   assert.ok(SECTIONS.length > 0);
+});
+
+/**
+ * The test resolver derived the project root from the PROCESS's working
+ * directory (`path.resolve(".")`). `npm test` runs from the package root, so it
+ * worked — and running the suite from anywhere else failed to resolve
+ * `@/lib/lebron-data`, which reads as a broken suite rather than a broken
+ * resolver.
+ *
+ * This spawns a child from the OS temp directory and imports the alias there. It
+ * is the only assertion in the suite that can fail for a reason that has nothing
+ * to do with the data, which is the point: the previous behaviour was invisible to
+ * every other test, because they all ran from the one directory where it worked.
+ */
+test("smoke test - the test resolver does not depend on the working directory", () => {
+  const register = pathToFileURL(join(import.meta.dirname, "register.mjs")).href;
+  const child = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      register,
+      "--input-type=module",
+      "-e",
+      'import { SEASONS, SECTIONS } from "@/lib/lebron-data";' +
+        "console.log(SEASONS.length + ':' + SECTIONS.length);",
+    ],
+    { cwd: tmpdir(), encoding: "utf8" },
+  );
+
+  assert.strictEqual(
+    child.status,
+    0,
+    `importing the "@/" alias failed from ${tmpdir()}, so the resolver still ` +
+      `depends on the working directory. stderr: ${child.stderr.trim()}`,
+  );
+  assert.strictEqual(
+    child.stdout.trim(),
+    "23:13",
+    `the alias resolved to the wrong module from ${tmpdir()}: ` +
+      `${child.stdout.trim()}`,
+  );
 });
 
 /**
