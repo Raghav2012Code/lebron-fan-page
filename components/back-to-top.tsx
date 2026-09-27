@@ -27,7 +27,17 @@ function getServerSnapshot() {
   return false;
 }
 
-export function BackToTop({ className }: { className?: string }) {
+/**
+ * The scroll-to-top control, in `court-shell` so it is inside the skip-link's
+ * landmark and the page's own layout.
+ *
+ * It used to take a `className` and merge it last, which would override any of
+ * the positioning and sizing above. The only call site passes none, so that was
+ * a prop whose whole effect was to be optional: a positioning override nobody
+ * used, on the one control whose position is load-bearing against the fixed
+ * footer. The `cn` merge is kept for the classes that are here.
+ */
+export function BackToTop() {
   const visible = React.useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -73,7 +83,6 @@ export function BackToTop({ className }: { className?: string }) {
             "border border-wine bg-maple-deep text-wine shadow-sm",
             "transition-colors duration-200 hover:bg-wine hover:text-chalk",
             "cursor-pointer outline-offset-2",
-            className,
           )}
         >
           <svg

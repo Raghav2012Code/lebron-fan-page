@@ -15,9 +15,13 @@ interface MetricRowProps {
   label: string;
   valA: number;
   valB: number;
+  /**
+   * Appended when `format` is absent, and IGNORED when it is present — `format`
+   * owns the whole rendering of a value. Three call sites were passing both, with
+   * `format` already appending the `%`, so the `unit` on those three was inert.
+   */
   unit?: string;
   format?: (v: number) => string;
-  higherIsBetter?: boolean;
 }
 
 /**
@@ -37,20 +41,28 @@ interface MetricRowProps {
  * utility in prose is enough to GENERATE it — see the `source(none)` block at the
  * top of `globals.css`. A comment warning against a utility must not ship it.
  */
-function MetricRow({
-  label,
-  valA,
-  valB,
-  unit = "",
-  format,
-  higherIsBetter = true,
-}: MetricRowProps) {
+/**
+ * A single comparison row: label, the better value, the worse value, and the
+ * gap between them.
+ *
+ * Higher is better, for every metric on this page — that is what the ten rows
+ * all are, from points per game to true shooting to team wins. There used to be
+ * a `higherIsBetter` prop for the lower-is-better case, and no call site ever
+ * passed it, so the `false` branch was unreachable while three expressions and
+ * a screen-reader phrase carried it. A prop that is always its own default is
+ * not a feature; it is a second meaning of every line above it.
+ *
+ * If a lower-is-better metric is ever added — turnovers, say — the honest change
+ * is to pass the direction rather than to widen this row, because the arrow, the
+ * meter split and the announced word all have to agree about which way is better.
+ */
+function MetricRow({ label, valA, valB, unit = "", format }: MetricRowProps) {
   const displayA = format ? format(valA) : `${valA}${unit}`;
   const displayB = format ? format(valB) : `${valB}${unit}`;
 
   const diff = +(valA - valB).toFixed(1);
-  const aWins = higherIsBetter ? diff > 0 : diff < 0;
-  const bWins = higherIsBetter ? diff < 0 : diff > 0;
+  const aWins = diff > 0;
+  const bWins = diff < 0;
   const isTie = diff === 0;
 
   // Scale so noticeable differences fill part of the meter
@@ -72,8 +84,7 @@ function MetricRow({
               <span aria-hidden>▲</span>
               <span className="sr-only">
                 {" "}
-                {higherIsBetter ? "higher" : "lower"} by{" "}
-                {Math.abs(diff)}
+                higher by {Math.abs(diff)}
               </span>
             </span>
           )}
@@ -95,8 +106,7 @@ function MetricRow({
               <span aria-hidden>▲</span>
               <span className="sr-only">
                 {" "}
-                {higherIsBetter ? "higher" : "lower"} by{" "}
-                {Math.abs(diff)}
+                higher by {Math.abs(diff)}
               </span>
             </span>
           )}
@@ -324,22 +334,19 @@ export function EraCompare() {
             <MetricRow
               label="True Shooting %"
               valA={eraA.metrics.tsPct}
-              valB={eraB.metrics.tsPct}
-              unit="%"
+              valB={eraB.metrics.tsPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
             <MetricRow
               label="Field Goal %"
               valA={eraA.metrics.fgPct}
-              valB={eraB.metrics.fgPct}
-              unit="%"
+              valB={eraB.metrics.fgPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
             <MetricRow
               label="3-Point %"
               valA={eraA.metrics.threePtPct}
-              valB={eraB.metrics.threePtPct}
-              unit="%"
+              valB={eraB.metrics.threePtPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
           </div>

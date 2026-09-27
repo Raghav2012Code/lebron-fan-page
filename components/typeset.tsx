@@ -447,7 +447,7 @@ export function Kicker({
  * a second way to say the same thing, and the next reader cannot tell which is
  * authoritative.
  */
-export interface StatBandItem {
+interface StatBandItem {
   label: string;
   value: React.ReactNode;
   caption?: React.ReactNode;

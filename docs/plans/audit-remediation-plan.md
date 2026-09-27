@@ -458,27 +458,52 @@ single source of truth — but no user can reach them yet.
   "at 320 and at 1440 alike" when only `md:right-14` matches;
   `playoff-matrix.tsx:490-495` relies on `.hidden` being emitted before `.inline`,
   which works and is the reverse of the conventional idiom.
-- ~~**M2** ·~~ **CLOSED, with a correction.** The audit called `stroke`/`animate`/`delay` dead. `delay` is passed by the only call site. What was dead: `variant="full"`, which gated a ten-line branch that rendered nothing, under a comment claiming it "is only used where the whole diagram can be seen at once". `stroke`, `animate` and `preserveAspectRatio` went too, for a different reason — the call site passed none of them, so each default was the entire behaviour and the prop was decoration. The interface is now exactly the set of things that differ between call sites. dead code: `CourtDiagram`'s `full` variant, its `stroke`/`animate`/
-  `preserveAspectRatio` props, `MetricRow`'s `higherIsBetter={false}` branch and
-  its `unit` prop at three call sites that also pass `format`, `BackToTop`'s
-  `className`, and `StatBandItem` being exported but imported nowhere.
+- ~~**M2** · dead code ·~~ **CLOSED, with a correction to the finding.**
+  `CourtDiagram`'s `variant="full"` branch is gone — one call site existed and it never
+  passed `variant`, so ten lines rendered nothing, under a comment claiming the variant
+  "is only used where the whole diagram can be seen at once". `stroke`, `animate` and
+  `preserveAspectRatio` went with it because the call site set none of them, so each
+  default was the entire behaviour. **The finding was wrong that `delay` is dead** — it
+  is passed (`delay={0.15}`) and stays.
+  The rest of the finding was right. `MetricRow` (in `era-compare.tsx`, not
+  `typeset.tsx`) had a `higherIsBetter` prop no call site ever set, so its
+  `false` branch was unreachable while three expressions and a screen-reader
+  phrase carried it; and three call sites passed `unit="%"` alongside a `format`
+  that already appended the `%`, making the `unit` inert. `BackToTop` took a
+  `className` no call site passed, merged last, so it would have overridden the
+  positioning of the one control whose position is load-bearing. `StatBandItem`
+  is no longer exported — nothing outside `typeset.tsx` referenced it.
 - **M1** · duplication worth extracting, ten groups: three identical section
   shells, three copies of the AGENTS.md §1 inset recipe, three number-formatting
   implementations, four hand-rolled roving-tabindex tablists, three team-colour
   resolvers, and four near-identical block pairs.
-- ~~**M5** ·~~ **NOT A DEFECT** — see §7.4. `createPortal` is a pure factory returning a
-  portal object, not a side effect, and calling it during render is React's own
-  documented pattern. Calling it in an effect would be strictly worse. `createPortal` is called on every render of `playoff-matrix` rather than
-  once; three `AnimatePresence` children have no `key` where two siblings do;
-  `the-rooms.tsx:176` calls `scrollTo({ behavior: "smooth" })` unconditionally
-  while two other call sites branch on the media query and say why.
-- ~~**M7** ·~~ **CLOSED** — the README claimed "one icon in the UI is hand-drawn SVG". Counted with comments stripped: 8 live inline `<svg>` elements, 1 navigational and 7 illustrations. A naive grep says 10, because two are `` `<svg>` `` mentioned in comments — the same trap G5 documents. `README.md:27` says "Icons: none" with at least four hand-drawn SVGs;
-  `README.md:62`/`:72` hand-type `26.8 / 7.5 / 7.4` and `2.8s`; `README.md:106`
-  signs off a 375/768/1440 verification that predates every fix above.
-- ~~**M8** ·~~ **CLOSED** — `document.activeElement as HTMLElement | null`, matching the ref it is stored in. `playoff-matrix.tsx:143` launders `Element | null` through
-  `as HTMLElement` without checking — the only cast in the codebase that could
-  hide a real bug. Everywhere else is clean: zero `any`, zero `@ts-ignore`, zero
-  non-null assertions.
+- ~~**M5** ·~~ **SPLIT: the `createPortal` half is NOT A DEFECT, the rest is OPEN.**
+  `createPortal` is a pure factory returning a portal object, not a side effect, and
+  calling it during render is React's own documented pattern; calling it in an effect
+  would be strictly worse. The `typeof document !== "undefined"` guard is sufficient
+  because the drawer can only open from a click. See §7.4.
+  **Still open from this finding:** three `AnimatePresence` children have no `key`
+  where two siblings do; `the-rooms.tsx` calls `scrollTo({ behavior: "smooth" })`
+  unconditionally while two other call sites branch on the media query and say why.
+- ~~**M7** · README accuracy ·~~ **CLOSED, with a correction to the finding.**
+  The icon claim said "none. The one icon in the UI is hand-drawn SVG". Counted with
+  comments stripped there are **8** live inline `<svg>` elements: 1 navigational icon and
+  7 court and chart illustrations. A naive grep finds 10, because two are `` `<svg>` ``
+  mentioned inside the very comments that explain the drawing — the same trap G5
+  documents, in a README rather than a stylesheet.
+  The component index also transcribed four sets of figures that live in the data
+  module. **Every one of them was correct** — 23 seasons, 26.8 / 7.5 / 7.4, 420vh,
+  2.8s, 57 series, 25 franchises, 9 zones, 4 eras, 5 peaks all reconcile — so this
+  was never a wrongness, it was a second home. The statistical values are now
+  described rather than quoted, because a component index is more useful saying
+  what a section *is* than restating numbers that age.
+  The verification sign-off was the one claim that had actually gone stale: it
+  predated every fix above. Re-measured rather than restated, and the README now
+  carries the method as well as the result.
+- ~~**M8** · the `as HTMLElement` cast ·~~ **CLOSED.** Now
+  `document.activeElement as HTMLElement | null`, matching the ref it is stored in.
+  Everywhere else is clean, and the finding said so: zero `any`, zero `@ts-ignore`,
+  zero non-null assertions.
 
 ### 7.4 Disproved — do not "fix" these
 

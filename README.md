@@ -57,19 +57,19 @@ components/
   back-to-top.tsx       Hardwood-styled floating back-to-top button
   court-diagram.tsx     Half-court drawn to real proportions (1ft = 10 units)
   center-court.tsx      Hero — the name straddling the paint line with scroll affordance
-  season-ruler.tsx      All 23 NBA seasons on one line, with honours marked and touch-scrubbing
+  season-ruler.tsx      Every NBA season on one line, with honours marked and touch-scrubbing
   honours-board.tsx     "Hardware" — the honours ledger, with two full-bleed paint blocks
-  the-line.tsx          Career slash line (26.8 / 7.5 / 7.4) with responsive mobile formatting
+  the-line.tsx          Career slash line (per-game points, rebounds, assists) with responsive mobile formatting
   the-rooms.tsx         Pinned chapters, one per place he has played (tuned to snappy 420vh)
   father-and-son.tsx    "Father & Son" — 21-year arc comparing 2003 debut with 2024 Bronny pairing
   the-ledger.tsx        Points accumulating across four stints, with interactive clickable bars
   shot-zones.tsx        "The Heat Map" — interactive SVG 9-zone shot efficiency across 4 career eras
-  playoff-matrix.tsx    "Playoff Matrix" — interactive 57-series postseason ledger & 25 franchises
+  playoff-matrix.tsx    "Playoff Matrix" — interactive postseason series ledger, with a per-franchise breakdown
   era-compare.tsx       "Era vs Era" — head-to-head comparison tool across 5 career peaks
   twenty-three.tsx      The number, and the fact it was not actually constant
   last-shot.tsx         Interactive shot challenge with on-court release power gauge
   four-nights.tsx       Four moments as alternating full-width bands with gold divider rule
-  the-block.tsx         "The Block" — 2.8s interactive court scrub re-enactment (June 19, 2016)
+  the-block.tsx         "The Block" — interactive court scrub re-enactment of the 2016 Finals block
   baseline.tsx          Footer — the page ends where the floor does
   typeset.tsx           Shared type primitives (Counter, RiseLine, RiseWords, PaintedName, PaintRule, Caption, Kicker, StatBand) and the Opener type
   sound-provider.tsx    Opt-in Web Audio engine, localStorage-persisted, SSR-safe
@@ -118,7 +118,19 @@ All copy and stats live in **`lib/lebron-data.ts`** — never hardcode a fact in
 - Sound is opt-in, off by default, and never autoplays. The shot challenge exposes its state through an `aria-live` region.
 - A skip-to-content link is in `app/layout.tsx`.
 
-Verified at 375 / 768 / 1440: no horizontal overflow, no console errors, keyboard path intact, and the reduced-motion build renders every heading.
+Re-verified against the production build rather than restated: at 375, 768 and
+1440 there is no document-level horizontal overflow (`documentElement.scrollWidth`
+equals `clientWidth` at all three), no console errors, and the keyboard path runs
+skip link → hero scroll affordance → season-ruler buttons → room tabs → ledger
+bars. Under `prefers-reduced-motion: reduce`, 1,346 text-bearing elements were
+walked and none sits below `opacity: 0.05`; all 15 `<h1>`/`<h2>` compute
+`opacity: 1` with no transform.
+
+Elements whose *box* extends past the viewport at these widths — the court
+decorations and the sliding room panels — are children of `overflow-hidden`
+sections, which is why the document does not scroll sideways. Counting boxes
+rather than scroll width is the wrong measurement and reports 83 false
+positives at 375px.
 
 ## Deployment
 
