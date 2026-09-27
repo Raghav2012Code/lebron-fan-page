@@ -4,7 +4,15 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { SEASONS, SECTIONS, NEXT_MARK, CAREER, THE_BLOCK } from "@/lib/lebron-data";
+import {
+  SEASONS,
+  SECTIONS,
+  NEXT_MARK,
+  CAREER,
+  THE_BLOCK,
+  TRIPLE_DOUBLES,
+  TRIPLE_DOUBLE_SUMMARY,
+} from "@/lib/lebron-data";
 import {
   getBuzzerBeaters,
   getFranchiseBreakdown,
@@ -304,5 +312,202 @@ test("smoke test - era aggregates match the verified Basketball Reference figure
     cle.reduce((a, e) => a + e.games, 0),
     849,
     "cle1 + cle2 must total Cleveland's 849 games",
+  );
+});
+
+/**
+ * `TRIPLE_DOUBLE_SUMMARY.oldestAge` and `.youngestAge` are hand-typed strings
+ * beside the array they summarise, which is exactly the shape that rots:
+ * `oldestAge` named rtd-123 at 41 years and 44 days while the same array holds
+ * rtd-124 and rtd-125, the last of them 46 days older. Nothing failed, because
+ * no gate compared a summary field to the rows it claims to summarise.
+ *
+ * The birth date is not in the module, so this recovers it from the claim the
+ * module already makes and which is independently known — rtd-1 on 2005-01-19
+ * is "20 years, 20 days" — and then checks BOTH ends of the array against it. No
+ * date is typed here, so the test cannot be satisfied by editing this file to
+ * match a wrong summary.
+ */
+test("smoke test - the triple-double age summary matches the array it summarises", () => {
+  const young = TRIPLE_DOUBLE_SUMMARY.youngestAge;
+  const m = young.match(/^(\d+) years, (\d+) days \((\d{4}-\d{2}-\d{2}) vs /);
+  assert.ok(
+    m,
+    `youngestAge is not in the "N years, D days (date vs OPP)" form the summary ` +
+      `and the array share: ${young}. Without that shape the birth date cannot be ` +
+      `recovered, and this test would be asserting a hardcoded date instead.`,
+  );
+
+  // Walk backwards from the summary's own youngest claim: N years and D days
+  // before that game, on the module's convention that D counts from the most
+  // recent 30 December.
+  const youngAt = Date.parse(`${m[3]}T00:00:00Z`);
+  const bday = new Date(youngAt);
+  bday.setUTCDate(bday.getUTCDate() - +m[2]);
+  bday.setUTCFullYear(bday.getUTCFullYear() - +m[1]);
+  const BIRTH = Date.UTC(bday.getUTCFullYear(), bday.getUTCMonth(), bday.getUTCDate());
+
+  /** "N years, D days" for a game date, on the module's convention. */
+  const ageOf = (iso: string) => {
+    const t = Date.parse(`${iso}T00:00:00Z`);
+    const y = +iso.slice(0, 4);
+    const dec30 = Date.UTC(y, 11, 30);
+    const sinceBday = t >= dec30 ? dec30 : Date.UTC(y - 1, 11, 30);
+    const years = Math.floor((t - BIRTH) / 31557600000);
+    return `${years} years, ${Math.round((t - sinceBday) / 86400000)} days`;
+  };
+
+  const byDate = [...TRIPLE_DOUBLES].sort((a, b) => a.date.localeCompare(b.date));
+  const first = byDate[0];
+  const last = byDate[byDate.length - 1];
+
+  assert.strictEqual(
+    `${ageOf(first.date)} (${first.date} vs ${first.opponentAbbr})`,
+    young,
+    `youngestAge does not match the EARLIEST entry. The array starts at ` +
+      `${first.id} (${first.date} vs ${first.opponentAbbr}) and the summary ` +
+      `claims ${young}.`,
+  );
+
+  assert.strictEqual(
+    `${ageOf(last.date)} (${last.date} vs ${last.opponentAbbr})`,
+    TRIPLE_DOUBLE_SUMMARY.oldestAge,
+    `oldestAge does not match the LATEST entry. The array ends at ${last.id} ` +
+      `(${last.date} vs ${last.opponentAbbr}) and the summary claims ` +
+      `${TRIPLE_DOUBLE_SUMMARY.oldestAge}. An age record is only ever true of ` +
+      `the maximum, so naming any earlier entry is wrong however plausible it ` +
+      `reads — and this one was 46 days short.`,
+  );
+});
+
+/**
+ * Every clutch re-enactment ends with the shot going IN at the buzzer, and its
+ * clock counts down to zero. `clutch-2009-magic` did not: its last keyframe was at
+ * t=1.4 for a play with `clockRemaining: "1.0s"`, holding the clock at 0.0s across
+ * two consecutive steps so that the make appeared 0.4 seconds after the horn. The
+ * other four all land on their own `clockRemaining`.
+ *
+ * The invariant is about the TIMELINE, not the drama: times strictly increase,
+ * clocks strictly decrease, and the final frame is the buzzer. Asserted per entry
+ * so the failure names the game rather than reporting one count.
+ */
+test("smoke test - every clutch re-enactment ends on the buzzer", () => {
+  const { data: plays, isLive } = getBuzzerBeaters();
+  assert.ok(
+    isLive,
+    "CLUTCH_BUZZER_BEATERS did not resolve from lib/lebron-data, so this guard " +
+      "would be testing the fixture rather than the data module - and the defect " +
+      "it exists to catch lives in the data module.",
+  );
+
+  const offenders: string[] = [];
+
+  for (const c of plays) {
+    const start = parseFloat(c.clockRemaining);
+    const kfs = c.keyframes;
+    if (!Number.isFinite(start) || kfs.length === 0) {
+      offenders.push(`${c.id}: unreadable clockRemaining or no keyframes`);
+      continue;
+    }
+
+    for (let i = 1; i < kfs.length; i++) {
+      if (kfs[i].time <= kfs[i - 1].time) {
+        offenders.push(
+          `${c.id}: time goes backwards at step ${kfs[i].step} ` +
+            `(${kfs[i - 1].time} -> ${kfs[i].time})`,
+        );
+      }
+      if (kfs[i].clock === kfs[i - 1].clock) {
+        offenders.push(
+          `${c.id}: clock is held at ${kfs[i].clock} across steps ` +
+            `${kfs[i - 1].step} and ${kfs[i].step}, so a stretch of the timeline ` +
+            `shows no time passing`,
+        );
+      }
+    }
+
+    const last = kfs[kfs.length - 1];
+    if (last.time !== start) {
+      offenders.push(
+        `${c.id}: the last keyframe is at t=${last.time} but clockRemaining is ` +
+          `${c.clockRemaining} \u2014 the make happens ${Math.round((last.time - start) * 100) / 100}s ` +
+          `${last.time > start ? "after" : "before"} the horn`,
+      );
+    }
+    if (last.clock !== "0.0s") {
+      offenders.push(
+        `${c.id}: the last keyframe reads clock ${last.clock}, not 0.0s`,
+      );
+    }
+  }
+
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `the clutch re-enactments do not all end at the buzzer: ${offenders.join(" | ")}. ` +
+      `A scrubber that runs past the horn makes the last frame unreadable as a made ` +
+      `shot, and it is the one moment the whole section exists to show.`,
+  );
+});
+
+/**
+ * `allThirtyFranchisesBeaten` carried a comment saying it was NOT derivable from
+ * the triple-double tables, on the grounds that they "yield only 27 distinct
+ * opponents". The arithmetic was backwards. They hold 28 opponent TOKENS, and those
+ * are 27 franchises — BKN and NJN are the same one under two codes — and 30 NBA
+ * franchises minus his own three (CLE, LAL, MIA) is exactly 27. So the claim is
+ * reachable, and asserting it is cheap.
+ *
+ * `NBA_30` is written out here rather than imported, on purpose: if the module ever
+ * grows its own list, this test still checks the table against an independent
+ * statement of what the league contains.
+ */
+test("smoke test - the triple-double tables reach all 27 opponent franchises", () => {
+  // BOTH tables. The claim is about every opponent franchise he has faced in a
+  // triple-double, and the 27 are reached across the regular season and the
+  // playoffs together — the 28 playoff entries alone reach far fewer, which is
+  // what the first version of this test asserted and got wrong.
+  const { regularSeason, playoffs, isLive } = getTripleDoubles();
+  assert.ok(isLive, "TRIPLE_DOUBLES did not resolve from lib/lebron-data");
+  const tds = [...regularSeason, ...playoffs];
+
+  const NBA_30 = [
+    "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GSW",
+    "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NOP", "NYK",
+    "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SAS", "TOR", "UTA", "WAS",
+  ];
+  const OWN = new Set(tds.map((g) => g.team));
+  // The Nets have been BKN and, before 2012, NJN. One franchise, two codes.
+  const canonical = (f: string) => (f === "NJN" ? "BKN" : f);
+
+  const beaten = new Set(tds.map((g) => canonical(g.franchise)));
+  const want = NBA_30.filter((f) => !OWN.has(f));
+
+  assert.strictEqual(
+    want.length,
+    27,
+    `30 NBA franchises minus his own three is 27; the own-team set read ` +
+      `${[...OWN].sort().join(", ")} and the arithmetic no longer holds.`,
+  );
+
+  const missing = want.filter((f) => !beaten.has(f)).sort();
+  assert.deepStrictEqual(
+    missing,
+    [],
+    `the triple-double tables do not reach ${missing.join(", ")}. ` +
+      `TRIPLE_DOUBLE_SUMMARY.allThirtyFranchisesBeaten claims every opponent ` +
+      `franchise has been beaten, so either the claim is wrong or the table is ` +
+      `missing the games that closed those gaps. Check which before editing ` +
+      `either — the comment that used to sit here asserted the gap without ` +
+      `naming which franchises it was.`,
+  );
+
+  const notLeague = [...beaten].filter((f) => !NBA_30.includes(f)).sort();
+  assert.deepStrictEqual(
+    notLeague,
+    [],
+    `the table names franchises that are not among the NBA 30: ` +
+      `${notLeague.join(", ")}. That is how PHO survived here for so long: it is ` +
+      `not an NBA abbreviation, and a count alone would never have caught it.`,
   );
 });

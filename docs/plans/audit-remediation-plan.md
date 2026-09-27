@@ -371,11 +371,41 @@ Severity as it affects a reader of the page today.
 
 `AGENTS.md` §3 governs these as strictly as rendered ones — it is the designated
 single source of truth — but no user can reach them yet.
-- `TRIPLE_DOUBLE_SUMMARY.oldestAge` names 2026-02-12 / "41 years, 44 days" while
-  its own array contains two older entries, the oldest being 2026-03-30 at 41
-  years 90 days. `rtd-123`'s prose also claims "capping 125" at array position
-  123, and claims the NBA record that `rtd-125` holds. `rtd-125`'s date is one day
-  off (2026-03-30 vs a sourced 2026-03-31).
+- **Queued-milestone data: four defects fixed, one NOT established, one set aside.**
+  All four were provable from the data module alone, so none needed external
+  sourcing, and each is now a test.
+  `TRIPLE_DOUBLE_SUMMARY.oldestAge` named rtd-123 at 41 years and 44 days while its
+  own array holds rtd-124 and rtd-125, the last 46 days older. It now names rtd-125
+  at 41 years and 90 days, and rtd-123's prose no longer claims it was "capping 125
+  regular-season triple-doubles" when it was the 123rd. Only rtd-123 carried the
+  "Oldest in NBA History" tag; rtd-125 carries it now and rtd-123 is marked "at the
+  Time", because a record that is broken and re-set is two records.
+  `clutch-2009-magic` contradicted itself three ways: its `description` said Cleveland
+  faced "an 0-2 deficit" while `seriesSituationBefore`, `seriesContext` and
+  `seriesImpact` all said 0-1, and its last keyframe sat at t=1.4 for a play with
+  `clockRemaining: "1.0s"`, holding the clock at 0.0s across two steps so the make
+  appeared 0.4 seconds after the horn. The other four games all end on their own
+  buzzer. The description now says 0-1 (and reads "a 0-1", not "an 0-2"), and the
+  release moved to 0.8s so the make lands at 1.0s.
+  The comment on `allThirtyFranchisesBeaten` had the arithmetic backwards: it said
+  the tables "yield only 27 distinct opponents" and concluded the claim was not
+  derivable. They hold 28 opponent tokens which are 27 franchises — BKN and NJN are
+  the same one under two codes — and 30 minus his own three is exactly 27, so it
+  IS derivable.
+  Which surfaced a tenth site in the same class: Phoenix was coded `PHO`, which is
+  not an NBA abbreviation. Nine occurrences, now `PHX`. A count would never have
+  caught it, which is why the new test checks membership in the 30 and not just
+  that there are 27.
+  **NOT established:** `ptd-6` says "playoff career-high 19 rebounds". No playoff
+  triple-double in the array beats 19, and the sentence already carries the
+  "playoff" qualifier the finding said was missing. Whether 19 is his all-time
+  playoff rebound high cannot be checked from this module, which only holds
+  triple-doubles, so the claim is neither confirmed nor contradicted here.
+  **Set aside:** `REGULAR_SEASON_TRIPLE_DOUBLES` per-season counts. The finding
+  cites sourced numbers (2017-18 holding 18 against 20, two empty seasons, a
+  missing play-in game). The career totals 125/28 reconcile, so the per-season rows
+  are wrong somewhere inside them, but reproducing a correct distribution is a
+  sourcing task and was not attempted on the strength of a register line.
 - `REGULAR_SEASON_TRIPLE_DOUBLES` per-season distribution is wrong: 2017-18 holds
   18 entries against a sourced 20; 2003-04 and 2011-12 hold none; and the
   2021-04-13 play-in triple-double against Golden State is absent, though it is a

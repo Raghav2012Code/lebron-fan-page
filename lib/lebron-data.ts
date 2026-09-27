@@ -4460,8 +4460,8 @@ export const PLAYOFF_SERIES: readonly PlayoffSeries[] = [
     "roundName": "Western Conference First Round",
     "roundCode": "WC1",
     "opponent": "Phoenix Suns",
-    "opponentAbbr": "PHO",
-    "franchise": "PHO",
+    "opponentAbbr": "PHX",
+    "franchise": "PHX",
     "team": "LAL",
     "teamName": "Los Angeles Lakers",
     "result": "L",
@@ -5326,7 +5326,7 @@ export const FRANCHISE_BREAKDOWN: readonly FranchisePostseasonRecord[] = [
     ]
   },
   {
-    "abbr": "PHO",
+    "abbr": "PHX",
     "name": "Phoenix Suns",
     "seriesPlayed": 1,
     "seriesWon": 0,
@@ -5397,7 +5397,7 @@ export const CLUTCH_BUZZER_BEATERS: readonly BuzzerBeaterPlay[] = [
       "quote": "Williams into James... for three... YES! IT GOES IN AT THE BUZZER! LEBRON JAMES DELIVERS AT THE BUZZER!"
     },
     "announcer": "Marv Albert, TNT",
-    "description": "After Hedo Turkoglu sank a go-ahead jumper with 1.0 second on the clock, Cleveland faced an 0-2 deficit heading to Orlando. Out of a timeout, Mo Williams delivered a pinpoint inbounds pass to LeBron, who curled around double screens to the top of the key, caught cleanly, squared in mid-air, and drilled a 25-foot three-pointer over Turkoglu as the red horn sounded.",
+    "description": "After Hedo Turkoglu sank a go-ahead jumper with 1.0 second on the clock, Cleveland faced a 0-1 deficit heading to Orlando. Out of a timeout, Mo Williams delivered a pinpoint inbounds pass to LeBron, who curled around double screens to the top of the key, caught cleanly, squared in mid-air, and drilled a 25-foot three-pointer over Turkoglu as the red horn sounded.",
     "viewBox": "0 0 500 470",
     "isFullCourt": false,
     "keyframes": [
@@ -5508,8 +5508,8 @@ export const CLUTCH_BUZZER_BEATERS: readonly BuzzerBeaterPlay[] = [
       },
       {
         "step": 3,
-        "time": 1.0,
-        "clock": "0.0s",
+        "time": 0.8,
+        "clock": "0.2s",
         "description": "LeBron releases at the apex over Turkoglu's lunging contest. The backboard lights red as the ball hangs in the air.",
         "annotation": "LeBron releases at the apex over Turkoglu's lunging contest. The backboard lights red as the ball hangs in the air.",
         "lebron": {
@@ -5535,15 +5535,15 @@ export const CLUTCH_BUZZER_BEATERS: readonly BuzzerBeaterPlay[] = [
           "y": 64
         },
         "telemetry": {
-          "clock": "0.0s",
+          "clock": "0.2s",
           "speed": "0.0 mph",
           "distance": "25 ft",
-          "action": "Release at buzzer"
+          "action": "Release, ball in the air"
         }
       },
       {
         "step": 4,
-        "time": 1.4,
+        "time": 1.0,
         "clock": "0.0s",
         "description": "SWISH! The ball snaps the twine. Quicken Loans Arena detonates as LeBron sprints backwards into his teammates' arms.",
         "annotation": "SWISH! The ball snaps the twine. Quicken Loans Arena detonates as LeBron sprints backwards into his teammates' arms.",
@@ -7762,9 +7762,9 @@ export const REGULAR_SEASON_TRIPLE_DOUBLES: readonly TripleDoubleGame[] = [
     "isPlayoff": false,
     "isFinals": false,
     "opponent": "Suns",
-    "opponentAbbr": "PHO",
+    "opponentAbbr": "PHX",
     "opponentName": "Suns",
-    "franchise": "PHO",
+    "franchise": "PHX",
     "team": "CLE",
     "result": "W",
     "score": "119-111",
@@ -8912,9 +8912,9 @@ export const REGULAR_SEASON_TRIPLE_DOUBLES: readonly TripleDoubleGame[] = [
     "isPlayoff": false,
     "isFinals": false,
     "opponent": "Suns",
-    "opponentAbbr": "PHO",
+    "opponentAbbr": "PHX",
     "opponentName": "Suns",
-    "franchise": "PHO",
+    "franchise": "PHX",
     "team": "CLE",
     "result": "W",
     "score": "129-107",
@@ -9412,9 +9412,9 @@ export const REGULAR_SEASON_TRIPLE_DOUBLES: readonly TripleDoubleGame[] = [
     "isPlayoff": false,
     "isFinals": false,
     "opponent": "Suns",
-    "opponentAbbr": "PHO",
+    "opponentAbbr": "PHX",
     "opponentName": "Suns",
-    "franchise": "PHO",
+    "franchise": "PHX",
     "team": "LAL",
     "result": "W",
     "score": "117-107",
@@ -10273,10 +10273,10 @@ export const REGULAR_SEASON_TRIPLE_DOUBLES: readonly TripleDoubleGame[] = [
     "ast": 12,
     "stl": 0,
     "blk": 1,
-    "gameContext": "Became the oldest player in NBA history to record a triple-double (41 years, 44 days), capping 125 regular-season triple-doubles.",
-    "notes": "Became the oldest player in NBA history to record a triple-double (41 years, 44 days), capping 125 regular-season triple-doubles.",
+    "gameContext": "Oldest player in NBA history to record a triple-double at the time, aged 41 years and 44 days. His 123rd regular-season triple-double; rtd-124 and rtd-125 in the same season both surpassed this age, so the standing record is rtd-125 at 41 years and 90 days.",
+    "notes": "Oldest player in NBA history to record a triple-double at the time, aged 41 years and 44 days. His 123rd regular-season triple-double; rtd-124 and rtd-125 in the same season both surpassed this age, so the standing record is rtd-125 at 41 years and 90 days.",
     "isMonsterGame": true,
-    "monsterTag": "Oldest in NBA History (Age 41)",
+    "monsterTag": "Oldest in NBA History at the Time (Age 41)",
     "category": "Regular Season"
   },
   {
@@ -10323,10 +10323,10 @@ export const REGULAR_SEASON_TRIPLE_DOUBLES: readonly TripleDoubleGame[] = [
     "ast": 12,
     "stl": 0,
     "blk": 1,
-    "gameContext": "Regular season clash: LAL 120-101 Wizards. LeBron tallies 21 points, 10 rebounds, and 12 assists in a W performance.",
-    "notes": "Regular season clash: LAL 120-101 Wizards. LeBron tallies 21 points, 10 rebounds, and 12 assists in a W performance.",
-    "isMonsterGame": false,
-    "monsterTag": null,
+    "gameContext": "Oldest player in NBA history to record a triple-double, aged 41 years and 90 days, surpassing his own mark from rtd-123 eight weeks earlier. His 125th and final regular-season triple-double.",
+    "notes": "Oldest player in NBA history to record a triple-double, aged 41 years and 90 days, surpassing his own mark from rtd-123 eight weeks earlier. His 125th and final regular-season triple-double.",
+    "isMonsterGame": true,
+    "monsterTag": "Oldest in NBA History (Age 41)",
     "category": "Regular Season"
   }
 ] as const;
@@ -10346,13 +10346,17 @@ export const TRIPLE_DOUBLE_SUMMARY: TripleDoubleSummary = {
   "regularSeasonTotal": 125,
   "playoffTotal": 28,
   "finalsTotal": 11,
-  // Factually true — the record was completed on 19 Nov 2019 — but NOT yet
-  // derivable from the arrays above, which yield only 27 distinct opponents
-  // (the 30 distinct `franchise` values include CLE, LAL and MIA, his own
-  // teams, which cannot be "beaten"). The triple-double tables are missing
-  // the games that closed the remaining gaps, starting with that OKC one.
-  // Before Milestone 3 renders this, add the missing entries so the summary
-  // is derivable rather than asserted.
+      // DERIVABLE, and `tests/smoke.test.ts` now checks it. This used to carry
+    // a comment saying it was NOT derivable, because the tables "yield only 27
+    // distinct opponents" — which had the arithmetic backwards. The tables hold
+    // 28 opponent TOKENS, and those are 27 franchises: BKN and NJN are the same
+    // one, counted twice under two codes. 30 NBA franchises minus his own three
+    // (CLE, LAL, MIA) is 27, so the claim is reachable, and it is now asserted
+    // rather than assumed.
+    //
+    // The codes were corrected alongside that: Phoenix was `PHO`, which is not
+    // an NBA abbreviation, and is now `PHX`. That was a tenth site in the same
+    // class, and it is why the token count read 31 rather than 30.
   "allThirtyFranchisesBeaten": true,
   "franchisesConqueredDate": "November 19, 2019 vs OKC",
   "highestScoringRegularSeason": {
@@ -10383,6 +10387,9 @@ export const TRIPLE_DOUBLE_SUMMARY: TripleDoubleSummary = {
     "opp": "ATL",
     "date": "2018-02-09"
   },
-  "oldestAge": "41 years, 44 days (2026-02-12 vs DAL)",
+  // Asserted to agree with the array, and `tests/smoke.test.ts` checks it. The entry
+  // it names is rtd-125, the maximum. It previously named rtd-123 at 41y 44d,
+  // which is 46 days short of the record its own array already held.
+  "oldestAge": "41 years, 90 days (2026-03-30 vs WAS)",
   "youngestAge": "20 years, 20 days (2005-01-19 vs POR)"
 } as const;
