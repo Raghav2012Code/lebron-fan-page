@@ -82,10 +82,13 @@ Always verify changes with all four gates before committing:
 - Milestones 2 and 3 are **not rendered**, so their data is tested but unreachable by a user. That is expected while they are queued.
 
 ## 6. Rendering Without JavaScript
-The page must stay readable and truthful with JS disabled. Two rules follow from this:
-- Anything animated by Framer carries a `data-reveal` attribute. `app/globals.css` uses it to land the element in its final position under `prefers-reduced-motion: reduce`, because Framer's own `reducedMotion` only suppresses transform keys and leaves `opacity` and stagger delays running.
-- **Counters must render their final value, not their start value.** `Counter` seeds the DOM with `to` and animates *from* `from` after hydration. Seeding it with `from` shipped every statistic on the page as a literal `0`.
-- Any section whose content is gated behind scroll-linked state needs a `<noscript>` fallback.
+The page must stay readable and truthful with JS disabled. Framer serialises every `initial` variant state into the server HTML as an inline `style` — and `pathLength` animations as `stroke-dasharray="0 1"`. With JS on, hydration animates it away; with JS off nothing does, so **the hidden state becomes the resting state**. Measured with scripting disabled, that shipped 175 elements at `opacity: 0`, 62 letters parked at `translateY(112%)`, 55 rules and panels at `scale(0)`, and a hero at 0% visible, with roughly 27,000 characters in the document of which essentially none were painted. Three rules follow:
+
+- **The guarantee is `NO_SCRIPT_CSS` in `app/layout.tsx`, not a per-element attribute.** A `<noscript>` block is the only mechanism that can reach this case. The tempting alternative — an attribute on every hiding element, styled by a media query — cannot work here: the existing `[data-reveal]` override lives *inside* `@media (prefers-reduced-motion: reduce)`, and a visitor with JS blocked is not necessarily in that query, so the documented remedy structurally cannot reach the failure it was written for. `data-reveal` remains for the reduced-motion case, where it is the right tool, and is deliberately not extended to all ~196 self-hiding elements: that is a hand-maintained invariant with no mechanical enforcement, guarding a case that already works. Guard G9 keeps the block honest and asserts the anchoring described below.
+- **Anchor the fallback's selectors on a declaration boundary.** `opacity:0` is a *substring* of `opacity:0.72`, `0.45`, `0.3` and `0.14` — four real design values on this page — so a bare `[style*="opacity:0"]` silently flattens them. The block uses four boundary-anchored forms instead, and the room panels' `color:#231508;opacity:0` (no trailing semicolon) is why the end-of-value form is not optional. Likewise `stroke-dasharray` is matched as exactly `0 1`, never as a bare attribute selector, because the page also draws genuine dashes at `2 3` and `4 4`.
+- **Counters must render their final value, not their start value.** `Counter` seeds the DOM with `to` and animates *from* `from` after hydration. Seeding it with `from` shipped every statistic on the page as a literal `0`. Verified still true in the server HTML: every `.figure` carries its final value, and exactly four text nodes in the document equal the literal `"0"`, three of which are the shot challenge's legitimate opening Score/Streak/Best.
+
+Any section whose content is gated behind scroll-linked state still needs its own `<noscript>` fallback — `the-rooms` has one, and it renders.
 
 ## Agent skills
 

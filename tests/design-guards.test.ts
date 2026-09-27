@@ -571,3 +571,105 @@ test("design guard G8 - no class rule in globals.css is unlayered", () => {
       `unlayered class rule. Delete the entry.`,
   );
 });
+
+/* ==========================================================================
+ * G9 — the no-JS fallback exists, and its selectors are anchored.
+ *
+ * Framer serialises every `initial` variant state into the server HTML as an
+ * inline `style` (and `pathLength` animations as `stroke-dasharray="0 1"`). With
+ * JS on, hydration animates it away. With JS off nothing does, so the hidden
+ * state is the resting state. Measured with `javaScriptEnabled: false` before
+ * `app/layout.tsx` grew its `<noscript>` block: 175 elements at `opacity: 0`,
+ * 62 letters parked at `translateY(112%)`, 55 rules and panels at `scale(0)`,
+ * the hero at 0% visible, and roughly 27,000 characters in the document of which
+ * essentially none were painted. `AGENTS.md` §6 promises the opposite.
+ *
+ * The existing `[data-reveal]` override cannot cover this, and that is the
+ * non-obvious part: it lives INSIDE `@media (prefers-reduced-motion: reduce)`,
+ * and a visitor with JS blocked is not necessarily in that media query. So the
+ * documented remedy structurally cannot reach the failure it was written for,
+ * and the guarantee needs a mechanism that does.
+ *
+ * These assertions are about the SHAPE of the block, not its exhaustiveness —
+ * whether every future `initial` is covered is not knowable from source, and
+ * pretending otherwise would be a guard that cries wolf. What is knowable, and
+ * what actually broke on the first attempt, is the anchoring: a bare
+ * `[style*="opacity:0"]` also matches `opacity:0.72`, `0.45`, `0.3` and `0.14`,
+ * which are four real design values on this page.
+ * ======================================================================== */
+
+test("design guard G9 - the no-JS fallback is present and safely anchored", () => {
+  const layout = codeOf(read("app", "layout.tsx"));
+
+  assert.match(
+    layout,
+    /<noscript/,
+    "app/layout.tsx must render a <noscript> block. Framer's SSR'd `initial` " +
+      "states are never cleared without JS, so without this the page is blank.",
+  );
+
+  const css = layout.slice(layout.indexOf("NO_SCRIPT_CSS"));
+
+  // 1. All three mechanisms present.
+  assert.match(
+    css,
+    /\[style="opacity:0"\]/,
+    "the fallback must match a whole-value style of `opacity:0`",
+  );
+  assert.match(
+    css,
+    /\[style\*="transform:"\]/,
+    "the fallback must neutralise Framer's inline entrance transforms",
+  );
+  assert.match(
+    css,
+    /\[stroke-dasharray="0 1"\]/,
+    "the fallback must redraw the court's pathLength-animated strokes, which " +
+      "SSR as a zero-length dash",
+  );
+
+  // 2. The anchoring. `opacity:0` is a substring of every real design opacity
+  //    on this page, so an unanchored selector silently flattens four of them.
+  assert.ok(
+    !/\[style\*="opacity:0"\]/.test(css),
+    'the fallback must not use a bare [style*="opacity:0"] selector: that ' +
+      "substring is present in `opacity:0.72`, `0.45`, `0.3` and `0.14`, which " +
+      "are real design values. Anchor on a declaration boundary instead.",
+  );
+  for (const boundary of ['[style$="opacity:0"]', '[style*="opacity:0;"]']) {
+    assert.ok(
+      css.includes(boundary),
+      `the fallback is missing ${boundary}. The built HTML puts \`opacity:0\` in ` +
+        `four positions — whole value, end of value, after a semicolon, and ` +
+        `between two — and the room panels' \`color:#231508;opacity:0\` has no ` +
+        `trailing semicolon, so the end-of-value case is not optional.`,
+    );
+  }
+
+  // 3. Order. The centring transforms are re-asserted AFTER the general rule; at
+  //    equal specificity and equal `!important`, the later declaration wins, so
+  //    reversing these two throws two absolutely positioned elements to their
+  //    container's top-left corner.
+  const general = css.indexOf('[style*="transform:"]');
+  assert.ok(general > -1, "expected the general transform rule");
+  for (const centring of ['translateX(-50%) translateY(-50%)', 'translateX(-50%)']) {
+    const at = css.indexOf(`[style*="${centring}"]`);
+    assert.ok(
+      at > general,
+      `the \`${centring}\` re-assertion must come AFTER the general transform ` +
+        `rule in NO_SCRIPT_CSS, or the general rule flattens the centring it ` +
+        `exists to protect.`,
+    );
+  }
+
+  // 4. The court's genuine dashes must not be caught. `stroke-dasharray` values
+  //    of `2 3` and `4 4` are drawn geometry; only `0 1` is an animation state.
+  const dash = layout.match(/\[stroke-dasharray="[^"]*"\]/g) ?? [];
+  assert.deepStrictEqual(
+    dash,
+    ['[stroke-dasharray="0 1"]'],
+    `the fallback must match exactly \`stroke-dasharray="0 1"\`. The page also ` +
+      `draws dashed lines at "2 3" and "4 4", which are geometry rather than ` +
+      `animation and must survive with JS off. Found: ${dash.join(", ")}`,
+  );
+});
