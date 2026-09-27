@@ -616,7 +616,7 @@ export const NIGHTS: Night[] = [
   {
     year: "2003",
     title: "The arrival",
-    copy: "Taken first overall out of high school by the team down the road from where he grew up. Rookie of the Year a season later, carrying a franchise before he was old enough to toast the win.",
+    copy: "Taken first overall out of high school by the team down the road from where he grew up. Named Rookie of the Year in his first season, carrying a franchise before he was old enough to toast the win.",
   },
   {
     year: "2016",
