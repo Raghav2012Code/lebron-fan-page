@@ -104,3 +104,60 @@ test("smoke test - every era's shot-zone volumes sum to 100%", async () => {
     );
   }
 });
+
+/**
+ * The era headline figures are ATTEMPTS-WEIGHTED aggregates over the seasons each
+ * era's `period` names — not peaks, not simple means of the seasonal rates.
+ *
+ * These were wrong in five places and were verified against Basketball Reference
+ * season totals on 2026-09-26 (see DESIGN-AUDIT.md F-04). Recorded here so a
+ * later pass cannot "tidy" a verified figure back to a stale one — the exact
+ * failure issue #28 was opened to prevent.
+ *
+ *   cle1  2003-04…2009-10  548 G   .475 / .329 / .742
+ *   mia   2010-11…2013-14  294 G   .543 / .369 / .758
+ *   cle2  2014-15…2017-18  301 G   .526 / .351 / .711
+ *   lal   2018-19…2025-26  479 G   .513 / .356 / .730
+ *
+ * The cross-check that exposed the originals: cle1 + cle2 must reconcile to
+ * Basketball Reference's own CLE 11-year row — 849 games, .492 / .337 / .733.
+ */
+test("smoke test - era aggregates match the verified Basketball Reference figures", async () => {
+  const { SHOT_ZONES } = await import("@/lib/lebron-data");
+
+  const expected = {
+    cle1: { games: 548, ppg: 27.8, fgPct: 47.5, threePtPct: 32.9, ftPct: 74.2 },
+    mia: { games: 294, ppg: 26.9, fgPct: 54.3, threePtPct: 36.9, ftPct: 75.8 },
+    cle2: { games: 301, ppg: 26.1, fgPct: 52.6, threePtPct: 35.1, ftPct: 71.1 },
+    lal: { games: 479, ppg: 25.9, fgPct: 51.3, threePtPct: 35.6, ftPct: 73.0 },
+  } as const;
+
+  assert.strictEqual(
+    SHOT_ZONES.eras.length,
+    Object.keys(expected).length,
+    "an era was added or removed without updating the verified figures",
+  );
+
+  for (const era of SHOT_ZONES.eras) {
+    const want = expected[era.id as keyof typeof expected];
+    assert.ok(want, `${era.id}: no verified figures recorded for this era`);
+    for (const key of ["games", "ppg", "fgPct", "threePtPct", "ftPct"] as const) {
+      assert.strictEqual(
+        era[key],
+        want[key],
+        `${era.id}.${key} is ${era[key]}, verified value is ${want[key]} — ` +
+          `see DESIGN-AUDIT.md F-04 before changing it`,
+      );
+    }
+  }
+
+  // The reconciliation that caught the originals: both Cleveland stints together
+  // must reproduce the 11-year Cleveland row. Game counts are exact integers, so
+  // this fails loudly if an era's window is quietly edited.
+  const cle = SHOT_ZONES.eras.filter((e) => e.id === "cle1" || e.id === "cle2");
+  assert.strictEqual(
+    cle.reduce((a, e) => a + e.games, 0),
+    849,
+    "cle1 + cle2 must total Cleveland's 849 games",
+  );
+});

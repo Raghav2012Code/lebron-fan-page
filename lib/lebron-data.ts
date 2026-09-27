@@ -752,6 +752,21 @@ export interface ShotZoneData {
   signatureMoment: string;
 }
 
+/**
+ * One career era's shot profile.
+ *
+ * `ppg` / `fgPct` / `threePtPct` / `ftPct` are the era's ATTEMPTS-WEIGHTED aggregates
+ * across every season named by `period` — not a peak season and not a simple mean of
+ * the seasonal rates. That distinction is load-bearing: `2011-12` was a 62-game
+ * season, so a simple mean of Miami's four seasonal FG% rates reads ~54.3% by
+ * coincidence while the true weighted figure is also 54.3%; but for most eras the
+ * two methods disagree by several tenths, and the unweighted one is the wrong number.
+ *
+ * Verified 2026-09-26 against Basketball Reference season totals (see the
+ * `SHOT_ZONES.eras` block below for the per-era game counts). These are aggregates,
+ * so the UI must label them as such wherever a single-season peak appears beside
+ * them — see F-04 in DESIGN-AUDIT.md.
+ */
 export interface EraShotData {
   id: string;
   name: string;
@@ -759,6 +774,8 @@ export interface EraShotData {
   team: string;
   tagline: string;
   narrative: string;
+  /** Games played across the era. Attempts-weighted, so this is the denominator. */
+  games: number;
   ppg: number;
   fgPct: number;
   threePtPct: number;
@@ -785,10 +802,15 @@ export const SHOT_ZONES: {
       tagline: "Downhill Force",
       narrative:
         "The fastest open-floor athlete in basketball history. Opposing defenses routinely built three-man walls in the paint, yet he still converted over 71% of rim attempts while developing his outside jumper.",
+      // 2003-04 … 2009-10, seven seasons, 548 games. The old `ftPct: 73.3` was
+      // Cleveland's ELEVEN-year figure (both stints, 849 games) pasted into the
+      // first stint; the correct seven-season figure is 74.2. cle1 + cle2
+      // reconciles to 73.3 over 849 games, which is what exposed it.
+      games: 548,
       ppg: 27.8,
       fgPct: 47.5,
       threePtPct: 32.9,
-      ftPct: 73.3,
+      ftPct: 74.2,
       primaryColor: "#5C1626",
       zones: {
         restricted: {
@@ -891,6 +913,12 @@ export const SHOT_ZONES: {
       tagline: "Hyper-Efficient Apex",
       narrative:
         "Reconstructed his shot selection inside Erik Spoelstra's space-and-pace offense. Eliminated bad mid-range shots, mastered post footwork, and peaked at a staggering 56.5% FG and 40.6% 3PT in 2012-13.",
+      // 2010-11 … 2013-14, four seasons, 294 games. These four figures are
+      // confirmed against Basketball Reference's own MIA 4-year row (.543 /
+      // .369 / .758 / 26.9) and were already correct — the Miami panel's
+      // "contradiction" is a missing qualifier, not a bad number. The narrative's
+      // 2012-13 peak of 56.5% FG / 40.6% 3PT is also exact.
+      games: 294,
       ppg: 26.9,
       fgPct: 54.3,
       threePtPct: 36.9,
@@ -997,10 +1025,13 @@ export const SHOT_ZONES: {
       tagline: "Total Command",
       narrative:
         "The complete maestro. Carried four straight Finals teams with masterful shot creation, combining physical downhill brute with impossible buzzer-beating fadeaways and clutch playoff heroics.",
+      // 2014-15 … 2017-18, four seasons, 301 games. `ftPct` was 70.8; the
+      // attempts-weighted figure is 71.1.
+      games: 301,
       ppg: 26.1,
       fgPct: 52.6,
       threePtPct: 35.1,
-      ftPct: 70.8,
+      ftPct: 71.1,
       primaryColor: "#5C1626",
       zones: {
         restricted: {
@@ -1103,10 +1134,14 @@ export const SHOT_ZONES: {
       tagline: "Logo Maestro",
       narrative:
         "Modernized his profile in his late 30s and age 40 season. Embraced heavy three-point volume with high-arcing step-backs and logo range while sustaining extraordinary rim frequency.",
+      // 2018-19 … 2025-26, eight seasons, 479 games. Three figures were stale:
+      // 51.8 → 51.3 FG%, 35.8 → 35.6 3P%, 74.5 → 73.0 FT%. Confirmed against
+      // Basketball Reference's LAL 8-year row (.513 / .356 / .730 / 25.9).
+      games: 479,
       ppg: 25.9,
-      fgPct: 51.8,
-      threePtPct: 35.8,
-      ftPct: 74.5,
+      fgPct: 51.3,
+      threePtPct: 35.6,
+      ftPct: 73.0,
       primaryColor: "#3B2352",
       zones: {
         restricted: {

@@ -1,6 +1,7 @@
 # Design Audit Spec — "The King" (LeBron fan tribute)
 
 **Type:** design audit punch list · **Status:** open · **Date:** 2026-09-26
+**Amended:** 2026-09-26 — see §Corrections to this document and F-04b
 **Target:** `http://localhost:3000` · Next.js 16.3.3 / React 19.2.8 / Tailwind v4 / Framer Motion 13
 
 ---
@@ -60,6 +61,14 @@ concentrated in one measurable place: **rhythm**.
   statistic. This is the most common AI tell and the site is clean.
 - **Variety 2** — the failure. Thirteen sections run one structural rhythm (§ F-01).
 
+**One caveat added 2026-09-26.** "No invented metrics" (Specificity 5) holds, but *verifying*
+the figures during implementation found five era aggregates that were real numbers scoped to the
+wrong window — Cleveland's eleven-year FT% sitting in the seven-year first stint, and three
+stale Lakers figures. Nothing was fabricated; something was mislabelled by scope. Fixed as
+**F-04b**, which is a data-integrity defect and outranks every design finding in this document.
+A design audit cannot find this class of bug; only re-deriving a figure from its season totals
+can.
+
 ---
 
 ## What passes — protect these
@@ -89,14 +98,20 @@ Severity is **design impact**, not correctness.
 Every section opens identically: eyebrow → full-bleed huge Oswald headline → standfirst
 paragraph → a 4-column band. Thirteen for thirteen, no exceptions.
 
-The 4-up band recurs **four separate times** in three components:
+The 4-up band recurs **seven** times across three components:
 
 | Site | Component | Content |
 |---|---|---|
-| matrix stat tiles | `playoff-matrix.tsx` | LABEL / BIG NUMBER / CAPTION ×4 |
-| era tabs | `shot-zones.tsx` | period / name / tagline ×4 |
-| era micro-stats | `shot-zones.tsx` | PPG / FG% / 3P% / FT% ×4 |
-| ledger tabs | `the-ledger.tsx` | club ×5 |
+| matrix stat tiles | `playoff-matrix.tsx:378` | LABEL / BIG NUMBER / CAPTION ×4 |
+| drawer header stats | `playoff-matrix.tsx:912` | ×4 |
+| era tabs | `shot-zones.tsx:156` | period / name / tagline ×4 |
+| era micro-stats | `shot-zones.tsx:238` | PPG / FG% / 3P% / FT% ×4 |
+| final-game line score | `the-block.tsx:172` | ×4 |
+| history-nights row | `father-and-son.tsx:153` | ×5 |
+| history-nights row | `father-and-son.tsx:216` | ×5 |
+
+`playoff-matrix.tsx:587` is the 57-card grid at `xl:grid-cols-4` — a card grid, not a band,
+and not counted above.
 
 Measured section heights confirm the repetition is structural, not incidental:
 `span` 752 · `hardware` 2401 · `line` 1437 · `rooms` 4245 · `father-son` 1722 ·
@@ -119,21 +134,40 @@ appears at most twice in the whole page.
 
 ### F-02 · The eyebrow is the loudest single tell · **Major**
 
-Nine sites: `center-court.tsx:194` · `era-compare.tsx:132,282,318,339,366` ·
+Nine sites: `center-court.tsx:204` · `era-compare.tsx:132,282,318,339,366` ·
 `father-and-son.tsx:37` · `shot-zones.tsx:139` · `the-block.tsx:149`
 
 Pattern is uppercase + `tracking-[0.2em]` or `tracking-widest` + wine/gold + a `·`
 separator. This is the most recognisable AI typographic tic, and `AGENTS.md` §1 bans it by
 name ("tracked-out all-caps eyebrows with middle dots (`A · B · C`)").
 
-Compounding it: the eyebrows are **redundant labels for the section they sit in**.
-"THE HEAT MAP" sits directly above a heading about shot zones; it carries no information
-the heading did not.
+Compounding it: where it sits above a heading, the eyebrow is a **redundant label for the
+section it sits in**. "THE HEAT MAP" sits directly above a heading about shot zones; it
+carries no information the heading did not.
 
-**Fix direction.** Delete the eyebrows outright. Where a section genuinely needs a
-kicker, set it in the body face at body size, sentence case, un-tracked, no separator.
+Only four of the nine are redundant. The split matters, because deleting all nine — as this
+finding originally directed — strips four labels that tell the reader which metric group they
+are reading, plus one functional control label:
 
-**Acceptance.** 0 matches for `tracking-[0.2em]` and `tracking-widest` in `components/`.
+| Site | Text | Role | Action |
+|---|---|---|---|
+| `era-compare.tsx:132` | `{heading} · PEAK COMPARATOR` | restates the heading | **delete** |
+| `father-and-son.tsx:37` | `{heading} · 2003—2024` | restates the heading | **delete** |
+| `shot-zones.tsx:139` | `{heading}` | restates the heading | **delete** |
+| `the-block.tsx:149` | `{subheading}` | restates the heading | **delete** |
+| `center-court.tsx:204` | `Scroll to explore` | the hero's scroll affordance | **restyle** |
+| `era-compare.tsx:282` | `Scoring & Shooting Efficiency` | names the group below it | **restyle** |
+| `era-compare.tsx:318` | `Playmaking & Control` | ditto | **restyle** |
+| `era-compare.tsx:339` | `Rebounding & Defense` | ditto | **restyle** |
+| `era-compare.tsx:366` | `Team Regular Season Record` | ditto | **restyle** |
+
+**Fix direction.** Delete the four redundant eyebrows. Set the five that survive in the body
+face at body size, sentence case, un-tracked, with no separator glyph.
+
+**Acceptance.** 0 matches for `tracking-[0.2em]` and `tracking-widest` in `components/`. Note
+that removing the utility is necessary but **not sufficient**: `Caption` resolves to `.narrow`,
+which is uppercase with `0.04em` tracking, so a survivor that keeps `Caption` looks unchanged.
+A surviving kicker needs a class that does not inherit `.narrow`.
 
 ---
 
@@ -163,21 +197,52 @@ of the six declared type classes.
 
 ### F-04 · Two different numbers for one thing, unlabelled, in one band · **Major**
 
-`lib/lebron-data.ts:893` — the Miami era renders `FG% 54.3%` in the stat row while the
-prose in the same panel reads *"peaked at a staggering 56.5% FG and 40.6% 3PT in
-2012-13."*
+`lib/lebron-data.ts` (the `mia` era object) renders `FG% 54.3%` in the stat row while the
+prose in the same panel reads *"peaked at a staggering 56.5% FG and 40.6% 3PT in 2012-13."*
 
-Both numbers are real. 54.3% is a four-season aggregate; 56.5% is the 2012-13 peak. Nothing
-on screen says so. A reader sees one number contradicted by the sentence beside it.
+Both numbers are real. 54.3% is a four-season attempts-weighted aggregate; 56.5% is the
+2012-13 peak. Nothing on screen says so. A reader sees one number contradicted by the sentence
+beside it. This is a credibility tell independent of data quality, and `AGENTS.md` §3 makes
+stat labelling a hard rule.
 
-This is a credibility tell independent of data quality, and `AGENTS.md` §3 makes stat
-labelling a hard rule.
+**Verified 2026-09-26 — the Miami figures are correct.** Both were checked against Basketball
+Reference season totals, and 54.3 / 36.9 / 75.8 / 26.9 match BBR's own `MIA (4 Yrs)` row
+(`.543 / .369 / .758 / 26.9`, 294 games) exactly. The 2012-13 peak in the narrative is exact
+too. **The defect is the missing qualifier, not the number** — which is the opposite of what
+the same verification found in three sibling eras, below.
 
-**Fix direction.** Qualify the aggregate in the UI ("4-season avg") or drop it and show the
-peak. Do not ship both bare.
+### F-04b · Five stale era aggregates, found while verifying F-04 · **Critical, data integrity**
+
+The four era headline figures (`ppg` / `fgPct` / `threePtPct` / `ftPct`) are supposed to be
+attempts-weighted aggregates over the seasons each era's `period` names. Three of the four eras
+had drifted. All five figures below are now corrected in `lib/lebron-data.ts` and locked by a
+test in `tests/smoke.test.ts`.
+
+| Era | Window | Games | Field | Was | Now |
+|---|---|---|---|---|---|
+| `cle1` | 2003-04 … 2009-10 | 548 | `ftPct` | 73.3 | **74.2** |
+| `cle2` | 2014-15 … 2017-18 | 301 | `ftPct` | 70.8 | **71.1** |
+| `lal` | 2018-19 … 2025-26 | 479 | `fgPct` | 51.8 | **51.3** |
+| `lal` | " | " | `threePtPct` | 35.8 | **35.6** |
+| `lal` | " | " | `ftPct` | 74.5 | **73.0** |
+
+**How the first one was caught, and why it is a trap worth recording:** `cle1.ftPct` read
+73.3, which is *exactly* Cleveland's **eleven**-year figure — both stints, 849 games. It looks
+right because it is a real, authoritative number; it is just the wrong window. Summing the
+seven first-stint seasons gives 74.2. The cross-check that exposes this class of error is that
+`cle1 + cle2` must reconcile to BBR's `CLE (11 Yrs)` row (849 games, `.492 / .337 / .733`),
+and it does once `cle1.ftPct` is 74.2. That reconciliation is now an assertion.
+
+`AGENTS.md` §3 forbids fabricated or drifted stats. A figure that is real but scoped to the
+wrong window is still a wrong figure on screen.
+
+**Fix direction (F-04).** Qualify the aggregate in the UI — label the band as the era's
+multi-season average, and make the narrative's peak explicitly a single season. Keep both
+numbers; they are both true and the aggregate is the more useful one for comparing eras.
 
 **Acceptance.** No rendered panel shows two values for the same metric without a
-qualifier distinguishing them.
+qualifier distinguishing them. And no era figure may be edited without re-deriving it from
+season totals.
 
 ---
 
@@ -201,32 +266,57 @@ buttons. One utility class on the section root plus one on the ruler group cover
 
 ### F-06 · Spaced em-dash attribution · **Minor**
 
-`the-block.tsx:489` — `- {THE_BLOCK.caller}` (renders "— MIKE BREEN, ABC SPORTS")
-`father-and-son.tsx:109` — `- {FATHER_AND_SON.quoteAuthor}`
+Five rendered sites, not two:
+
+| Site | Renders |
+|---|---|
+| `the-block.tsx:489` | `— MIKE BREEN, ABC SPORTS` |
+| `father-and-son.tsx:109` | `— {quoteAuthor}` |
+| `father-and-son.tsx:254` | `2003 — 2024` |
+| `era-compare.tsx:184` | `{seasonLabel} ({city}) — {name}` inside a `<select>` |
+| `era-compare.tsx:240` | same, second `<select>` |
 
 `AGENTS.md` §1 bans "spaced-em-dash labels". This is the project's own rule, violated in
 the project's own voice.
 
-**Fix direction.** Drop the dash; set the attribution as a separate line in the caption
-register.
+`playoff-matrix.tsx:372` has an unspaced `games—scoring`, which is outside the spaced rule and
+out of scope. `father-and-son.tsx:38` carries the banned `·` middle dot inside an eyebrow and
+is removed by F-02 regardless.
 
-**Acceptance.** 0 rendered `— ` before an attribution.
+**Fix direction.** Drop the dash; set the attribution as a separate line in the caption
+register. The two `<select>` options are the same defect in a control the reader picks from,
+so they go too.
+
+**Acceptance.** 0 rendered `— ` before an attribution or inside a `<select>` option.
 
 ---
 
 ### F-07 · Gate 48 — palette disciplined in CSS, leaky in JSX · **Minor**
 
-Eight inline hex values bypass the token layer:
+Six inline hex values bypass the token layer:
 
-`playoff-matrix.tsx:71,73,75,855` · `shot-zones.tsx:283,567` · `the-rooms.tsx:81,82`
+`playoff-matrix.tsx:71,73,75,855` · `shot-zones.tsx:283,567`
 
-`the-rooms:81-82` are arguably legitimate — those are per-team colours read from the data
-module. The other six are hardcoded palette values that will drift from `globals.css`.
+`playoff-matrix.tsx:71,73,75` are `teamColor()` fallbacks; `shot-zones.tsx:283` is the court
+`<rect>` fill; `shot-zones.tsx:567` is a zone-band swatch.
+
+**A prior draft of this finding also named `the-rooms.tsx:81,82` as "per-team colours read
+from the data module". That was a misreading** — those two hexes are inside a *code comment*
+explaining why `room.paint` was rejected for contrast. The colour actually applied there is
+`room.type`, read from the data module (`the-rooms.tsx:84`). The count of six was right; the
+aside was not.
+
+This matters mechanically rather than cosmetically: a guard that greps raw source text will
+match hexes inside comments and fail on documentation of a value that was deliberately
+rejected. A guard scoped to JSX attribute values does not see comments at all.
+
+Per-team colours in `lib/lebron-data.ts` (`primaryColor`, `room.paint`) are data, not chrome,
+and stay as they are.
 
 **Fix direction.** Lift the six into named tokens (or read them from the data module like
 `the-rooms` does).
 
-**Acceptance.** Every colour in `components/` resolves to a `var(--…)` token.
+**Acceptance.** Every colour in a component's JSX resolves to a `var(--…)` token.
 
 ---
 
@@ -234,17 +324,25 @@ module. The other six are hardcoded palette values that will drift from `globals
 
 | Kind | Count |
 |---|---|
-| soft (`rounded-sm/md/lg/xl/2xl`) | 8 |
+| bare `rounded` | 32 (31 in `playoff-matrix.tsx`, 1 in `the-ledger.tsx`) |
+| `rounded-md` | 8 (all in `playoff-matrix.tsx`) |
+| `rounded-[50%]` | 1 (`last-shot.tsx:388`) |
+| **soft total** | **40** |
 | `rounded-full` | 14 |
 | `rounded-none` | 2 |
 
 `globals.css:251` states the scrollbar thumb is *"square like everything else here"*. 14
-pills and 8 soft cards argue with a court.
+pills and 40 soft radii argue with a court. The count matters: the original spoken audit's
+"41 soft radii" was **right** (40 soft + the one `rounded-[50%]`), and the correction table
+in this document was wrong to withdraw it — see §Corrections.
 
 **Fix direction.** Commit to square. Pills survive only where they encode a round object
-(the sound-toggle dot, the MVP ring marker).
+(the two balls, the rim target, the live-status dot). The season ruler already draws square
+markers beside its round ones (`season-ruler.tsx:61`, `:298`), so squaring them makes the row
+internally consistent rather than mixed.
 
-**Acceptance.** `rounded-full` ≤ 4, all encoding genuinely round geometry.
+**Acceptance.** `rounded-full` ≤ 4, all four encoding genuinely round geometry. Soft radii
+→ 0.
 
 ---
 
@@ -307,13 +405,28 @@ inside the frame.
 
 ## Corrections to the verbal audit
 
-Three claims in the spoken audit were wrong. Corrected here so they are not actioned:
+Three claims in the spoken audit were wrong, and **a fourth correction below was itself
+wrong** — corrected here so none of them are actioned:
 
 | Claim | Correction |
 |---|---|
 | "`twenty-three` is ~40% dead space" | **Withdrawn.** A leaf-element content-bounds sweep at 1440px shows trailing space of 0–13% across all 15 blocks (`span` 13% worst, `number` 10%, `rooms` 0%). That is ordinary section padding, not a layout failure. The 40% figure came from misreading a viewport cut as a section boundary. |
-| "41 soft radii" | **Corrected.** Accurate split is 8 soft / 14 `rounded-full` / 2 `rounded-none`. The original count double-counted `rounded-full` and `rounded-none`. |
+| "41 soft radii" | **Confirmed — and the original withdrawal of it was the error.** Measured: 32 bare `rounded` + 8 `rounded-md` = **40 soft**, plus 1 `rounded-[50%]` = 41. The accurate split is 40 soft / 14 `rounded-full` / 2 `rounded-none`, *not* the "8 soft" an earlier draft of this table claimed. That draft counted only the sized utilities and missed all 32 bare `rounded`. F-08 is five times the size that draft implied. |
 | "a 23RD SEASON copy error" | **Not a defect.** Present in data as a stat label; recorded but not ranked. |
+| "the era panel shows two values for one metric" | **Correct as a labelling defect, and the data underneath it was separately wrong.** See F-04. |
+
+### Corrections to this document (2026-09-26)
+
+Made while implementing issue #29. Each was found by measuring the source rather than
+re-reading this document, and each would have produced a wrong fix if actioned as written:
+
+| Section | Was | Actually |
+|---|---|---|
+| F-01 band table | 4 sites in 3 components | **7** sites (5 four-up, 2 five-up). The named "ledger tabs · club ×5 · `the-ledger.tsx`" **does not exist** — that file uses `lg:grid-cols-2`; the two 5-up bands are in `father-and-son.tsx` |
+| F-02 | all 9 `tracking` sites are redundant eyebrows | only **4** are. One is the hero's functional scroll affordance; four are `era-compare` metric-group labels that carry information. Split: 4 delete, 5 restyle |
+| F-06 | 2 sites | **5** rendered spaced em-dashes |
+| F-07 | "8 hex values… `the-rooms:81-82` are per-team colours" | the `the-rooms.tsx` hexes are **inside a code comment**, not JSX. Six real sites. A guard must not match comment text |
+| F-04 | "Both numbers are real" | Miami's four figures are real. **Three other eras were wrong** and are now corrected |
 
 ---
 
@@ -329,17 +442,31 @@ Gates **1–33, 35–45, 49, 50 (partial), 51, 52–58** — no text available.
 
 ---
 
+## Spec reconciliations required by issue #29
+
+Issue #29's own text is self-inconsistent in three places. Resolutions were applied during
+implementation; recorded here so they are not re-litigated.
+
+| # | Conflict | Resolution |
+|---|---|---|
+| R1 | Testing Decisions make "the section-height and four-item-band counts" the mechanical F-01 checks. Section height is not observable without a DOM layer, which Out of Scope explicitly forbids. | Band count becomes a source assertion. Section height is replaced by a **declared-opener adjacency** assertion: each page unit exports an `OPENER`, and no two adjacent units in `app/page.tsx` may share one. That is the acceptance condition F-01 actually states, and it *is* checkable from source. |
+| R2 | User story 23 asks for a round-shape budget gate; "Which guards" lists seven guards and the round count is not among them. | The budget is a *count*, and no ESLint selector can count. It ships as a source-count assertion in the test gate, alongside the other "read the source as text" assertions. |
+| R3 | Testing Decisions require the source guards to be `no-restricted-syntax`. That rule matches **AST selectors only** and cannot match a substring of a `className` value, which is what four of the five guards need. | Use esquery attribute-regex selectors, which the rule does support, e.g. `JSXAttribute[name.name='className'][value.value=/font-mono/]`. Fallback if a selector proves unreliable: a virtual local plugin declared inline in `eslint.config.mjs`. Either way — no new dependency, no new workflow, native file:line reporting. |
+
+---
+
 ## Suggested sequencing
 
 | Wave | Findings | Rationale |
 |---|---|---|
+| **0** | F-04b, plus the corrections above | Correct the record and the data before implementing against either. Five stale era aggregates are a data-integrity defect and outrank every design finding here. |
 | **A** | F-01, F-02 | Rhythm and the eyebrow. These change how the page *reads*. Do them together or the intermediate state still looks templated. |
-| **B** | F-03, F-04 | Type-system coherence and the stat contradiction. Bounded, mechanical, independently shippable. |
-| **C** | F-05, F-06, F-07, F-11 | Gate compliance. Each is a few lines; together they close every gate this audit could measure. |
-| **D** | F-08, F-09, F-10, F-12, F-13 | Polish. |
+| **B** | F-03, F-04 | Type-system coherence and the stat labelling. Bounded, mechanical, independently shippable. |
+| **C** | F-05, F-07, F-11 + the guards | Gate compliance, plus the mechanical enforcement so none of this returns. |
+| **D** | F-06, F-08, F-09, F-10, F-12, F-13 | Polish. F-08 lands last because it changes ~50 shapes at once and should land on a page whose rhythm, type and gates are already correct. |
 
 F-01 is the only finding that requires design decisions rather than edits, and it is the
-one that matters. Everything in Wave C is a half-hour of work.
+one that matters most after F-04b. Everything in Wave C is a half-hour of work.
 
 ---
 
