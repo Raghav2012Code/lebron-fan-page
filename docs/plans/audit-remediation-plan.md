@@ -264,6 +264,7 @@ and a no-JS failure, none of which the test suite can see by construction.
 | `681df1e` | `NEXT_MARK` called 50,000 "still open / nobody has been near it" at 86.9% while the same page stated 51,961 combined; `THE_BLOCK` claimed a 20.1 mph *peak* beside an 88 ft / 2.8 s chase that averages 21.4, and its scrubber printed unsourced speeds contradicting its own distances | 4 new assertions, each proven red |
 | `e954be8` | 6 React defects: ledger re-animated on every scroll pass; ruler mapped touches in viewport coords and raced its own buttons; `storage` listener was dead code; footer year was a hydration hazard; two components used Framer's one-shot `useReducedMotion`; in-flight animations untracked | ledger bars stay at 0.95/0.91/0.93 through a full scroll cycle; ruler picks 17 where the old maths gave 11 |
 | `9631075` | 4 a11y defects: 6 focusable controls inside `aria-hidden`; tabpanel with no `aria-labelledby`; 4 DOM ids containing whitespace; 3 touch targets under 24px | re-measured after; scrubber thumb confirmed by pixel probe |
+| `WAVE3` | **B1 + B7** — 18 hand-typed figures in `playoff-matrix` derived from the `career` memo; the two filter predicates unified; G10 added | all 18 derived values reproduce the typed ones exactly; clicking NBA Finals shows 10 of 57 with 10 cards rendered; G10 proven red on 9 injections |
 
 ### 7.2 The two defects no gate could see
 

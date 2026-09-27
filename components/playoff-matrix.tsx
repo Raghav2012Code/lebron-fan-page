@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   FRANCHISE_BREAKDOWN,
   PLAYOFF_SERIES,
+  SEASONS,
   type FranchisePostseasonRecord,
   type PlayoffRoundCategory,
   type PlayoffSeries,
@@ -19,6 +20,70 @@ type RoundFilter = "ALL" | PlayoffRoundCategory;
 type OutcomeFilter = "ALL" | "W" | "L";
 type ViewMode = "matrix" | "franchises";
 
+/**
+ * The one filter predicate.
+ *
+ * There were two, and they disagreed on three of the five conditions. A row
+ * could be counted in an outcome chip and simultaneously absent from the grid it
+ * describes, because the grid fell back to `s.round` when `s.roundCategory` did
+ * not match and the chip did not, and the same again for `s.franchise` versus
+ * `s.opponentAbbr`. The two search implementations differed too: one tested five
+ * fields individually, the other built one concatenated haystack and included
+ * `season`, which the first never searched.
+ *
+ * This is the union of both, so nothing searchable became unsearchable, and it is
+ * module-scope and pure so the round tabs can be derived from it at module scope
+ * and cannot drift from what the grid will show.
+ */
+function matchesFilters(
+  s: PlayoffSeries,
+  f: {
+    round: RoundFilter;
+    outcome: OutcomeFilter;
+    sweepsOnly: boolean;
+    franchise: string | null;
+    query: string;
+  },
+): boolean {
+  if (f.round !== "ALL" && s.roundCategory !== f.round && s.round !== f.round) {
+    return false;
+  }
+  if (f.outcome !== "ALL" && s.result !== f.outcome) return false;
+  if (f.sweepsOnly && !s.isSweep) return false;
+  if (
+    f.franchise &&
+    s.opponentAbbr !== f.franchise &&
+    s.franchise !== f.franchise
+  ) {
+    return false;
+  }
+  // Match against the TRIMMED query. Using the raw input meant a stray leading or
+  // trailing space (" 2018 ") matched nothing at all.
+  const q = f.query.trim().toLowerCase();
+  if (q) {
+    const matchYear = s.year.toString().includes(q);
+    const matchOpponent = (s.opponentName ?? s.opponent).toLowerCase().includes(q);
+    const matchAbbr = s.opponentAbbr.toLowerCase().includes(q);
+    const matchTeam = s.team.toLowerCase().includes(q);
+    // `season` is optional on the type, and the old chip-side implementation
+    // interpolated it into a template literal — so a row without one searched
+    // for the literal text "undefined" and matched any query containing it.
+    const matchSeason = (s.season ?? "").toLowerCase().includes(q);
+    const matchMoment = s.signatureMoment.toLowerCase().includes(q);
+    if (
+      !matchYear &&
+      !matchOpponent &&
+      !matchAbbr &&
+      !matchTeam &&
+      !matchSeason &&
+      !matchMoment
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 interface RoundTabMeta {
   /**
    * The filter VALUE, which is also the human label ("Conf Semifinals"). It is
@@ -27,7 +92,7 @@ interface RoundTabMeta {
   id: RoundFilter;
   /**
    * The DOM id fragment. ASCII whitespace is forbidden in an `id`, and four of
-   * the five `id` values above contain spaces, which produced live ids like
+   * the five `id` values contain spaces, which produced live ids like
    * `round-tab-Conf Semifinals`. Nothing broke only because the id was reached
    * through `getElementById` and never used as a selector — but it was
    * unaddressable by CSS, unlinkable as a fragment, and unusable as an
@@ -36,52 +101,65 @@ interface RoundTabMeta {
   slug: string;
   label: string;
   shortLabel: string;
+  /** Won-lost, derived from the rows this tab actually shows. */
   record: string;
+  /** How many rows this tab shows, likewise derived. */
   count: number;
 }
 
-const ROUND_TABS: readonly RoundTabMeta[] = [
-  {
-    id: "ALL",
-    slug: "all",
-    label: "All Rounds",
-    shortLabel: "All",
-    record: "42–15",
-    count: 57,
-  },
-  {
-    id: "First Round",
-    slug: "first-round",
-    label: "First Round",
-    shortLabel: "1st Round",
-    record: "16–3",
-    count: 19,
-  },
-  {
-    id: "Conf Semifinals",
-    slug: "conf-semifinals",
-    label: "Conference Semifinals",
-    shortLabel: "Conf Semis",
-    record: "12–4",
-    count: 16,
-  },
-  {
-    id: "Conf Finals",
-    slug: "conf-finals",
-    label: "Conference Finals",
-    shortLabel: "Conf Finals",
-    record: "10–2",
-    count: 12,
-  },
-  {
-    id: "NBA Finals",
-    slug: "nba-finals",
-    label: "NBA Finals",
-    shortLabel: "Finals",
-    record: "4–6",
-    count: 10,
-  },
-] as const;
+/**
+ * The round tabs, with their record and count derived from the data.
+ *
+ * These were ten hand-typed figures — five records and five counts — directly
+ * above a `career` memo whose stated purpose was that the tiles could not drift
+ * from the ledger. They are now computed through `matchesFilters`, the same
+ * predicate the grid uses, so a tab cannot advertise a count the grid will not
+ * deliver.
+ */
+const ROUND_TABS: readonly RoundTabMeta[] = (
+  [
+    { id: "ALL", slug: "all", label: "All Rounds", shortLabel: "All" },
+    {
+      id: "First Round",
+      slug: "first-round",
+      label: "First Round",
+      shortLabel: "1st Round",
+    },
+    {
+      id: "Conf Semifinals",
+      slug: "conf-semifinals",
+      label: "Conference Semifinals",
+      shortLabel: "Conf Semis",
+    },
+    {
+      id: "Conf Finals",
+      slug: "conf-finals",
+      label: "Conference Finals",
+      shortLabel: "Conf Finals",
+    },
+    {
+      id: "NBA Finals",
+      slug: "nba-finals",
+      label: "NBA Finals",
+      shortLabel: "Finals",
+    },
+  ] as const satisfies readonly Omit<RoundTabMeta, "record" | "count">[]
+).map((meta) => {
+  const rows = PLAYOFF_SERIES.filter((s) =>
+    matchesFilters(s, {
+      round: meta.id,
+      outcome: "ALL",
+      sweepsOnly: false,
+      franchise: null,
+      query: "",
+    }),
+  );
+  return {
+    ...meta,
+    record: `${rows.filter((r) => r.result === "W").length}-${rows.filter((r) => r.result === "L").length}`,
+    count: rows.length,
+  };
+});
 
 /**
  * Team paint for the series badge. These are team colours, not brand colours,
@@ -219,60 +297,35 @@ export function PlayoffMatrix() {
   }, [inspectSeries]);
 
   // Filter series based on user selections
-  const filteredSeries = React.useMemo(() => {
-    return PLAYOFF_SERIES.filter((s) => {
-      // Round filter
-      if (activeRound !== "ALL") {
-        if (s.roundCategory !== activeRound && s.round !== activeRound) {
-          return false;
-        }
-      }
-      // Outcome filter
-      if (outcomeFilter !== "ALL" && s.result !== outcomeFilter) {
-        return false;
-      }
-      // Sweeps filter
-      if (sweepsOnly && !s.isSweep) {
-        return false;
-      }
-      // Franchise filter
-      if (selectedFranchise && s.opponentAbbr !== selectedFranchise && s.franchise !== selectedFranchise) {
-        return false;
-      }
-      // Text search
-      if (searchQuery.trim()) {
-        // Match against the TRIMMED query. Using the raw input meant a stray
-        // leading or trailing space (" 2018 ") matched nothing at all.
-        const q = searchQuery.trim().toLowerCase();
-        const matchYear = s.year.toString().includes(q);
-        const matchOpponent = (s.opponentName ?? s.opponent).toLowerCase().includes(q);
-        const matchAbbr = s.opponentAbbr.toLowerCase().includes(q);
-        const matchTeam = s.team.toLowerCase().includes(q);
-        const matchMoment = s.signatureMoment.toLowerCase().includes(q);
-        if (!matchYear && !matchOpponent && !matchAbbr && !matchTeam && !matchMoment) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [activeRound, outcomeFilter, sweepsOnly, selectedFranchise, searchQuery]);
+  const filteredSeries = React.useMemo(
+    () =>
+      PLAYOFF_SERIES.filter((s) =>
+        matchesFilters(s, {
+          round: activeRound,
+          outcome: outcomeFilter,
+          sweepsOnly,
+          franchise: selectedFranchise,
+          query: searchQuery,
+        }),
+      ),
+    [activeRound, outcomeFilter, sweepsOnly, selectedFranchise, searchQuery],
+  );
 
   // Counts for the outcome chips. These must be computed from the subset
   // filtered by everything EXCEPT `outcomeFilter`, otherwise the chips
   // describe their own effect: selecting LOST made "Won" read 0 even though
-  // won series exist in the current round.
+  // won series exist in the current round. `matchesFilters` is shared so the
+  // chips and the grid cannot disagree about which rows are in scope.
   const recordForOutcomeChips = React.useMemo(() => {
-    const base = PLAYOFF_SERIES.filter((s) => {
-      if (activeRound !== "ALL" && s.roundCategory !== activeRound) return false;
-      if (sweepsOnly && !s.isSweep) return false;
-      if (selectedFranchise && s.opponentAbbr !== selectedFranchise) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.trim().toLowerCase();
-        const hay = `${s.opponent} ${s.opponentAbbr} ${s.year} ${s.season} ${s.team} ${s.signatureMoment ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
+    const base = PLAYOFF_SERIES.filter((s) =>
+      matchesFilters(s, {
+        round: activeRound,
+        outcome: "ALL",
+        sweepsOnly,
+        franchise: selectedFranchise,
+        query: searchQuery,
+      }),
+    );
     return {
       all: base.length,
       wins: base.filter((s) => s.result === "W").length,
@@ -319,6 +372,10 @@ export function PlayoffMatrix() {
       ppg: points / games,
       sweepsWon: PLAYOFF_SERIES.filter((s) => s.isSweep && s.result === "W").length,
       sweepsLost: PLAYOFF_SERIES.filter((s) => s.isSweep && s.result === "L").length,
+      // Distinct opponent franchises, from the same array the franchise view
+      // renders, so the standfirst and the view cannot disagree about how many
+      // there are.
+      franchises: FRANCHISE_BREAKDOWN.length,
     };
   }, []);
 
@@ -399,7 +456,7 @@ export function PlayoffMatrix() {
                   transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                 />
               )}
-              <span className="relative z-10">Series Ledger (57)</span>
+              <span className="relative z-10">Series Ledger ({career.series})</span>
             </button>
             <button
               type="button"
@@ -416,7 +473,7 @@ export function PlayoffMatrix() {
                   transition={{ type: "spring", bounce: 0.15, duration: 0.4 }}
                 />
               )}
-              <span className="relative z-10">Franchises (25)</span>
+              <span className="relative z-10">Franchises ({career.franchises})</span>
             </button>
           </div>
         </div>
@@ -429,10 +486,21 @@ export function PlayoffMatrix() {
           viewport={VIEWPORT_SOON}
           transition={{ duration: 0.8, ease: EASE_SETTLE, delay: 0.2 }}
         >
-          Across 23 seasons and 57 postseason series, LeBron James has amassed an all-time series record of{" "}
-          <strong className="text-wine font-semibold">42 wins and 15 losses (73.7%)</strong> over 302 games—scoring{" "}
-          <strong className="text-wine font-semibold">8,521 points</strong>, the most in NBA history. He holds the league record with{" "}
-          <strong className="text-wine font-semibold">12 series sweeps</strong> while facing 25 distinct opponent franchises.
+          Across {SEASONS.length} seasons and {career.series} postseason series,
+          LeBron James has amassed an all-time series record of{" "}
+          <strong className="text-wine font-semibold">
+            {career.wins} wins and {career.losses} losses (
+            {career.seriesWinPct.toFixed(1)}%)
+          </strong>{" "}
+          over {career.games} games—scoring{" "}
+          <strong className="text-wine font-semibold">
+            {career.points.toLocaleString("en-US")} points
+          </strong>
+          , the most in NBA history. He holds the league record with{" "}
+          <strong className="text-wine font-semibold">
+            {career.sweepsWon} series sweeps
+          </strong>{" "}
+          while facing {career.franchises} distinct opponent franchises.
         </motion.p>
 
         {/* Aggregate Headline Cards ---
@@ -489,7 +557,8 @@ export function PlayoffMatrix() {
                   Filter By Playoff Round
                 </Caption>
                 <div aria-live="polite" className="text-xs narrow text-muted">
-                  Showing {filteredSeries.length} of 57 series ({filteredRecord.wins}–{filteredRecord.losses})
+                  Showing {filteredSeries.length} of {career.series} series (
+          {filteredRecord.wins}-{filteredRecord.losses})
                 </div>
               </div>
 
@@ -819,19 +888,24 @@ export function PlayoffMatrix() {
             )}
           </div>
         ) : (
-          /* Franchise Breakdown View (25 Opponents) */
+          /* Franchise Breakdown View. A bare JS comment, not `{/* … *\/}`:
+             this sits in the consequent of a ternary, which is a JS expression
+             position, and a JSX comment there would be a second expression. */
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <Caption bold className="text-wine uppercase tracking-wider text-xs">
-                  Head-To-Head Postseason Records Across 25 NBA Franchises
+                  Head-To-Head Postseason Records Across {career.franchises} NBA
+                  Franchises
                 </Caption>
                 <p className="text-xs text-muted narrow mt-0.5">
-                  Click any franchise to filter the ledger by all postseason series played against them.
+                  Click any franchise to filter the ledger by all postseason series
+                  played against them.
                 </p>
               </div>
               <div className="text-xs narrow text-muted">
-                25 franchises faced • 42 series wins • 15 series losses
+                {career.franchises} franchises faced • {career.wins} series wins •{" "}
+                {career.losses} series losses
               </div>
             </div>
 
@@ -993,7 +1067,12 @@ export function PlayoffMatrix() {
                   </div>
                   {inspectSeries.isSweep && (
                     <span className="px-3 py-1 rounded-none bg-gold text-wine narrow-bold text-xs uppercase tracking-wider">
-                      {inspectSeries.result === "W" ? "4–0 Sweep Victory" : "0–4 Sweep Loss"}
+                      {/* No score in the badge. The line directly above already
+                          prints the series score, so repeating it here told the
+                          reader the same thing twice — and the "4–0" was typed
+                          rather than read, so it was a fourth place the sweep
+                          score lived. The badge now says what the badge is for. */}
+                      {inspectSeries.result === "W" ? "Sweep Victory" : "Sweep Loss"}
                     </span>
                   )}
                 </div>

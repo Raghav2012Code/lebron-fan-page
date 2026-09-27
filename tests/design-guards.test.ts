@@ -673,3 +673,115 @@ test("design guard G9 - the no-JS fallback is present and safely anchored", () =
       `animation and must survive with JS off. Found: ${dash.join(", ")}`,
   );
 });
+
+/* ==========================================================================
+ * G10 — no hand-typed figure survives as literal JSX text in the matrix.
+ *
+ * `playoff-matrix.tsx` computed a `career` memo whose comment read "derived from
+ * the ledger so the tiles cannot drift from it" — and then, a hundred lines
+ * later, hand-typed all of it into prose: the standfirst's eight figures, both
+ * view-toggle labels, the "of 57 series" counter, the franchise-view heading and
+ * its summary, and the five round tabs' ten records and counts. Eighteen figures,
+ * eighteen places to be wrong, and no gate that could see any of it because the
+ * test suite only reads the data module.
+ *
+ * Every one of them was checked to be CORRECT when derived — 42-15, 302, 8,521,
+ * 25, 23, and all five tab records and counts reproduce exactly. The defect was
+ * never a wrong number; it was that the number had a second home, which is a
+ * latent wrong number rather than an actual one.
+ *
+ * The invariant is scoped to this one file on purpose. A page-wide version would
+ * need an allow-list of every stat abbreviation in the project's copy, and a
+ * guard with a hundred exceptions is a guard nobody reads.
+ *
+ * Numbered G10 because G8 was taken by the unlayered-class guard, which is a
+ * different property of a different file. The plan called this G8 before either
+ * existed.
+ * ======================================================================== */
+
+test("design guard G10 - no hand-typed figure in the playoff matrix's JSX text", () => {
+  const file = "playoff-matrix";
+  const raw = codeOf(read("components", `${file}.tsx`));
+  const source = raw
+    // Drop string and template literals, so a digit inside `className="min-w-[120px]"`
+    // or a data string like `"1st Round"` cannot be mistaken for rendered copy.
+    .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+    .replace(/'(?:[^'\\]|\\.)*'/g, "''")
+    .replace(/`(?:[^`\\]|\\.)*`/g, "``");
+
+  /**
+   * Literal fragments of JSX text.
+   *
+   * Four things make this usable on raw source rather than an AST, and each was a
+   * bug in an earlier version of this guard. It reported green while a hand-typed
+   * `Series Ledger (57)` sat in the file, and then green again while `302` and
+   * `25` did, so both are worth stating.
+   *
+   * 1. The opening `>` must not be preceded by `=` or `-`, which excludes `=>`
+   *    and `->`. Without it, every arrow function contributes a run shaped like
+   *    text — one of which is a 90-character line of `useState` declarations.
+   * 2. A run may not span a `<` or `>`, so it cannot cross a tag boundary.
+   * 3. Each run is then SPLIT on its interpolations, and every literal fragment
+   *    between them is checked separately. This is the part the earlier versions
+   *    got wrong: they treated a run containing a `{` as uncheckable, so any prose
+   *    that mixed a hand-typed digit with a derived one nearby — which is the
+   *    standfirst's entire shape — was skipped. `{" "}` is an interpolation too,
+   *    and it appears between nearly every clause.
+   * 4. Fragments may not contain `=`, `;`, `&` or `|`, which are code punctuation
+   *    prose does not contain. Parentheses ARE allowed, because figures arrive in
+   *    them and excluding them hid exactly what this guard exists to find.
+   */
+  const JSX_TEXT = /(?<![-=])>([^<>]*?)(?=<[A-Za-z/])/g;
+  const isLiteralText = (t: string) => !/[<>=;&|]/.test(t);
+
+  // Legitimate digit-bearing copy. A stat's name, not its value.
+  const ALLOWED: Record<string, string> = {
+    "3PT Percentage": "the stat's name. The abbreviation carries meaning no " +
+      "spelled-out label would; the VALUE beside it is interpolated.",
+  };
+
+  const fragments = [...source.matchAll(JSX_TEXT)]
+    .flatMap((m) => m[1].split(/\{[^{}]*\}/g))
+    .map((t) => t.trim().replace(/\s+/g, " "))
+    .filter((t) => t.length > 0);
+
+  const offenders = [
+    ...new Set(
+      fragments.filter(
+        (t) => isLiteralText(t) && /\d/.test(t) && !(t in ALLOWED),
+      ),
+    ),
+  ];
+
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `${file}.tsx renders these figures as literal text: ${offenders.join(" | ")}. ` +
+      `Every figure on this page must be interpolated from the \`career\` memo (or ` +
+      `from SEASONS / FRANCHISE_BREAKDOWN), so a data change moves the prose and ` +
+      `the tiles together. A figure is correct here today — all eighteen were ` +
+      `verified against the derived values — but a second home for a number is a ` +
+      `wrong number waiting for the next data change. If the text is a stat NAME ` +
+      `rather than its value, add it to ALLOWED with the reason.`,
+  );
+
+  const stale = Object.keys(ALLOWED).filter((k) => !fragments.includes(k));
+  assert.deepStrictEqual(
+    stale,
+    [],
+    `G10's ALLOWED map lists ${stale.join(", ")}, which is no longer literal JSX ` +
+      `text in ${file}.tsx. Delete the entry.`,
+  );
+
+  // The round tabs' record and count are JSX-invisible — they are a data table at
+  // module scope — so the text scan above cannot see them, and ten hand-typed
+  // figures lived there unnoticed. Asserted separately, against the source with
+  // its strings intact so the failure names the literal that was typed.
+  assert.ok(
+    !/record:\s*"/.test(raw) && !/\bcount:\s*\d/.test(raw),
+    `${file}.tsx must not hand-type a round tab's \`record\` or \`count\`. Both ` +
+      `are computed from PLAYOFF_SERIES through \`matchesFilters\`, so a tab ` +
+      `cannot advertise a figure the grid will not deliver. Found a literal: ` +
+      `${(raw.match(/record:\s*"[^"]*"|\bcount:\s*\d+/) || ["(none)"])[0]}`,
+  );
+});
