@@ -180,11 +180,6 @@ function MetricLine({ metric }: { metric: Metric }) {
           <Caption bold className="text-wine">
             {metric.label}
           </Caption>
-          {metric.approx ? (
-            <Caption className="text-[0.6875rem] text-muted/80">
-              approx.
-            </Caption>
-          ) : null}
         </span>
         <span className="figure text-[1.75rem] text-wine sm:text-[2rem]">
           <Counter
@@ -325,7 +320,6 @@ function LedgerPanel({ entry }: { entry: LedgerEntry }) {
                 <td>
                   {m.value}
                   {m.suffix ?? ""}
-                  {m.approx ? " (approximate)" : ""}
                 </td>
               </tr>
             ))}

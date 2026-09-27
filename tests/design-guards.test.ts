@@ -290,6 +290,31 @@ test("design guard G4 - no two adjacent page units share an opener", () => {
   };
 
   const sequence = order.map(openerOf);
+
+  // Every declared value must be one of the five archetypes. `tsc` already
+  // enforces that via the `Opener` union, so this is belt and braces — but it
+  // fails with a message naming the offending section, where the compiler's
+  // would name a type, and it still holds if a declaration is ever loosened to
+  // `string`. The list is duplicated from the union in `components/typeset.tsx`
+  // deliberately: that module is a `.tsx` and this suite cannot import one, and
+  // the same five are already spelled out in `AGENTS.md` §1 and in the header
+  // comment above. Keep the three in step.
+  const KNOWN_OPENERS = [
+    "device",
+    "ruled-ledger",
+    "written-line",
+    "margin-note",
+    "instrument",
+  ];
+  for (const [i, opener] of sequence.entries()) {
+    assert.ok(
+      KNOWN_OPENERS.includes(opener),
+      `${order[i]} declares OPENER "${opener}", which is not one of the five ` +
+        `archetypes (${KNOWN_OPENERS.join(", ")}). If a sixth is genuinely needed, ` +
+        `add it to the Opener union in typeset.tsx, to AGENTS.md §1, and here.`,
+    );
+  }
+
   for (let i = 1; i < sequence.length; i++) {
     assert.notStrictEqual(
       sequence[i],

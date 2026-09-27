@@ -424,12 +424,26 @@ export const ROOMS: Room[] = [
  * THE LEDGER — the points, added up
  * ------------------------------------------------------------------------- */
 
+/**
+ * One ledger metric: a figure, and the scale its bar is drawn against.
+ *
+ * There is deliberately no `approx` flag. There was one, and nothing in this file
+ * ever set it, so the two places that branched on it were unreachable and the
+ * README spent a paragraph describing a labelling convention the page could not
+ * perform. Nothing here is an approximation: the four stint point totals sum to
+ * 43,440 and the game totals to 1,622, both the career figures exactly, and a
+ * `Points per game` is the correctly-rounded quotient of two exact totals rather
+ * than a rounded stand-in for a fact.
+ *
+ * If a future metric genuinely is an approximation, add the flag AND populate it
+ * in the same commit, and render the label. A flag nothing sets is worse than no
+ * flag, because the type says the case is handled.
+ */
 export interface Metric {
   label: string;
   value: number;
   max: number;
   suffix?: string;
-  approx?: boolean;
 }
 
 export interface Achievement {

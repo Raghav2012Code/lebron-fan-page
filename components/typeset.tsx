@@ -372,13 +372,12 @@ export type Opener =
   | "margin-note"
   | "instrument";
 
-export const OPENERS: readonly Opener[] = [
-  "device",
-  "ruled-ledger",
-  "written-line",
-  "margin-note",
-  "instrument",
-];
+/* There is deliberately no `OPENERS` runtime array alongside this union. It was
+   exported when the archetypes were introduced and consumed by nothing; the
+   one place that needs the list at runtime is guard G4 in
+   `tests/design-guards.test.ts`, which cannot import a `.tsx` and therefore
+   spells the five out itself, next to the assertion that uses them. A const
+   array here would be a third copy of the same list with no reader. */
 
 /* -------------------------------------------------------------------------
  * Kicker — the replacement for the tracked all-caps eyebrow.
@@ -425,16 +424,27 @@ export function Kicker({
  *            line-score read, on a painted ground where frames would fight it.
  * ------------------------------------------------------------------------ */
 
+/**
+ * One item in a `StatBand`.
+ *
+ * Only the fields a call site actually passes are here. `valueClassName`,
+ * `captionClassName` and `itemClassName` existed when this was written and were
+ * never used at either of the two call sites, so they were removed rather than
+ * left as an API nobody exercises. `labelClassName` earns its place: the block's
+ * telemetry sits on paint and needs a chalk token its parent cannot supply.
+ *
+ * Adding a field here is a claim that something needs it. If nothing does, it is
+ * a second way to say the same thing, and the next reader cannot tell which is
+ * authoritative.
+ */
 export interface StatBandItem {
   label: string;
   value: React.ReactNode;
   caption?: React.ReactNode;
   /** `gold` for a figure that is a highlight rather than a total. */
   tone?: "wine" | "gold";
-  /** Overrides the item's `value` colour, e.g. to a chalk token on paint. */
-  valueClassName?: string;
+  /** Overrides the item's label colour, e.g. to a chalk token on paint. */
   labelClassName?: string;
-  captionClassName?: string;
 }
 
 export function StatBand({
@@ -465,16 +475,13 @@ export function StatBand({
               className={cn(
                 "figure text-[2.25rem] sm:text-[3rem]",
                 item.tone === "gold" ? "text-gold" : "text-wine",
-                item.valueClassName,
               )}
             >
               {item.value}
             </span>
             <Caption className={item.labelClassName}>{item.label}</Caption>
             {item.caption ? (
-              <Caption className={cn("mt-0.5", item.captionClassName)}>
-                {item.caption}
-              </Caption>
+              <Caption className="mt-0.5">{item.caption}</Caption>
             ) : null}
           </div>
         ))}
@@ -504,15 +511,12 @@ export function StatBand({
             className={cn(
               "figure mt-1 text-2xl text-wine sm:text-3xl lg:text-4xl",
               item.tone === "gold" && "text-gold",
-              item.valueClassName,
             )}
           >
             {item.value}
           </div>
           {item.caption ? (
-            <Caption className={cn("mt-1 block text-muted", item.captionClassName)}>
-              {item.caption}
-            </Caption>
+            <Caption className="mt-1 block text-muted">{item.caption}</Caption>
           ) : null}
         </div>
       ))}
