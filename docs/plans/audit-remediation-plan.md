@@ -265,6 +265,12 @@ and a no-JS failure, none of which the test suite can see by construction.
 | `e954be8` | 6 React defects: ledger re-animated on every scroll pass; ruler mapped touches in viewport coords and raced its own buttons; `storage` listener was dead code; footer year was a hydration hazard; two components used Framer's one-shot `useReducedMotion`; in-flight animations untracked | ledger bars stay at 0.95/0.91/0.93 through a full scroll cycle; ruler picks 17 where the old maths gave 11 |
 | `9631075` | 4 a11y defects: 6 focusable controls inside `aria-hidden`; tabpanel with no `aria-labelledby`; 4 DOM ids containing whitespace; 3 touch targets under 24px | re-measured after; scrubber thumb confirmed by pixel probe |
 | `WAVE3` | **B1 + B7** — 18 hand-typed figures in `playoff-matrix` derived from the `career` memo; the two filter predicates unified; G10 added | all 18 derived values reproduce the typed ones exactly; clicking NBA Finals shows 10 of 57 with 10 cards rendered; G10 proven red on 9 injections |
+| `WAVE4` | **B10** — `engines.node` read from Next's own field, `packageManager`, and the three script/resolver defects recorded beside it: a test script that enumerated five filenames, a resolver whose root came from the CWD, and a `.tsx` in its extension probe | `npm ci --dry-run` reports "up to date"; the CWD test proven red by restoring `path.resolve(".")` |
+| `3894098` | **S1** — 11 of the 12 banned utilities were being compiled into the production stylesheet, because Tailwind's automatic detection reads this repo's own Markdown and lint config | 12 -> 1 in the built bundle; G11 added, proven red on 7 injections |
+| `403e009` | **S2** — the bare-`fr` lint rule matched a string that occurs zero times, so it could never fire, and its comment called `1.3fr` "already safe" | rule proven red on 4 injections including inside a `cn()` call; all 21 arbitrary-track grids measured, ratios identical, zero overflow |
+| `dda6a65` | **F-5** — `--gold` measured 1.36:1 and `--leather` 3.10:1 on the maple floor; added ink variants and darkened `--muted` | 89 -> 3 failures across 1,352 measured text nodes, by painting the page with text hidden and reading real pixels |
+| `bee958e` | **S6, S7, S8, S10, S11, S13** — the rooms indicator named the wrong room; no error boundary; three headings in the body face; a duration labelled an age; a stark-white drawer; a dot that pulsed forever under reduced motion | rooms walked at 13 scroll positions, nav matches the visible panel at every one; 13 of 14 headings now Oswald |
+| `455fea3` | **S12** — four tests that could not fail under any circumstances, and three more with a tautology beside a real assertion | proven by changing `--maple`, `W`, `BASKET_Y` and `SECTIONS` — all four were green before |
 
 ### 7.2 The two defects no gate could see
 
@@ -300,7 +306,7 @@ Severity as it affects a reader of the page today.
   caught by re-measuring and are conditional on the ground, which is the actual
   lesson: a blanket find-and-replace cannot be right when two states of one
   control sit on different grounds.
-- **S1** · Tailwind's automatic content detection scans the whole repo, so
+- ~~**S1** ·~~ **CLOSED** — see the shipped table. Tailwind's automatic content detection scans the whole repo, so
   `AGENTS.md`, `README.md`, `DESIGN-AUDIT.md`, `eslint.config.mjs`,
   `docs/plans/*.md` and the guards all inject the *banned* utilities into the
   production CSS. Confirmed in the built bundle: `.rounded`, `.rounded-sm…2xl`,
@@ -308,44 +314,44 @@ Severity as it affects a reader of the page today.
   `.tracking-widest`. Zero components use any of them. Worst: `.font-sans`
   resolves against an **empty** `--font-sans` and computes to an invalid
   `font-family`. Fix: `@source` directives in `globals.css`, then re-verify G5.
-- **S2** · the bare-`1fr` lint rule matches `/grid-cols-\[1fr/`, which occurs
+- ~~**S2** ·~~ **CLOSED** — see the shipped table. the bare-`1fr` lint rule matches `/grid-cols-\[1fr/`, which occurs
   **zero** times in the repo — the rule can never fire. Its justifying comment
   claims `grid-cols-[1.3fr_1fr]` "is already safe"; it is not, since an `fr` track
   has an automatic `min-content` minimum. 8 sites violate the rule as AGENTS.md
   states it. Fix the regex to match a bare `fr` anywhere, and convert the 8
   templates to `minmax(0,Nfr)` — `era-compare.tsx:155` and `the-rooms.tsx:76`
   already do it correctly, so the convention exists.
-- **S3** · `playoff-matrix.tsx` derives `career` in a memo at :258-286 with the
+- ~~**S3** ·~~ **CLOSED** — see the shipped table. `playoff-matrix.tsx` derives `career` in a memo at :258-286 with the
   comment "so the tiles cannot drift from it", then hand-types all of it 100 lines
   later: the standfirst at :393-396, the toggle labels, and
   `Showing {n} of 57 series` at :453. This is the plan's original B1/B7, still
   open. Needs the figures interpolated and a guard (no digit-bearing JSX text in
   that file).
-- **S4** · `filteredSeries` (:185-221) and `recordForOutcomeChips` (:227-245)
+- ~~**S4** ·~~ **CLOSED** — see the shipped table. `filteredSeries` (:185-221) and `recordForOutcomeChips` (:227-245)
   implement the same five filters twice and **disagree on three** — round,
   franchise and search. A row can be counted in a chip but absent from the grid.
   Fix: one `matchesFilters(s, { skipOutcome })` predicate.
-- **S6** · `playoff-matrix.tsx:895` uses `bg-chalk` for the drawer panel, which
+- ~~**S6** ·~~ **CLOSED** — see the shipped table. `playoff-matrix.tsx:895` uses `bg-chalk` for the drawer panel, which
   AGENTS.md §1 forbids outright ("never stark white cards on the maple floor"). The
   other four `bg-chalk` uses are 5px selection bars and a badge inversion.
-- **S7** · `[data-reveal-loop]` sets `animation: none` / `transition: none`, which
+- ~~**S7** ·~~ **CLOSED** — see the shipped table. `[data-reveal-loop]` sets `animation: none` / `transition: none`, which
   can only stop *CSS* animation. Its two carriers are driven by Framer's
   `repeat: Infinity` (a JS rAF loop), which it cannot reach — and does not need to,
   because the `reduce ? … : …` ternaries already handle it. Meanwhile the one real
   CSS loop on the page, `animate-pulse` on the live-status dot, has no such
   attribute and pulses forever under reduced motion.
-- **S8** · `the-rooms.tsx` segments the same scroll two ways: `1 / N` for the panel
+- ~~**S8** ·~~ **CLOSED** — see the shipped table. `the-rooms.tsx` segments the same scroll two ways: `1 / N` for the panel
   opacity ranges (:55, deliberate and documented) and `1 / (N - 1)` for the floor
   colour, the active index and `goTo` (:149, :167, :176). With N=6, panel 0 rests
   on progress [0.025, 0.142] while `active` flips at 0.1 — so for that window the
   Akron panel is at full opacity while `ROOMS[active]` reports Cleveland, and the
   nav underline, label colour and `aria-live` region all name the wrong room.
-- **S10** · no `error.tsx` / `global-error.tsx` anywhere, and five unguarded index
+- ~~**S10** ·~~ **CLOSED** — see the shipped table. no `error.tsx` / `global-error.tsx` anywhere, and five unguarded index
   expressions that would white-screen the document on a data change
   (`era-compare` :139/:141, `season-ruler` :79, `the-rooms` :236/:248,
   `shot-zones` :128, `the-ledger` :355). `father-and-son.tsx:69-79` is the one
   place that got this right.
-- **S11** · `father-and-son.tsx:240-242` labels `history.bronnyStatus` — a *span
+- ~~**S11** ·~~ **CLOSED** — see the shipped table. `father-and-son.tsx:240-242` labels `history.bronnyStatus` — a *span
   since debut*, not an age — as "Bronny Age:". The clone at :198 uses the same
   field labelled "Bronny Status:". The timeline below uses a third field
   (`bronnyAge`).
@@ -365,7 +371,6 @@ Severity as it affects a reader of the page today.
 
 `AGENTS.md` §3 governs these as strictly as rendered ones — it is the designated
 single source of truth — but no user can reach them yet.
-
 - `TRIPLE_DOUBLE_SUMMARY.oldestAge` names 2026-02-12 / "41 years, 44 days" while
   its own array contains two older entries, the oldest being 2026-03-30 at 41
   years 90 days. `rtd-123`'s prose also claims "capping 125" at array position
@@ -411,7 +416,7 @@ single source of truth — but no user can reach them yet.
 
 **Code quality and hygiene**
 
-- **S12** · 8 of the 64 tests cannot fail. `tier1` 1.16 asserts a literal against
+- ~~**S12** ·~~ **CLOSED** — see the shipped table. 8 of the 64 tests cannot fail. `tier1` 1.16 asserts a literal against
   itself in both branches; 1.18 and 1.19 assert values from `test-loader.ts`
   rather than reading `globals.css` or `court-diagram.tsx`, so changing every
   palette token leaves them green; 1.20 asserts a local array contains a literal;
@@ -421,7 +426,7 @@ single source of truth — but no user can reach them yet.
   inflates the "64 passing" number. `AGENTS.md` §5 claims every guard was confirmed
   to fail when its pattern was reintroduced; that discipline was applied to
   design-guards and not to the tiers.
-- **S13** · three section `<h2>`s render in the body face
+- ~~**S13** ·~~ **CLOSED** — see the shipped table. three section `<h2>`s render in the body face
   (`era-compare` :157, `father-and-son` :97, `shot-zones` :151 — the identical
   `text-3xl font-black text-wine sm:text-4xl md:text-5xl` literal, Plus Jakarta
   Sans 900 at 48px on a hardcoded rem ladder) where the other ten use
@@ -433,7 +438,12 @@ single source of truth — but no user can reach them yet.
   inside a `.narrow` class (`era-compare` :224/:280, `playoff-matrix`
   :414/:419/:424/:780, `shot-zones` :242, `father-and-son` :159/:189/:231), and
   `father-and-son.tsx:90-94` states the pattern "is gone".
-- **M4** · the `test` script enumerates five files by name, so a sixth
+- ~~**M4** ·~~ **CLOSED** in Wave 4 — the `test` script is now a glob (verified to
+  match exactly the same five suites and to exclude `tests/fixtures/` and
+  `tests/helpers/`), `tests/resolver.mjs` derives its root from `import.meta.url`
+  with a test that spawns a child from the OS temp directory, and the `.tsx`
+  extension probe is gone so the "no test imports a component" limitation is no
+  longer reachable. `lint` says `eslint .` rather than relying on the default.
   `tests/*.test.ts` is silently never run. `tests/resolver.mjs:5` resolves the
   project root from the CWD rather than `import.meta.url`, so `npm test` from a
   subdirectory fails to resolve `@/lib/lebron-data`. The resolver's extension probe
