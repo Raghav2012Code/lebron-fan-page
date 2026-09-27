@@ -341,6 +341,82 @@ body {
   }
 }
 
+/* --- Range: the block's timeline scrubber ---------------------------------
+   The input is 24px tall so its hit area meets WCAG 2.2 SC 2.5.8 Target Size
+   (Minimum); it was 8px, which is the height the visible track wants to be.
+   These rules separate the two: the element is tall, the painted track is not.
+   `appearance: none` is required — with the default appearance the track is
+   drawn at the element's full height, so simply setting `h-6` gives a 24px bar.
+
+   Layered like the other component classes, so a utility at the call site can
+   still win; the scrubber sets `h-6` and `accent-gold` on the element and
+   inherits the paint from here. */
+@layer components {
+  .court-range {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+  }
+
+  .court-range::-webkit-slider-runnable-track {
+    height: 8px;
+    /* The progress fill, from `--range-progress`, which the component sets from
+       the current time. `appearance: none` removes the browser's own filled
+       track, and `accent-color` goes with it, so the fill has to be painted
+       here or the control loses the one thing that showed how far along the play
+       was. Unfilled is `--rule-chalk` because the scrubber sits on painted
+       grounds, where `--rule` (translucent wine) is invisible. */
+    background: linear-gradient(
+      to right,
+      var(--gold) 0 var(--range-progress, 0%),
+      var(--rule-chalk) var(--range-progress, 0%) 100%
+    );
+    border: 0;
+  }
+
+  .court-range::-moz-range-track {
+    height: 8px;
+    background: linear-gradient(
+      to right,
+      var(--gold) 0 var(--range-progress, 0%),
+      var(--rule-chalk) var(--range-progress, 0%) 100%
+    );
+    border: 0;
+  }
+
+  /* Chrome draws no thumb of its own once appearance is none, so the thumb is
+     a square in the wine token — square like everything else here. Firefox sizes
+     its own thumb from the track, so only its width is pinned. */
+  .court-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 20px;
+    margin-top: -6px;
+    background: var(--wine);
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .court-range::-moz-range-thumb {
+    width: 10px;
+    height: 20px;
+    background: var(--wine);
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .court-range:focus-visible::-webkit-slider-thumb {
+    background: var(--gold);
+  }
+
+  .court-range:focus-visible::-moz-range-thumb {
+    background: var(--gold);
+  }
+}
+
 /* --- Scrollbar --------------------------------------------------------- */
 /* The default scrollbar is a light-grey strip of browser chrome that reads as
    empty space against a painted floor. This makes it part of the court: a

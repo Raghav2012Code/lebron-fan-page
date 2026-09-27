@@ -376,14 +376,26 @@ export function TheRooms() {
         </div>
       ) : (
         <>
-          {/* Both branches stay in the DOM. The stacked copy used to be
-              `lg:hidden`, so at desktop it was display:none while Framer had
-              serialised the other five pinned panels as `opacity: 0` — a
-              visitor without JS got one of six chapters and no way to reach
-              the rest. The stacked copy is now visually hidden but present,
-              and the pinned panels carry `data-reveal`, which globals.css
-              lands in their final position when motion is reduced. */}
-          <div className="hidden lg:block" aria-hidden="true">
+          {/* Both branches stay in the DOM. The stacked copy used to be the only
+              one rendered at desktop, so at desktop Framer had serialised the
+              five other pinned panels as `opacity: 0` and a visitor without JS
+              got one of six chapters and no way to reach the rest. Both copies
+              are now always present and the <noscript> below carries all six.
+
+              There is deliberately NO `aria-hidden` on either branch, and there
+              used to be one on the pinned wrapper — which is the branch that is
+              VISIBLE at desktop, holding the six room buttons. So at `lg` and
+              above the page was showing six focusable controls that were hidden
+              from the accessibility tree: a keyboard user tabbed into buttons
+              announced as nothing (WCAG 4.1.2, `aria-hidden-focus`). It cannot
+              simply be swapped for `inert` either, because the element was
+              marked hidden by mistake rather than deliberately.
+
+              Neither branch needs the attribute. `hidden` / `lg:hidden` is
+              `display: none`, which already removes a subtree from the tab order
+              and the accessibility tree, so the attribute was only ever
+              reachable-as-a-mistake. */}
+          <div className="hidden lg:block">
             <PinnedRooms />
           </div>
           <div className="lg:hidden">

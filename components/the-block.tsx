@@ -413,7 +413,33 @@ export function TheBlock() {
                     setTimeTracked(parseFloat(e.target.value));
                   }}
                   aria-label="Play timeline scrubber"
-                  className="h-2 w-full cursor-pointer accent-gold outline-none"
+                  aria-valuetext={`${time.toFixed(2)} of ${THE_BLOCK.duration.toFixed(
+                    2,
+                  )} seconds`}
+                  /* 24px tall, not 8. This is the section's primary control and an
+                     8px-tall hit area fails WCAG 2.2 SC 2.5.8 Target Size
+                     (Minimum); the spacing exception cannot rescue it, because
+                     the keyframe chips sit directly beneath it. The visible track
+                     is pinned back to 8px by the range rules in globals.css, so
+                     the control looks exactly as it did and is simply easier to
+                     hit.
+
+                     `aria-valuetext` because `step` is 0.02 across a 0-2.8 range
+                     -- 141 steps -- and without it assistive tech announces a bare
+                     float instead of "0.04 of 2.80 seconds". */
+                  className="court-range h-6 w-full cursor-pointer accent-gold outline-none"
+                  /* `--range-progress` is what paints the gold fill. `appearance:
+                     none` (in globals.css) removes the browser's own filled track
+                     and `accent-color` with it, so the fill has to come from the
+                     component. The knob above already displays this same value, so
+                     the two cannot disagree. */
+                  style={
+                    {
+                      "--range-progress": `${
+                        (time / THE_BLOCK.duration) * 100
+                      }%`,
+                    } as React.CSSProperties
+                  }
                 />
 
                 <div className="mt-2 flex flex-wrap gap-2">

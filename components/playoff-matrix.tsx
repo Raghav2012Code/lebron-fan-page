@@ -20,7 +20,20 @@ type OutcomeFilter = "ALL" | "W" | "L";
 type ViewMode = "matrix" | "franchises";
 
 interface RoundTabMeta {
+  /**
+   * The filter VALUE, which is also the human label ("Conf Semifinals"). It is
+   * not a DOM id — see `slug`.
+   */
   id: RoundFilter;
+  /**
+   * The DOM id fragment. ASCII whitespace is forbidden in an `id`, and four of
+   * the five `id` values above contain spaces, which produced live ids like
+   * `round-tab-Conf Semifinals`. Nothing broke only because the id was reached
+   * through `getElementById` and never used as a selector — but it was
+   * unaddressable by CSS, unlinkable as a fragment, and unusable as an
+   * `aria-labelledby` target, which is what the tabpanel needs.
+   */
+  slug: string;
   label: string;
   shortLabel: string;
   record: string;
@@ -30,6 +43,7 @@ interface RoundTabMeta {
 const ROUND_TABS: readonly RoundTabMeta[] = [
   {
     id: "ALL",
+    slug: "all",
     label: "All Rounds",
     shortLabel: "All",
     record: "42–15",
@@ -37,6 +51,7 @@ const ROUND_TABS: readonly RoundTabMeta[] = [
   },
   {
     id: "First Round",
+    slug: "first-round",
     label: "First Round",
     shortLabel: "1st Round",
     record: "16–3",
@@ -44,6 +59,7 @@ const ROUND_TABS: readonly RoundTabMeta[] = [
   },
   {
     id: "Conf Semifinals",
+    slug: "conf-semifinals",
     label: "Conference Semifinals",
     shortLabel: "Conf Semis",
     record: "12–4",
@@ -51,6 +67,7 @@ const ROUND_TABS: readonly RoundTabMeta[] = [
   },
   {
     id: "Conf Finals",
+    slug: "conf-finals",
     label: "Conference Finals",
     shortLabel: "Conf Finals",
     record: "10–2",
@@ -58,6 +75,7 @@ const ROUND_TABS: readonly RoundTabMeta[] = [
   },
   {
     id: "NBA Finals",
+    slug: "nba-finals",
     label: "NBA Finals",
     shortLabel: "Finals",
     record: "4–6",
@@ -96,6 +114,12 @@ export const OPENER: Opener = "instrument";
 
 export function PlayoffMatrix() {
   const [activeRound, setActiveRound] = React.useState<RoundFilter>("ALL");
+  // Resolved once per render rather than inside the JSX, because it is needed in
+  // two places that must not disagree: the tabpanel's `aria-labelledby` and the
+  // per-tab `isActive`. `ROUND_TABS` is a module constant, so the lookup cannot
+  // miss, and the fallback keeps the type total if a future filter has no tab.
+  const activeTabSlug =
+    ROUND_TABS.find((t) => t.id === activeRound)?.slug ?? ROUND_TABS[0].slug;
   const [outcomeFilter, setOutcomeFilter] = React.useState<OutcomeFilter>("ALL");
   const [sweepsOnly, setSweepsOnly] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -314,7 +338,9 @@ export function PlayoffMatrix() {
     }
     e.preventDefault();
     setActiveRound(ROUND_TABS[nextIndex].id);
-    const target = document.getElementById(`round-tab-${ROUND_TABS[nextIndex].id}`);
+    const target = document.getElementById(
+      `round-tab-${ROUND_TABS[nextIndex].slug}`,
+    );
     target?.focus();
   };
 
@@ -477,7 +503,7 @@ export function PlayoffMatrix() {
                   return (
                     <button
                       key={tab.id}
-                      id={`round-tab-${tab.id}`}
+                      id={`round-tab-${tab.slug}`}
                       role="tab"
                       aria-selected={isActive}
                       aria-controls="playoff-matrix-grid"
@@ -576,7 +602,13 @@ export function PlayoffMatrix() {
                     <button
                       type="button"
                       onClick={() => setSelectedFranchise(null)}
-                      className="hover:text-gold ml-1 focus-visible:outline-none"
+                      /* `-m-2 p-2` rather than `h-6 w-6`: it grows the hit area to
+                         24px in both axes without growing the pill, so the badge
+                         keeps its height. Measured before: 8.5 x 16px, which fails
+                         WCAG 2.2 SC 2.5.8 Target Size (Minimum) and gets no help
+                         from the spacing exception, because it sits inside a
+                         21px-tall pill. */
+                      className="-m-2 p-2 hover:text-gold ml-1 focus-visible:outline-none"
                       aria-label={`Clear ${selectedFranchise} filter`}
                     >
                       ×
@@ -599,7 +631,10 @@ export function PlayoffMatrix() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-wine text-xs"
+                    /* Same `-m-2 p-2` trade as the franchise pill: 24px of hit
+                       area from a 7.3 x 16px target, with the input's box and the
+                       glyph both unchanged. */
+                    className="absolute right-0.5 top-1/2 -translate-y-1/2 -m-2.5 p-2.5 text-muted hover:text-wine text-xs"
                     aria-label="Clear search"
                   >
                     ×
@@ -615,7 +650,13 @@ export function PlayoffMatrix() {
               // here, and a tab whose controlled element is a plain region
               // leaves assistive tech unable to resolve the relationship.
               role="tabpanel"
-              aria-label="Playoff series results"
+              // Points at the SELECTED tab, not a fixed string. The five round
+              // tabs all `aria-controls` this panel, and with a static
+              // `aria-label` a screen-reader user arriving at the panel could not
+              // tell which round it was showing. The other three tablists on the
+              // page (shot-zones, father-and-son, and the Radix tabs in
+              // the-ledger) all label their panel from the active tab.
+              aria-labelledby={`round-tab-${activeTabSlug}`}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 mt-6"
             >
               {filteredSeries.map((series) => {
