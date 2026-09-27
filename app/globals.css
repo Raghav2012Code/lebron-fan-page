@@ -127,83 +127,114 @@ body {
 /* --- Type -----------------------------------------------------------------
    Oswald carries monument lettering, headlines, and arena scoreboard figures.
    Plus Jakarta Sans carries editorial copy, captions, and data strings.
+
+   These six are in `@layer components`, which is the whole point of this block
+   and was the single largest defect in the stylesheet. They used to be
+   UNLAYERED, and an unlayered author declaration beats a layered one regardless
+   of specificity -- so every Tailwind utility touching a property these also set
+   was silently discarded. Measured at 1440px, before the layer was added:
+
+     max-w-[46ch] alone .............. 538.752px   (the authored value)
+     prose-copy max-w-[46ch] ......... 749.568px   (.prose-copy's own 64ch)
+     leading-relaxed alone ........... 26px
+     prose-copy leading-relaxed ...... 26.88px     (1.68, not 1.625)
+     figure leading-none ............. 14.08px     (.figure's 0.88)
+     narrow tracking-wider ........... 0.64px      (.narrow's 0.04em, not 0.05em)
+
+   Twenty-one call sites pair `prose-copy` with a `max-w-[Nch]`, and every one
+   rendered at the wrong measure; the real page computed an authored
+   `max-w-[46ch]` at 843px. All four gates passed, because lint, tsc, the
+   text-scanning guards and the build are all blind to computed style.
+
+   The rule now: a type class sets a DEFAULT, and a utility at the call site
+   overrides it. That is what a utility is for. If a value here needs to be
+   unbypassable, it belongs in `@layer base` on an element selector or in the
+   component itself, not in a component class.
    ------------------------------------------------------------------------ */
+@layer components {
+  .monument {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.015em;
+    line-height: 0.88;
+  }
 
-.monument {
-  font-family: var(--font-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.015em;
-  line-height: 0.88;
-}
+  .headline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+  }
 
-.headline {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
-}
+  .figure {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    line-height: 0.88;
+  }
 
-.figure {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  line-height: 0.88;
-}
+  /* Captions and labels use crisp geometric styling */
+  .narrow {
+    font-family: var(--font-text);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+  }
 
-/* Captions and labels use crisp geometric styling */
-.narrow {
-  font-family: var(--font-text);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
-}
+  .narrow-bold {
+    font-family: var(--font-text);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+  }
 
-.narrow-bold {
-  font-family: var(--font-text);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
-}
-
-.prose-copy {
-  font-family: var(--font-text);
-  font-weight: 400;
-  line-height: 1.68;
-  letter-spacing: -0.01em;
-  max-width: 64ch;
+  .prose-copy {
+    font-family: var(--font-text);
+    font-weight: 400;
+    line-height: 1.68;
+    letter-spacing: -0.01em;
+    max-width: 64ch;
+  }
 }
 
 /* --- Floor ----------------------------------------------------------------
    Maple boards. Hard-stop repeating lines, not a gradient wash: a seam every
    38px across the grain, and — on `.floor` only — a board joint every 260px
    along it. `.floor-deep` is the deeper inset tone and carries the seam only.
-   ------------------------------------------------------------------------ */
-.floor {
-  background-color: var(--maple);
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      rgba(90, 22, 38, 0.05) 0 1px,
-      transparent 1px 38px
-    ),
-    repeating-linear-gradient(
-      to right,
-      rgba(90, 22, 38, 0.035) 0 1px,
-      transparent 1px 260px
-    );
-}
 
-.floor-deep {
-  background-color: var(--maple-deep);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(90, 22, 38, 0.06) 0 1px,
-    transparent 1px 38px
-  );
+   Layered for the same reason the type classes are, and checked for it: the one
+   call site pairing a ground with a `bg-` utility is `four-nights.tsx:28`, and
+   it is a ternary, so an element never carries both. Nothing renders
+   differently as a result of this block moving.
+   ------------------------------------------------------------------------ */
+@layer components {
+  .floor {
+    background-color: var(--maple);
+    background-image:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(90, 22, 38, 0.05) 0 1px,
+        transparent 1px 38px
+      ),
+      repeating-linear-gradient(
+        to right,
+        rgba(90, 22, 38, 0.035) 0 1px,
+        transparent 1px 260px
+      );
+  }
+
+  .floor-deep {
+    background-color: var(--maple-deep);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      rgba(90, 22, 38, 0.06) 0 1px,
+      transparent 1px 38px
+    );
+  }
 }
 
 /* --- Anchor clearance ------------------------------------------------------
@@ -223,8 +254,10 @@ body {
    6rem clears a skip-link and a comfortable line of heading. `back-to-top`
    deliberately does NOT carry this: it scrolls to `#main` in order to put the
    reader at the top of the page, where clearance would be wrong. */
-.scroll-clearance {
-  scroll-margin-top: 6rem;
+@layer components {
+  .scroll-clearance {
+    scroll-margin-top: 6rem;
+  }
 }
 
 /* --- Accessibility -------------------------------------------------------- */
@@ -238,7 +271,13 @@ body {
    is (0,3,0) against this selector's (0,2,0), so the layer boundary is doing
    the work, not the `:root` prefix. Do NOT wrap these in `@layer components`,
    which is idiomatic Tailwind v4: that would let the wine `outline-color`
-   utilities win and silently break the two-tone contract.) */
+   utilities win and silently break the two-tone contract.)
+
+   This is the deliberate exception to the rule the type block documents. That
+   block is layered so utilities can override a class default; this one is
+   unlayered because the utilities must NOT override it. The distinction is not
+   "layered good, unlayered bad" — it is which side of the override each rule
+   is supposed to lose on. */
 :root :focus-visible {
   outline: 2px solid var(--wine);
   outline-color: var(--wine);
@@ -252,23 +291,25 @@ body {
   box-shadow: 0 0 0 2px var(--wine);
 }
 
-.skip-link {
-  position: fixed;
-  left: 1rem;
-  top: -100px;
-  z-index: 200;
-  background: var(--wine);
-  color: var(--chalk);
-  padding: 0.6rem 1rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 0.8125rem;
-  transition: top 0.2s ease;
-}
-.skip-link:focus {
-  top: 1rem;
+@layer components {
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: -100px;
+    z-index: 200;
+    background: var(--wine);
+    color: var(--chalk);
+    padding: 0.6rem 1rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    transition: top 0.2s ease;
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

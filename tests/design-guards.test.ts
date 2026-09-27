@@ -463,3 +463,111 @@ test("design guard G7 - every registered section id is rendered exactly once", (
     }
   }
 });
+
+/* ==========================================================================
+ * G8 — no CLASS rule in globals.css may sit outside @layer.
+ *
+ * The largest defect this suite could not see. `.monument`, `.headline`,
+ * `.figure`, `.narrow`, `.narrow-bold` and `.prose-copy` were written at the top
+ * level of the stylesheet. In Tailwind v4 an unlayered author declaration beats
+ * a layered one REGARDLESS OF SPECIFICITY, so every utility touching a property
+ * these classes also set was silently discarded. Measured at 1440px:
+ *
+ *   prose-copy max-w-[46ch]  computed 749.568px  (its own 64ch, not 46ch)
+ *   prose-copy leading-relaxed computed 26.88px   (1.68, not 1.625)
+ *   figure leading-none      computed 14.08px    (.figure's 0.88)
+ *   narrow tracking-wider    computed 0.64px     (.narrow's 0.04em)
+ *
+ * and on the live page an authored `max-w-[46ch]` rendered at 843px. Lint, tsc,
+ * the text-scanning guards and the build were all green throughout, because none
+ * of them resolve a cascade. This guard reads the cascade-relevant fact instead.
+ *
+ * The invariant is the NEGATIVE one — no bare class selector may be unlayered —
+ * rather than "these seven are layered", because the negative form also catches
+ * the next class someone adds without thinking about it.
+ *
+ * Element and pseudo-element selectors are deliberately out of scope. `html` and
+ * `body` cannot conflict with a utility: a class on a descendant always beats an
+ * inherited value, whatever the layer. `:root :focus-visible` is unlayered ON
+ * PURPOSE — the utilities must lose to it — and starts with `:root`, not a
+ * class, so it never matches. What this forbids is specifically "a class whose
+ * Tailwind utilities cannot override".
+ * ======================================================================== */
+
+test("design guard G8 - no class rule in globals.css is unlayered", () => {
+  const css = stripComments(read("app", "globals.css"));
+
+  /**
+   * Selectors of style rules that are not inside an `@layer`.
+   *
+   * `@media` and `@supports` do NOT create a layer, so a class inside either is
+   * still unlayered and still wins over utilities — which is why the one entry in
+   * the allow-list below is a class inside `@media`.
+   */
+  function unlayeredClassSelectors(source: string): string[] {
+    const found: string[] = [];
+    const inLayer: boolean[] = [];
+    let prelude = "";
+    for (let i = 0; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === "{") {
+        const p = prelude.trim();
+        const isAtRule = p.startsWith("@");
+        const enclosedByLayer = inLayer.some(Boolean);
+        inLayer.push(isAtRule && p.startsWith("@layer"));
+        if (!isAtRule && !enclosedByLayer) {
+          for (const sel of p.split(",")) {
+            if (sel.trim().startsWith(".")) found.push(sel.trim());
+          }
+        }
+        prelude = "";
+      } else if (c === "}") {
+        inLayer.pop();
+        prelude = "";
+      } else if (c === ";") {
+        // A declaration terminator, NOT a block terminator. It must not pop:
+        // `color-scheme: light;` inside `:root` would otherwise pop `:root`
+        // itself, and the next `}` would eat the enclosing `@layer`, making
+        // every rule after it look unlayered. `;` only ends the prelude of a
+        // bodiless at-rule such as `@import "tailwindcss";`, which pushed
+        // nothing, so clearing is the whole job.
+        prelude = "";
+      } else {
+        prelude += c;
+      }
+    }
+    return found;
+  }
+
+  // Each exception is a decision, and the reason is part of the entry, so a
+  // reader can tell a deliberate override from an oversight.
+  const ALLOWED: Record<string, string> = {
+    ".skip-link":
+      "inside @media (prefers-reduced-motion: reduce) and !important, so it " +
+      "has to beat the layered base rule. `!important` outranks layers anyway, " +
+      "so this is safe to leave unlayered.",
+  };
+
+  const offenders = unlayeredClassSelectors(css).filter((s) => !(s in ALLOWED));
+
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `these class rules sit outside @layer, so Tailwind utilities cannot ` +
+      `override them (globals.css): ${offenders.join(" | ")}. Put the rule in ` +
+      `@layer components so the class is a DEFAULT a call site can override — ` +
+      `or, if the utilities must lose to it as the focus ring does, add it to ` +
+      `G8's ALLOWED map with the reason.`,
+  );
+
+  // An allow-list that nobody prunes becomes a place exceptions go to die. If a
+  // listed selector is no longer unlayered, it is dead weight and is reported.
+  const stillUnlayered = new Set(unlayeredClassSelectors(css));
+  const stale = Object.keys(ALLOWED).filter((s) => !stillUnlayered.has(s));
+  assert.deepStrictEqual(
+    stale,
+    [],
+    `G8's ALLOWED map lists ${stale.join(", ")}, which is no longer an ` +
+      `unlayered class rule. Delete the entry.`,
+  );
+});
