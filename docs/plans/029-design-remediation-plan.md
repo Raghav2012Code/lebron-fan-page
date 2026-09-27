@@ -117,29 +117,37 @@ Deleting all nine, as the audit directs, would strip a functional control label 
 that tell the reader which comparison group they are reading. The correct split is **4 deleted,
 5 restyled** onto a new sentence-case kicker (§A.2).
 
-### 1.6 The stat contradiction (F-04) is a possible *data* defect, not only a labelling one
+### 1.6 The stat contradiction (F-04) — RESOLVED AGAINST THIS PLAN, see §11
 
 `DESIGN-AUDIT.md:164-170` asserts both figures are correct and only the qualifier is missing. That
-premise is unverified, and it is load-bearing.
+premise is load-bearing, so it was verified before anything was edited.
 
-`lib/lebron-data.ts:886-897`, the `mia` era object, rendered by `shot-zones.tsx:238` beside its own
-narrative at `shot-zones.tsx:235`:
+**The plan's suspicion was half wrong, and that is why the verification was worth doing.**
+`lib/lebron-data.ts`'s `mia` era object, rendered by `shot-zones.tsx:238` beside its own narrative:
 
 - narrative: *"peaked at a staggering 56.5% FG and 40.6% 3PT in 2012-13"* — **exactly correct**;
   those are LeBron's real 2012-13 splits.
 - stat row: `fgPct: 54.3`, `threePtPct: 36.9`, `ppg: 26.9`, `ftPct: 75.8`, over `period: "2010–2014"`.
 
-Spot-checking the same four fields against the sibling eras, `cle2` (`lebron-data.ts:993-1004`)
-reconciles closely with a 4-season attempts-weighted aggregate, and `cle1` (`781-791`) reconciles
-for FG% and 3P% — but **`cle1.ftPct: 73.3` and `mia.fgPct: 54.3` / `mia.threePtPct: 36.9` do not
-reconcile with the seasons their own `period` labels claim.** Miami 2010-14 is a ~57% FG era; 54.3
-is not it.
+**All four Miami figures are correct.** They match Basketball Reference's own `MIA (4 Yrs)` row
+(`.543 / .369 / .758 / 26.9`, 294 games) exactly. The audit's claim stands: F-04 is a missing
+qualifier, not a bad number. The plan's guess that they were wrong came from averaging seasonal
+*rates* instead of weighting by *attempts* — 2011-12 was a 62-game season, which moves the answer
+several points.
 
-This repo has already been here once: issue #19 (`wave-0-verify`) existed solely to settle
-disputed playoff figures before anyone "fixed" them, and #28 exists to stop verified-correct facts
-being re-broken. **Wave 0 therefore verifies these against Basketball Reference before Wave B
-edits anything.** If `54.3` is simply wrong, the fix is a data correction plus a qualifier, and
-shipping only the qualifier would put a qualifier on a wrong number.
+**But the same verification found five genuinely stale figures in three sibling eras**, and
+`cle1.ftPct: 73.3` is the clearest case in the repo's history: it is *exactly* Cleveland's
+**eleven**-year figure (both stints, 849 games) sitting in the seven-year first stint. It looks
+right because it is a real authoritative number; it is just scoped to the wrong window. Summing
+the seven first-stint seasons gives 74.2, and `cle1 + cle2` then reconciles to BBR's `CLE (11 Yrs)`
+row exactly — which is now an assertion.
+
+Shipped as **F-04b**, critical, data integrity. See `DESIGN-AUDIT.md` §F-04b for the corrected
+table and `tests/smoke.test.ts` for the lock.
+
+The transferable lesson, recorded because it nearly went the other way: **a figure that is real
+but scoped to the wrong window is still a wrong figure on screen**, and no amount of checking one
+field in isolation will find it. Reconcile the parts against the whole.
 
 ### 1.7 Spec reconciliations required
 
@@ -567,3 +575,64 @@ whitelist with reasons instead of a bare number.
 **Expect this to look like the biggest visual change of the whole remediation** — 50 shapes change
 at once. It is the last wave for that reason: it should land on a page whose rhythm, type system
 and gates are already correct, so the shape change is the only variable in review.
+
+---
+
+## 11. What actually shipped
+
+Implemented in full. Four commits, each with all four gates green.
+
+| Commit | Wave | Contents |
+|---|---|---|
+| `02d61c1` | 0 | five stale era aggregates corrected and locked; `DESIGN-AUDIT.md` amended with five of its own factual errors |
+| `ef44cc3` | A | eyebrow deleted; five opener archetypes declared across 14 units; `StatBand` capped at 2; F-04's qualifier |
+| `818bde5` | B | 35 `font-mono` routed by role, plus two third-family defects no grep could see |
+| `a9b10d7` | C + D | F-05, F-06, F-07, F-08, F-09, F-10, F-11, F-12, F-13; 12 guards (L1–L5, G1–G7) |
+
+All 13 findings closed. Twelve guards live, each one proven by injecting its violation, watching it
+go red with the right message, and reverting.
+
+### Deviations from this plan, and why
+
+1. **Waves C and D were committed together.** A guard that fails on a finding still open is not
+   landable, and the repo requires four green gates at every commit. Fixing the findings and
+   arming the guards in one commit is the honest sequencing.
+
+2. **§1.6 was wrong about Miami and right about the other three eras.** Verification showed all
+   four `mia` figures are exactly correct. The plan's suspicion came from averaging seasonal rates
+   instead of weighting by attempts. The corrected reasoning is in §1.6 and the five real defects
+   are in `DESIGN-AUDIT.md` §F-04b.
+
+3. **F-02 was 4 deletions, not 9.** Only four of the nine `tracking` sites were redundant labels.
+   One is a functional control label and four name the metric group below them. See §1.5.
+
+4. **Two new findings the audit could not have produced**, both found by checking *computed*
+   styles rather than source, and both invisible to the audit's stated acceptance condition of
+   "0 matches for `font-mono`":
+   - `shot-zones.tsx` drew nine sector volume labels in the browser's default monospace via a
+     `font-family="monospace"` presentation **attribute** on `<text>`. No class-name grep reaches
+     it, and `font-text` on the `<svg>` root did not help because an explicit attribute beats
+     inheritance.
+   - `era-compare.tsx`'s entire comparison table used `font-sans`, which is Tailwind's **default
+     system stack** (`-apple-system, BlinkMacSystemFont, "Segoe UI", …`), not `--font-text`.
+
+5. **One self-inflicted defect, caught by the new guards.** The bulk regex that squared the radii
+   also rewrote the English word "rounded" in a ledger sentence — in *rendered* JSX, where a reader
+   would have seen "rounded-none". G5 caught it, which is the only reason it was caught before
+   merge. The lesson is baked into the guard: it scans only inside quoted strings, because a
+   token-shaped regex over raw text reports prose as a class.
+
+6. **An incidental fix.** `the-line`'s career totals rendered *above* their figures. The gold rule
+   and the total are siblings of the `dt`/`dd` pair, so they defaulted to `order: 0` and flex put
+   them first — contradicting the component's own docstring. Pre-existing, and fixed while the
+   section was being restructured.
+
+### Re-audit still owed
+
+`DESIGN-AUDIT.md` §Re-audit asks for a fresh Hallmark `audit` after the structural wave, scored on
+the same six axes, target Variety ≥ 4, Hierarchy ≥ 4, Restraint ≥ 4 with Philosophy and Specificity
+held at 5. **That has not been run.** The six-axis scores in the audit document are the *pre-change*
+scores and are now stale. The measurable proxies moved as intended — two opener families' worth of
+adjacency, seven band sites down to two, nine eyebrows to zero, three typefaces to two, 50 shapes
+to 4, anchor clearance from 0px to 83px — but Variety and Hierarchy are judgements, and only the
+audit can score them.

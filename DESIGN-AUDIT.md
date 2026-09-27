@@ -1,7 +1,9 @@
 # Design Audit Spec — "The King" (LeBron fan tribute)
 
-**Type:** design audit punch list · **Status:** open · **Date:** 2026-09-26
+**Type:** design audit punch list · **Date:** 2026-09-26
 **Amended:** 2026-09-26 — see §Corrections to this document and F-04b
+**Status:** F-01 … F-13 and F-04b all **remediated**; the six-axis scores below are the
+**pre-change** scores and are now stale. A re-audit is still owed — see §Re-audit.
 **Target:** `http://localhost:3000` · Next.js 16.3.3 / React 19.2.8 / Tailwind v4 / Framer Motion 13
 
 ---
@@ -472,6 +474,21 @@ one that matters most after F-04b. Everything in Wave C is a half-hour of work.
 
 ## Re-audit
 
-Re-run the Hallmark `audit` verb after Wave A lands and compare the six axes. Target:
-**Variety ≥ 4**, **Hierarchy ≥ 4**, **Restraint ≥ 4**, with Philosophy and Specificity held
-at 5. Re-verify the gate table in §4 — those passes are the regression surface.
+**Still owed.** The mechanical proxies all moved in the intended direction, and they are the only
+things that can be measured without re-running the audit:
+
+| Property | Before | After |
+|---|---|---|
+| four-item band sites | 7 | 2 (`StatBand`, capped) |
+| tracked all-caps eyebrow sites | 9 | 0 |
+| distinct typefaces rendering | 3 (+ monospace by SVG default) | 2 |
+| soft radii / `rounded-full` | 40 / 14 | 0 / 4 |
+| anchor clearance on a footer link | 0 px, `scrollY` 0 | 83 px, `scrollY` 13055 |
+| adjacent units sharing an opener | 13 of 13 | 0 of 13 |
+| era aggregates verified against source | 0 of 16 | 16 of 16 |
+
+None of that is a Variety or a Hierarchy score. Those are judgements about whether the page now
+*reads* as made rather than generated, and only re-running the Hallmark `audit` verb on the same
+six axes can say. Target: **Variety ≥ 4**, **Hierarchy ≥ 4**, **Restraint ≥ 4**, with Philosophy and
+Specificity held at 5. Re-verify the gate table in §What passes — those are the regression surface,
+and a shape change landing across 50 elements is exactly the kind of sweep that quietly undoes one.
