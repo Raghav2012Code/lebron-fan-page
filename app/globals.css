@@ -1,4 +1,49 @@
-@import "tailwindcss";
+/* =========================================================================
+   Content detection is scoped to the three directories that can hold a class.
+   =========================================================================
+
+   Left automatic, Tailwind v4 scans the whole project from the CSS file's
+   directory upward — which includes this file's own documentation siblings. The
+   project's Markdown, the ESLint config and the design guards all contain the
+   literal strings of the utilities the design system BANS, so Tailwind dutifully
+   generated them. Confirmed in the production bundle before this line existed:
+
+     .rounded  .rounded-sm  .rounded-md  .rounded-lg  .rounded-xl
+     .rounded-2xl  .rounded-3xl  .font-mono  .font-serif  .font-sans
+     .tracking-[0.2em]  .tracking-widest
+
+   Twelve banned utilities, 59 KB of stylesheet, and not one component using any
+   of them — verified by scanning every component with comments stripped, where
+   the only hits are inside the comments that explain why they are banned.
+
+   `.font-sans` is the sharpest one. It is not a harmless no-op sitting in the
+   bundle: it resolves to Tailwind's DEFAULT system stack
+   (`-apple-system, BlinkMacSystemFont, "Segoe UI", ...`), which is precisely the
+   third font family AGENTS.md §2 forbids. Shipping the rule means the banned
+   family is one stray className away from rendering, and nothing in the build
+   would say so.
+
+   `source(none)` turns automatic detection off; the three `@source` directives
+   turn back on exactly the directories that can contain a class. A new
+   component under `components/` is picked up automatically, because the whole
+   directory is registered rather than a list of files.
+
+   Guard G11 asserts these four lines are present and in this order, because the
+   failure mode without them is silent: a smaller stylesheet, and a banned utility
+   quietly available again.
+
+   The `app` source is `.tsx` only, and that detail is load-bearing rather than
+   tidiness. `@source "../app"` includes THIS FILE, so the list of banned
+   utilities written out in the comment above was itself being scanned as source
+   content — measured: scoping to the directory took the bundle from twelve
+   banned utilities to four, and the remaining four were `.rounded`,
+   `.font-mono`, `.font-sans` and `.tracking-widest`, all of which appear in this
+   comment and nowhere else in live code. A stylesheet cannot contain a Tailwind
+   candidate that needs generating; there is no `@apply` in this project. */
+@import "tailwindcss" source(none);
+@source "../app/**/*.tsx";
+@source "../components";
+@source "../lib";
 
 /* =========================================================================
    HARDWOOD — an unofficial LeBron James tribute
@@ -425,9 +470,13 @@ body {
    The two engines have to be kept apart deliberately. Chrome honours these
    ::-webkit-scrollbar rules ONLY while the standard scrollbar-* properties
    are absent — set either one and it discards this whole block and draws its
-   own rounded thumb instead, which would be the one shape this design never
+   own round thumb instead, which would be the one shape this design never
    uses. So the standard properties are scoped to browsers that have no
-   ::-webkit-scrollbar at all, which in practice means Firefox. */
+   ::-webkit-scrollbar at all, which in practice means Firefox.
+
+   "round", not the utility name: Tailwind's candidate scanner reads this file
+   when `@source` covers it, and the word it looks for here is a real Tailwind
+   class this design bans. A comment about a banned shape must not ship it. */
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;

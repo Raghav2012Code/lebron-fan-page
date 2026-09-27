@@ -282,7 +282,7 @@ export function ShotZones() {
                <text>. SVG <text> has no family of its own, so without this the
                nine sector labels ("37.5% vol" and friends) fall back to the
                browser's default monospace — a third family on the page that no
-               `font-mono` grep in components/ could ever catch, because the
+               grep for the monospace utility in components/ could ever catch, because the
                monospace was a presentation ATTRIBUTE, not a class. Note the
                sibling percentage labels are deliberately `var(--font-display)`:
                those are scoreboard figures, so Oswald is correct there. */
@@ -376,7 +376,7 @@ export function ShotZones() {
                     /* Was fontFamily="monospace" — a presentation attribute, so
                        it beat the `font-text` on the <svg> root and put nine
                        labels on the page in a third family. `tracking-wider` is
-                       kept because the tracking-widest ban is about eyebrows,
+                       kept because the widest-tracking ban is about eyebrows,
                        not about a volume label set small on a diagram. */
                     className="select-none font-text uppercase tracking-wider"
                   >

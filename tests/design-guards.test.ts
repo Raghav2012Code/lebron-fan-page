@@ -785,3 +785,153 @@ test("design guard G10 - no hand-typed figure in the playoff matrix's JSX text",
       `${(raw.match(/record:\s*"[^"]*"|\bcount:\s*\d+/) || ["(none)"])[0]}`,
   );
 });
+
+/* ==========================================================================
+ * G11 — Tailwind's content detection is scoped, and no banned utility is a
+ *       candidate anywhere the scanner reads.
+ *
+ * Left automatic, Tailwind v4 scans the project from the stylesheet's directory
+ * upward, which includes every Markdown file, the ESLint config and this suite.
+ * All of those contain the literal strings of the utilities the design system
+ * bans, so Tailwind generated them. Measured in the production bundle before
+ * this guard existed: twelve banned utilities in 59 KB of CSS, and not one
+ * component using any of them.
+ *
+ * Two of the audit's supporting claims were wrong and are corrected here rather
+ * than repeated. `.font-sans` does NOT resolve against an empty custom property;
+ * it resolves against Tailwind's default system stack
+ * (`-apple-system, BlinkMacSystemFont, "Segoe UI", ...`), which is worse, because
+ * that is exactly the third family AGENTS.md §2 forbids. And the components DO
+ * contain the tokens — four times — all inside comments explaining why they are
+ * banned.
+ *
+ * That last point is the finding. Tailwind's candidate scanner does not skip
+ * comments, and it does not know English, so a comment warning against a banned
+ * utility is sufficient to SHIP it. Three were reworded for that reason. The
+ * assertion below is what stops the fourth being joined by a fifth.
+ *
+ * `globals.css` itself is deliberately not a scanned source, which is why the
+ * `app` directive is scoped to `*.tsx`; see the `source(none)` block at the top
+ * of that file.
+ * ======================================================================== */
+
+test("design guard G11 - Tailwind sources are scoped and carry no banned candidate", () => {
+  const css = read("app", "globals.css");
+
+  // 1. The scoping itself.
+  assert.match(
+    css,
+    /@import\s+"tailwindcss"\s+source\(none\)/,
+    'globals.css must import tailwind with `source(none)`, or automatic ' +
+      "detection scans the Markdown, the lint config and the guards — all of " +
+      "which contain the banned utilities as literal strings.",
+  );
+  for (const dir of ['@source "../components"', '@source "../lib"']) {
+    assert.ok(
+      css.includes(dir),
+      `globals.css is missing ${dir}. A new file in that directory must be ` +
+        `picked up without editing this list.`,
+    );
+  }
+  assert.ok(
+    css.includes('@source "../app/**/*.tsx"'),
+    'the app source must be scoped to `*.tsx`. Scoping it to the directory ' +
+      "includes globals.css itself, whose comment lists the banned utilities — " +
+      "measured: that alone accounted for four of them.",
+  );
+
+  // 2. No banned utility may be a CANDIDATE in a scanned file. Mirrors the way
+  //    Tailwind extracts: a bare token, not part of a longer class name.
+  const BANNED = [
+    "rounded",
+    "rounded-sm",
+    "rounded-md",
+    "rounded-lg",
+    "rounded-xl",
+    "rounded-2xl",
+    "rounded-3xl",
+    "font-mono",
+    "font-serif",
+    "font-sans",
+    "tracking-widest",
+    "tracking-[0.2em]",
+  ];
+
+  /** Files Tailwind is told to read. `globals.css` is excluded, by design. */
+  const scanned = [
+    ...readdirSync(COMPONENTS)
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => `components/${f}`),
+    ...readdirSync(join(ROOT, "app"))
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => `app/${f}`),
+  ];
+
+  /**
+   * Occurrences that are genuinely unavoidable, each with the reason.
+   *
+   * The one entry is the English word "rounded" in the ledger's rendered copy —
+   * "Nothing here is rounded to make it land". Tailwind extracts it as a
+   * candidate and emits a 33-byte `.rounded` rule that nothing can use, because
+   * the lint gate bans `rounded` in any className. Rewriting a good sentence for
+   * a CSS scanner is the wrong trade, so the dead rule is accepted and recorded
+   * here instead. Everything else must be reworded.
+   */
+  const ACCEPTED: Record<string, string> = {
+    "components/the-ledger.tsx:157":
+      "the rendered sentence \"Nothing here is rounded to make it land\". " +
+      "Reader-facing copy; the emitted rule is unreachable because lint bans " +
+      "the class. Rewriting prose to satisfy a scanner is the wrong trade.",
+  };
+
+  const found: string[] = [];
+  for (const rel of scanned) {
+    readFileSync(join(ROOT, rel), "utf8")
+      .split(/\r?\n/)
+      .forEach((line, i) => {
+        for (const token of BANNED) {
+          const escaped = token.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+          // A candidate: the token standing alone, not part of a longer name.
+          const re = new RegExp(
+            `(^|[\\s"'\`\\[(,])${escaped}(?![\\w\\-])`,
+          );
+          if (re.test(line)) {
+            // Forward slashes regardless of platform: the ACCEPTED keys below
+            // are written that way, and `join` emits `\` on Windows, which
+            // silently stopped the exception from ever matching.
+            const where = `${rel.split("\\").join("/")}:${i + 1}`;
+            if (!(where in ACCEPTED)) {
+              found.push(
+                `${where}  [${token}]  ${line.trim().slice(0, 60)}`,
+              );
+            }
+          }
+        }
+      });
+  }
+
+  assert.deepStrictEqual(
+    found,
+    [],
+    `these banned utilities survive as Tailwind candidates, so the build ships\n` +
+      `them: ${found.join("\n  ")}\n  Tailwind's scanner reads comments and ` +
+      `does not know English, so a comment warning against a utility is enough ` +
+      `to generate it. Name the utility descriptively instead.`,
+  );
+
+  const stale = Object.keys(ACCEPTED).filter((k) => {
+    const at = k.lastIndexOf(":");
+    const file = k.slice(0, at);
+    const line = readFileSync(join(ROOT, ...file.split("/")), "utf8").split(
+      /\r?\n/,
+    )[Number(k.slice(at + 1)) - 1];
+    return !/(^|[\s"'`[(,])rounded(?![\w-])/.test(line ?? "");
+  });
+  assert.deepStrictEqual(
+    stale,
+    [],
+    `G11's ACCEPTED map lists ${stale.join(", ")}, which no longer contains the ` +
+      `word. Delete the entry — and if the copy was reworded, the dead CSS rule ` +
+      `goes with it.`,
+  );
+});
