@@ -8,7 +8,7 @@ import {
   type ShotZoneData,
 } from "@/lib/lebron-data";
 import { cn } from "@/lib/utils";
-import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Kicker, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
 interface CourtZoneConfig {
   id: string;
@@ -112,6 +112,14 @@ function getZoneColor(fgPct: number, isSelected: boolean, isHovered: boolean) {
   return "rgba(90, 22, 38, 0.16)";
 }
 
+/**
+ * Opener: `device` -- The full-bleed heat map is the opener; the era rail is its control surface.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "device";
+
 export function ShotZones() {
   const [selectedEraIndex, setSelectedEraIndex] = React.useState(1); // Default to Miami Peak (apex efficiency)
   const [selectedZoneId, setSelectedZoneId] = React.useState("restricted");
@@ -134,26 +142,31 @@ export function ShotZones() {
       aria-label="The heat map — career shot zones and scoring evolution"
       className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
-      {/* --- Section Header --- */}
-      <div className="flex flex-col items-start">
-        <Caption bold className="text-wine tracking-[0.2em]">
-          {SHOT_ZONES.heading.toUpperCase()}
-        </Caption>
-        <h2 className="mt-3 text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+      {/* --- Section Header ---
+          Opener: device. The heat map below is this section's opener, so the
+          header is deliberately thin — one heading, one line of copy, and then
+          straight into the instrument. The eyebrow that stood here restated the
+          heading and is gone (F-02). */}
+      <div className="max-w-3xl">
+        <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
           <RiseWords text={SHOT_ZONES.subheading} />
         </h2>
-        <p className="mt-4 max-w-2xl text-base text-ink sm:text-lg">
-          {SHOT_ZONES.copy}
-        </p>
+        <p className="mt-3 text-base text-ink sm:text-lg">{SHOT_ZONES.copy}</p>
       </div>
 
-      <PaintRule className="my-8" />
+      <PaintRule className="my-6" />
 
-      {/* --- Era Selector Navigation --- */}
+      {/* --- Era Control Rail ---
+          Was a four-across grid of cards, one of seven identical bands on the
+          page (F-01). Now a rail in the instrument's top edge: full-bleed to the
+          section, hairline dividers, no per-item frames, the active era marked
+          by a gold rule rather than a filled panel. Same tablist semantics —
+          roving tabindex, arrow keys, Home/End — unchanged, because the
+          tablists were fixed under issue #25 and must not regress. */}
       <div
         role="tablist"
         aria-label="Career Scoring Eras"
-        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        className="-mx-4 flex flex-wrap border-y border-rule px-4 sm:mx-0 sm:px-0"
       >
         {SHOT_ZONES.eras.map((e, idx) => {
           const isCurrent = idx === selectedEraIndex;
@@ -189,77 +202,73 @@ export function ShotZones() {
               }}
               onClick={() => setSelectedEraIndex(idx)}
               className={cn(
-                "group relative flex flex-col p-3 text-left transition-all border sm:p-4",
-                isCurrent
-                  ? "bg-wine text-chalk border-wine shadow-lg"
-                  : "bg-maple-deep/50 text-ink border-rule hover:border-wine hover:bg-maple-shadow",
+                "group relative flex min-w-[9rem] flex-1 flex-col gap-0.5 border-r border-rule px-4 py-3 text-left transition-colors last:border-r-0 hover:bg-maple-deep/50",
+                isCurrent ? "text-wine" : "text-ink",
               )}
             >
-              <span
-                className={cn(
-                  "font-mono text-xs font-bold tracking-wider uppercase",
-                  isCurrent ? "text-gold" : "text-muted",
-                )}
-              >
+              <span className="narrow text-[0.6875rem] text-muted">
                 {e.period}
               </span>
-              <span className="mt-1 text-sm font-black uppercase tracking-tight sm:text-base">
-                {e.name}
-              </span>
-              <span
-                className={cn(
-                  "text-xs line-clamp-1 mt-0.5",
-                  isCurrent ? "text-chalk/80" : "text-muted",
-                )}
-              >
-                {e.tagline}
-              </span>
+              <span className="headline text-base">{e.name}</span>
+              <span className="text-xs text-muted">{e.tagline}</span>
+              {isCurrent ? (
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 -bottom-px h-[3px] bg-wine"
+                />
+              ) : null}
             </button>
           );
         })}
       </div>
 
-      {/* --- Era Narrative & Headline Metrics --- */}
+      {/* --- Era Narrative & Headline Metrics ---
+          The four figures were a second four-across band (F-01) and they are the
+          site of F-04: the panel showed `FG% 54.3` in the row while the sentence
+          beside it read "peaked at 56.5% FG in 2012-13", with nothing on screen
+          saying the row is a four-season aggregate and the sentence is one
+          season. Both figures are real and verified (DESIGN-AUDIT.md F-04/F-04b),
+          so the fix is the qualifier, not a deletion — and the qualifier is now
+          a visible line above the row, not a tooltip. */}
       <div
         id="shot-zones-era-panel"
         role="tabpanel"
         aria-labelledby={`shot-zones-era-tab-${era.id}`}
         className="mt-6 border border-rule bg-maple-deep/40 p-4 sm:p-6"
       >
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-wine">
+            <span className="narrow text-[0.6875rem] text-wine">
               {era.team} · {era.period}
             </span>
             <p className="mt-1 text-sm text-ink sm:text-base leading-relaxed">
               {era.narrative}
             </p>
           </div>
-          <div className="grid grid-cols-4 gap-4 border-t border-rule pt-4 sm:pt-0 sm:border-t-0 sm:border-l sm:pl-6">
-            <div>
-              <Caption className="text-muted">PPG</Caption>
-              <div className="figure text-xl font-bold text-wine sm:text-2xl">
-                {era.ppg.toFixed(1)}
-              </div>
-            </div>
-            <div>
-              <Caption className="text-muted">FG%</Caption>
-              <div className="figure text-xl font-bold text-wine sm:text-2xl">
-                {era.fgPct.toFixed(1)}%
-              </div>
-            </div>
-            <div>
-              <Caption className="text-muted">3P%</Caption>
-              <div className="figure text-xl font-bold text-wine sm:text-2xl">
-                {era.threePtPct.toFixed(1)}%
-              </div>
-            </div>
-            <div>
-              <Caption className="text-muted">FT%</Caption>
-              <div className="figure text-xl font-bold text-wine sm:text-2xl">
-                {era.ftPct.toFixed(1)}%
-              </div>
-            </div>
+          <div className="shrink-0 border-t border-rule pt-4 sm:pt-0 sm:border-t-0 sm:border-l sm:pl-6">
+            <Kicker className="text-[0.8125rem] font-semibold">
+              {era.games}-game average
+            </Kicker>
+            <dl className="mt-2 flex gap-5 sm:gap-6">
+              {(
+                [
+                  ["PPG", era.ppg.toFixed(1), ""],
+                  ["FG%", era.fgPct.toFixed(1), "%"],
+                  ["3P%", era.threePtPct.toFixed(1), "%"],
+                  ["FT%", era.ftPct.toFixed(1), "%"],
+                ] as const
+              ).map(([label, value, unit]) => (
+                <div key={label}>
+                  <dt>
+                    <Caption className="text-muted">{label}</Caption>
+                  </dt>
+                  <dd className="figure text-xl text-wine sm:text-2xl">
+                    {value}
+                    {unit}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 import { CAREER, STATS_AS_OF } from "@/lib/lebron-data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
-import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Counter, PaintRule, type Opener } from "@/components/typeset";
 
 /**
  * The line.
@@ -16,6 +16,14 @@ import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
  * Everything below it is official and exact; the per-season table these come
  * from sums to each of these totals in every category.
  */
+/**
+ * Opener: `written-line` -- Opens on the painted band with the stat line itself as the display; the heading is its label.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "written-line";
+
 export function TheLine() {
   return (
     <section
@@ -24,15 +32,8 @@ export function TheLine() {
       className="floor relative py-20 sm:py-28"
     >
       <div className="mx-auto max-w-6xl px-5 sm:px-8 md:px-14">
-        <h2
-          id="line-heading"
-          className="monument text-wine"
-          style={{ fontSize: "clamp(3rem, 11vw, 8rem)" }}
-        >
-          <RiseWords text={CAREER.heading} />
-        </h2>
         <motion.p
-          className="prose-copy mt-6 max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
+          className="prose-copy max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={VIEWPORT_SOON}
@@ -44,7 +45,7 @@ export function TheLine() {
 
       {/* the slash line, in the paint */}
       <motion.div
-        className="on-paint relative mt-12 origin-left overflow-hidden bg-wine text-chalk"
+        className="on-paint relative mt-10 origin-left overflow-hidden bg-wine text-chalk"
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -57,14 +58,35 @@ export function TheLine() {
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6, ease: EASE_SETTLE, delay: 0.45 }}
         >
-          <dl className="flex flex-row items-start gap-3 sm:gap-0 lg:gap-x-14">
+          {/* Opener: written-line. The heading is the stat line, so the
+              heading is set as the line's own label inside the band rather than
+              as a colossal monument stacked above it with a standfirst
+              between. Nothing on maple comes first — the section opens on the
+              painted band, which is a silhouette no other section uses (F-01).
+              The heading is still a real <h2>: a screen reader gets "The line"
+              as the section name, and the figures below keep their <dl>. */}
+          <h2
+            id="line-heading"
+            className="narrow border-b border-rule-chalk/30 pb-4 text-chalk-dim"
+          >
+            {CAREER.heading}
+          </h2>
+          <dl className="mt-10 flex flex-row items-start gap-3 sm:gap-0 lg:gap-x-14">
             {CAREER.headline.map((stat, i) => (
               <React.Fragment key={stat.label}>
                 <div className="flex min-w-0 flex-1 flex-col lg:flex-none">
                   {/* `dt` must come first in the HTML content model for a
                       `dl`; the figure is still displayed above it via
                       `order`. Emitting `dd` first announces a dangling
-                      number before its label. */}
+                      number before its label.
+
+                      Every child needs an explicit `order`. The rule and the
+                      career total are siblings of the `dt`/`dd` pair, not
+                      children of either, so they defaulted to `order: 0` and
+                      flex put them FIRST — the total rendered above the figure
+                      it belongs to, contradicting this component's own
+                      docstring ("the totals hung underneath each figure").
+                      The reading order is now figure, label, rule, total. */}
                   <dt className="order-2 mt-4">
                     <Caption bold className="block text-chalk">
                       {stat.label}
@@ -96,14 +118,14 @@ export function TheLine() {
 
                   <span
                     aria-hidden
-                    className="mt-5 block h-px w-full max-w-[9rem] bg-gold"
+                    className="order-3 mt-5 block h-px w-full max-w-[9rem] bg-gold"
                   />
-                  <Caption bold className="mt-4 block text-gold">
+                  <Caption bold className="order-4 mt-4 block text-gold">
                     {stat.total.toLocaleString("en-US")} in total
                   </Caption>
                   {stat.rank ? (
                     <Caption
-                      className="mt-1 block"
+                      className="order-5 mt-1 block"
                       style={{ color: "var(--chalk-dim)" }}
                     >
                       {stat.rank}

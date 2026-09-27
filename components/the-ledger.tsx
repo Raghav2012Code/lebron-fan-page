@@ -13,7 +13,7 @@ import {
 } from "@/lib/lebron-data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /**
@@ -343,6 +343,14 @@ function LedgerPanel({ entry }: { entry: LedgerEntry }) {
   );
 }
 
+/**
+ * Opener: `instrument` -- Accumulation rule and stint tabs in the top edge of one inset panel.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "instrument";
+
 export function TheLedger() {
   const [active, setActive] = React.useState(LEDGER[0].id);
 
@@ -352,29 +360,38 @@ export function TheLedger() {
       aria-labelledby="ledger-heading"
       className="floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
     >
-      <div className="mx-auto max-w-6xl">
-        <h2
-          id="ledger-heading"
-          className="monument max-w-[13ch] text-wine"
-          style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
-        >
-          <RiseWords text={LEDGER_INTRO.heading} />
-        </h2>
-        <motion.p
-          className="prose-copy mt-6 max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={VIEWPORT_SOON}
-          transition={{ duration: 0.8, ease: EASE_SETTLE, delay: 0.25 }}
-        >
-          {LEDGER_INTRO.copy} As of {STATS_AS_OF}.
-        </motion.p>
+      {/* Opener: instrument. The accumulation rule and the stint tabs are this
+          section's controls, so they sit in the top edge of one inset panel
+          with the heading, and the ledger's panels follow beneath it. No
+          heading block above the controls, and the heading is demoted from
+          `monument` to `headline` — the accumulating figure is this section's
+          display element (F-01). The inset is `bg-maple-deep/50` +
+          `border-rule` per AGENTS.md §1, never a stark white card. */}
+      <div className="mx-auto max-w-6xl rounded-none border border-rule bg-maple-deep/50">
+        <div className="px-5 pt-8 sm:px-7">
+          <h2
+            id="ledger-heading"
+            className="headline max-w-[15ch] text-wine"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
+          >
+            <RiseWords text={LEDGER_INTRO.heading} />
+          </h2>
+          <motion.p
+            className="prose-copy mt-4 max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={VIEWPORT_SOON}
+            transition={{ duration: 0.8, ease: EASE_SETTLE, delay: 0.25 }}
+          >
+            {LEDGER_INTRO.copy} As of {STATS_AS_OF}.
+          </motion.p>
 
-        <div className="mt-14">
-          <Accumulation activeId={active} setActive={setActive} />
+          <div className="mt-8 border-t border-rule pt-8">
+            <Accumulation activeId={active} setActive={setActive} />
+          </div>
         </div>
 
-        <div className="mt-16">
+        <div className="mt-8 border-t border-rule px-5 pb-8 pt-6 sm:px-7">
           <Tabs value={active} onValueChange={setActive}>
             <TabsList aria-label="Career stint">
               {LEDGER.map((e) => (

@@ -6,9 +6,64 @@ import { motion } from "framer-motion";
 import {
   FATHER_AND_SON,
   type FatherSonMilestone,
+  type GameComparisonNode,
 } from "@/lib/lebron-data";
 import { cn } from "@/lib/utils";
-import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/components/typeset";
+
+/* -------------------------------------------------------------------------
+ * BoxLine — a box score set as a line score.
+ *
+ * These two were five-across grids of filled tiles, two of the seven identical
+ * bands the page ran (F-01). A box score is not a card grid; it is a line. So it
+ * is set as a line: five figures on one rule, hairline verticals between them,
+ * no per-cell fill, label over figure.
+ *
+ * `StatBand` is deliberately not used here. The cap in F-01 allows two bands on
+ * the whole page and they are spent on the scoreboard tiles and the block's
+ * telemetry; a third would break the cap that exists to stop exactly this
+ * pattern spreading.
+ * ------------------------------------------------------------------------ */
+
+const BOX_LABELS = ["PTS", "REB", "AST", "STL", "FG"] as const;
+
+function BoxLine({ box }: { box: GameComparisonNode["boxScore"] }) {
+  const values = [box.pts, box.reb, box.ast, box.stl, box.fg];
+  return (
+    <dl className="mt-2 flex items-stretch">
+      {BOX_LABELS.map((label, i) => (
+        <div
+          key={label}
+          className="flex flex-1 flex-col items-center border-r border-rule/60 px-1 last:border-r-0"
+        >
+          <dt>
+            <Caption className="text-muted">{label}</Caption>
+          </dt>
+          <dd
+            className={cn(
+              "figure text-wine",
+              // The FG cell is a slash line like "9-16", not a bare integer,
+              // so it needs a size down to sit on the same optical baseline.
+              typeof values[i] === "string"
+                ? "text-sm leading-6"
+                : "text-xl leading-7",
+            )}
+          >
+            {values[i]}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * Opener: `margin-note` -- Heading in a narrow left column, the 21-year timeline running beside it.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "margin-note";
 
 export function FatherAndSon() {
   // Index into a data array, so it is clamped on read: if the timeline is ever
@@ -32,15 +87,18 @@ export function FatherAndSon() {
       aria-label="Father and son — the 21-year arc and NBA history"
       className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
-      {/* --- Section Header --- */}
-      <div className="flex flex-col items-start">
-        <Caption bold className="text-wine tracking-[0.2em]">
-          {FATHER_AND_SON.heading.toUpperCase()} · 2003—2024
-        </Caption>
-        <h2 className="mt-3 text-3xl font-black text-wine sm:text-4xl md:text-5xl">
-          <RiseWords text={FATHER_AND_SON.subheading} />
-        </h2>
-        <p className="mt-4 max-w-3xl text-base text-ink sm:text-lg leading-relaxed">
+      {/* --- Section Header ---
+          Opener: margin-note. Heading in a narrow left column, the 21-year
+          timeline running beside it. The eyebrow that stood here restated the
+          heading and carried a `·` separator on top of it, both banned by
+          AGENTS.md §1 — gone, see F-02. */}
+      <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,20rem)_1fr]">
+        <div>
+          <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+            <RiseWords text={FATHER_AND_SON.subheading} />
+          </h2>
+        </div>
+        <p className="max-w-2xl self-end text-base text-ink sm:text-lg leading-relaxed">
           {FATHER_AND_SON.copy}
         </p>
       </div>
@@ -149,29 +207,8 @@ export function FatherAndSon() {
 
           {/* Debut Box Score */}
           <div className="mt-6 border-t border-rule pt-4">
-            <Caption className="text-muted mb-2">Debut Box Score</Caption>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">PTS</span>
-                <span className="figure text-lg font-black text-wine">{debut.boxScore.pts}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">REB</span>
-                <span className="figure text-lg font-black text-wine">{debut.boxScore.reb}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">AST</span>
-                <span className="figure text-lg font-black text-wine">{debut.boxScore.ast}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">STL</span>
-                <span className="figure text-lg font-black text-wine">{debut.boxScore.stl}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">FG</span>
-                <span className="figure text-xs font-bold text-wine leading-5">{debut.boxScore.fg}</span>
-              </div>
-            </div>
+            <Caption className="text-muted">Debut Box Score</Caption>
+            <BoxLine box={debut.boxScore} />
           </div>
         </div>
 
@@ -212,29 +249,8 @@ export function FatherAndSon() {
 
           {/* History Box Score */}
           <div className="mt-6 border-t border-rule pt-4">
-            <Caption className="text-muted mb-2">Opening Night Box Score</Caption>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">PTS</span>
-                <span className="figure text-lg font-black text-wine">{history.boxScore.pts}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">REB</span>
-                <span className="figure text-lg font-black text-wine">{history.boxScore.reb}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">AST</span>
-                <span className="figure text-lg font-black text-wine">{history.boxScore.ast}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">STL</span>
-                <span className="figure text-lg font-black text-wine">{history.boxScore.stl}</span>
-              </div>
-              <div className="bg-maple-deep/50 p-2">
-                <span className="block text-[0.625rem] font-mono text-muted uppercase">FG</span>
-                <span className="figure text-xs font-bold text-wine leading-5">{history.boxScore.fg}</span>
-              </div>
-            </div>
+            <Caption className="text-muted">Opening Night Box Score</Caption>
+            <BoxLine box={history.boxScore} />
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ import {
 } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { Caption, Counter, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Counter, PaintRule, RiseWords, StatBand, type Opener } from "@/components/typeset";
 
 type RoundFilter = "ALL" | PlayoffRoundCategory;
 type OutcomeFilter = "ALL" | "W" | "L";
@@ -77,6 +77,14 @@ function teamColor(team: string) {
       return "var(--wine)";
   }
 }
+
+/**
+ * Opener: `instrument` -- Heading shares a rule with the view toggle; the 57-series grid is the face.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "instrument";
 
 export function PlayoffMatrix() {
   const [activeRound, setActiveRound] = React.useState<RoundFilter>("ALL");
@@ -299,21 +307,23 @@ export function PlayoffMatrix() {
       className="floor relative py-20 sm:py-28 overflow-hidden"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 md:px-14">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse" aria-hidden="true" />
-              <Caption bold className="text-gold uppercase tracking-wider">
-                Postseason Historical Ledger
-              </Caption>
-            </div>
+        {/* Opener: instrument. The 57-series grid and its filters are this
+            section's opener, so the heading shares a rule with the view toggle
+            instead of sitting above them under a label — and it is demoted from
+            `monument` to `headline`, because four sections at the same colossal
+            scale is what flattened the page's hierarchy (F-01). The live dot is
+            kept: it is a status indicator and is one of only four round shapes
+            the design allows (F-08). The label it used to sit beside was a
+            restatement of the heading and is gone (F-02). */}
+        <div className="flex flex-col gap-4 border-b-2 border-rule-strong pb-4 md:flex-row md:items-end md:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-2 w-2 rounded-full bg-gold animate-pulse" aria-hidden="true" />
             <h2
               id="playoff-matrix-heading"
-              className="monument text-wine mt-3"
-              style={{ fontSize: "clamp(2.5rem, 8vw, 6.5rem)" }}
+              className="headline text-wine"
+              style={{ fontSize: "clamp(2rem, 4.5vw, 3.5rem)" }}
             >
-              <RiseWords text="THE PLAYOFF MATRIX" />
+              <RiseWords text="The Playoff Matrix" />
             </h2>
           </div>
 
@@ -374,48 +384,45 @@ export function PlayoffMatrix() {
           <strong className="text-wine font-semibold">12 series sweeps</strong> while facing 25 distinct opponent franchises.
         </motion.p>
 
-        {/* Aggregate Headline Cards */}
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
-            <Caption bold className="text-muted block">All-Time Series</Caption>
-            <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={career.wins} />–<Counter to={career.losses} />
-            </div>
-            <Caption className="text-muted mt-1 block">
-              {career.series} series • {career.seriesWinPct.toFixed(1)}% Win Rate
-            </Caption>
-          </div>
-
-          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
-            <Caption bold className="text-muted block">Playoff Games</Caption>
-            <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={career.games} />
-            </div>
-            <Caption className="text-muted mt-1 block">
-              {career.gamesWon}–{career.gamesLost} • {career.gamesWinPct.toFixed(1)}% game mark
-            </Caption>
-          </div>
-
-          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
-            <Caption bold className="text-muted block">Playoff Scoring</Caption>
-            <div className="figure text-2xl sm:text-3xl lg:text-4xl text-wine mt-1">
-              <Counter to={career.points} />
-            </div>
-            <Caption className="text-muted mt-1 block">
-              {career.ppg.toFixed(1)} PPG • Most in history
-            </Caption>
-          </div>
-
-          <div className="p-4 rounded border border-rule bg-maple-deep/40 backdrop-blur-xs">
-            <Caption bold className="text-muted block">Sweeps Mastery</Caption>
-            <div className="figure text-2xl sm:text-3xl lg:text-4xl text-gold mt-1">
-              <Counter to={career.sweepsWon} />W – <Counter to={career.sweepsLost} />L
-            </div>
-            <Caption className="text-muted mt-1 block">
-              {career.sweepsWon} sweeps won, {career.sweepsLost} swept
-            </Caption>
-          </div>
-        </div>
+        {/* Aggregate Headline Cards ---
+            One of the seven four-item bands (F-01), and one of the two that
+            survive the cap. A scoreboard genuinely is four figures on one
+            reading, and `variant="framed"` is the one place on the page where
+            inset panels are the right container. */}
+        <StatBand
+          className="mt-10"
+          items={[
+            {
+              label: "All-Time Series",
+              value: (
+                <>
+                  <Counter to={career.wins} />–<Counter to={career.losses} />
+                </>
+              ),
+              caption: `${career.series} series · ${career.seriesWinPct.toFixed(1)}% win rate`,
+            },
+            {
+              label: "Playoff Games",
+              value: <Counter to={career.games} />,
+              caption: `${career.gamesWon}–${career.gamesLost} · ${career.gamesWinPct.toFixed(1)}% game mark`,
+            },
+            {
+              label: "Playoff Scoring",
+              value: <Counter to={career.points} />,
+              caption: `${career.ppg.toFixed(1)} PPG · most in history`,
+            },
+            {
+              label: "Sweeps Mastery",
+              tone: "gold",
+              value: (
+                <>
+                  <Counter to={career.sweepsWon} />W – <Counter to={career.sweepsLost} />L
+                </>
+              ),
+              caption: `${career.sweepsWon} won, ${career.sweepsLost} swept`,
+            },
+          ]}
+        />
 
         <div className="my-8">
           <PaintRule color="var(--rule-strong)" thickness={1} />
@@ -904,52 +911,55 @@ export function PlayoffMatrix() {
                   )}
                 </div>
 
-                {/* LeBron Series Scoring & Per-Game Averages */}
+                {/* LeBron Series Scoring & Per-Game Averages ---
+                    Was a third four-across band of framed tiles (F-01), and the
+                    two `StatBand` uses are already spent. Inside a drawer this
+                    is a line of figures, not a card grid, so it is set as one:
+                    four columns of label / figure / total, separated by
+                    hairlines, with no per-cell frame. */}
                 <div className="mt-6">
-                  <Caption bold className="text-wine uppercase tracking-wider text-xs block mb-3">
-                    LeBron James Series Averages & Totals
+                  <Caption bold className="text-wine uppercase text-xs block mb-3">
+                    LeBron James Series Averages &amp; Totals
                   </Caption>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
-                      <Caption className="text-muted block text-xs">Points / Game</Caption>
-                      <div className="figure text-2xl text-wine mt-1">
-                        {inspectSeries.ppg ?? inspectSeries.lebronStats.ppg}
+                  <dl className="flex flex-wrap gap-x-6 gap-y-4 border-t border-rule pt-4">
+                    {(
+                      [
+                        [
+                          "Points / Game",
+                          inspectSeries.ppg ?? inspectSeries.lebronStats.ppg,
+                          `${inspectSeries.boxScoreTotals?.pts ?? inspectSeries.lebronStats.totalPoints} total PTS`,
+                        ],
+                        [
+                          "Rebounds / Game",
+                          inspectSeries.rpg ?? inspectSeries.lebronStats.rpg,
+                          `${inspectSeries.boxScoreTotals?.reb} total REB`,
+                        ],
+                        [
+                          "Assists / Game",
+                          inspectSeries.apg ?? inspectSeries.lebronStats.apg,
+                          `${inspectSeries.boxScoreTotals?.ast} total AST`,
+                        ],
+                        [
+                          "Defense / Game",
+                          `${inspectSeries.spg ?? 0}S / ${inspectSeries.bpg ?? 0}B`,
+                          `${inspectSeries.boxScoreTotals?.stl} stl · ${inspectSeries.boxScoreTotals?.blk} blk`,
+                        ],
+                      ] as const
+                    ).map(([label, value, total]) => (
+                      <div
+                        key={label}
+                        className="min-w-[7rem] flex-1 border-l border-rule/60 pl-4 first:border-l-0 first:pl-0"
+                      >
+                        <dt>
+                          <Caption className="text-muted">{label}</Caption>
+                        </dt>
+                        <dd className="figure text-2xl text-wine">{value}</dd>
+                        <Caption className="mt-0.5 text-muted text-[0.6875rem]">
+                          {total}
+                        </Caption>
                       </div>
-                      <Caption className="text-muted text-[0.6875rem] mt-0.5 block">
-                        {inspectSeries.boxScoreTotals?.pts ?? inspectSeries.lebronStats.totalPoints} total PTS
-                      </Caption>
-                    </div>
-
-                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
-                      <Caption className="text-muted block text-xs">Rebounds / Game</Caption>
-                      <div className="figure text-2xl text-wine mt-1">
-                        {inspectSeries.rpg ?? inspectSeries.lebronStats.rpg}
-                      </div>
-                      <Caption className="text-muted text-[0.6875rem] mt-0.5 block">
-                        {inspectSeries.boxScoreTotals?.reb} total REB
-                      </Caption>
-                    </div>
-
-                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
-                      <Caption className="text-muted block text-xs">Assists / Game</Caption>
-                      <div className="figure text-2xl text-wine mt-1">
-                        {inspectSeries.apg ?? inspectSeries.lebronStats.apg}
-                      </div>
-                      <Caption className="text-muted text-[0.6875rem] mt-0.5 block">
-                        {inspectSeries.boxScoreTotals?.ast} total AST
-                      </Caption>
-                    </div>
-
-                    <div className="p-3 rounded bg-maple-deep/40 border border-rule">
-                      <Caption className="text-muted block text-xs">Defense / Game</Caption>
-                      <div className="figure text-xl text-wine mt-1">
-                        {inspectSeries.spg ?? 0}S / {inspectSeries.bpg ?? 0}B
-                      </div>
-                      <Caption className="text-muted text-[0.6875rem] mt-0.5 block">
-                        {inspectSeries.boxScoreTotals?.stl} stl • {inspectSeries.boxScoreTotals?.blk} blk
-                      </Caption>
-                    </div>
-                  </div>
+                    ))}
+                  </dl>
                 </div>
 
                 {/* Shooting Splits & Box Score Totals */}

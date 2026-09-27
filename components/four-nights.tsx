@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { NIGHTS, NIGHTS_INTRO, type Night } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { PaintRule, RiseWords } from "@/components/typeset";
+import { PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
 /**
  * Four nights.
@@ -87,20 +87,32 @@ function NightBand({ night, index }: { night: Night; index: number }) {
   );
 }
 
+/**
+ * Opener: `ruled-ledger` -- Masthead on the chronology's opening rule, four full-width bands running on.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "ruled-ledger";
+
 export function FourNights() {
   return (
     <section id="nights" aria-labelledby="nights-heading" className="relative">
-      <div className="floor px-5 pb-14 pt-20 sm:px-8 sm:pt-28 md:px-14">
-        <div className="mx-auto max-w-6xl">
+      <div className="floor px-5 pb-10 pt-20 sm:px-8 sm:pt-28 md:px-14">
+        {/* Opener: ruled-ledger. Same masthead grammar as the honours ledger —
+            heading on the chronology's opening rule, standfirst beside it,
+            bands running straight on underneath. `headline` rather than
+            `monument`: the years are this section's display element (F-01). */}
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
           <h2
             id="nights-heading"
-            className="monument text-wine"
-            style={{ fontSize: "clamp(3rem, 11vw, 8rem)" }}
+            className="headline shrink-0 text-wine"
+            style={{ fontSize: "clamp(2.25rem, 6vw, 4.5rem)" }}
           >
             <RiseWords text={NIGHTS_INTRO.heading} />
           </h2>
           <motion.p
-            className="prose-copy mt-6 max-w-[40ch] text-[1.0625rem] text-muted sm:text-lg"
+            className="prose-copy max-w-[40ch] text-[1.0625rem] text-muted sm:text-lg"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={VIEWPORT_SOON}

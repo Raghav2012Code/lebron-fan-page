@@ -15,7 +15,7 @@ import { SHOT } from "@/lib/lebron-data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
-import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 import { SoundToggle } from "@/components/sound-toggle";
 import { useSound } from "@/components/sound-provider";
 
@@ -88,6 +88,14 @@ function Readout({
     </div>
   );
 }
+
+/**
+ * Opener: `instrument` -- Heading, copy and sound toggle in the panel's top edge; the court is the face.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "instrument";
 
 export function LastShot() {
   const reduce = useReducedMotion();
@@ -311,12 +319,16 @@ export function LastShot() {
       aria-labelledby="shot-heading"
       className="floor relative px-5 py-20 sm:px-8 sm:py-28 md:px-14"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="flex flex-wrap items-end justify-between gap-6">
+      {/* Opener: instrument. The shot challenge is the mechanism, so the court
+          is the first thing on screen and the heading, the copy and the sound
+          toggle are the panel's top edge rather than a block above it. Heading
+          demoted from `monument` to `headline` (F-01). */}
+      <div className="mx-auto max-w-6xl rounded-none border border-rule bg-maple-deep/50">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-rule px-5 py-6 sm:px-7">
           <h2
             id="shot-heading"
-            className="monument max-w-[12ch] text-wine"
-            style={{ fontSize: "clamp(2.5rem, 8vw, 6rem)" }}
+            className="headline max-w-[14ch] text-wine"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)" }}
           >
             <RiseWords text={SHOT.heading} />
           </h2>
@@ -324,7 +336,7 @@ export function LastShot() {
         </div>
 
         <motion.p
-          className="prose-copy mt-6 max-w-[46ch] text-[1.0625rem] text-muted sm:text-lg"
+          className="prose-copy max-w-[46ch] px-5 pt-6 text-[1.0625rem] text-muted sm:px-7 sm:text-lg"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={VIEWPORT_SOON}
@@ -333,7 +345,8 @@ export function LastShot() {
           {SHOT.copy}
         </motion.p>
 
-        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[1.45fr_1fr]">
+        <div className="px-5 pb-8 pt-8 sm:px-7">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.45fr_1fr]">
           {/* THE COURT — chalk lines on painted floor. Revealed by pulling a
               maple cover off it rather than by transforming the panel itself,
               so the court markings never distort and the panel is the right
@@ -598,6 +611,7 @@ export function LastShot() {
         <p aria-live="polite" className="sr-only">
           {announce}
         </p>
+        </div>
       </div>
     </section>
   );

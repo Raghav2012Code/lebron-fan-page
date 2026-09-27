@@ -50,6 +50,11 @@
   --color-maple-deep: var(--maple-deep);
   --color-maple-shadow: var(--maple-shadow);
   --color-chalk: var(--chalk);
+  /* Recessive chalk for body copy on painted grounds. Previously only reachable
+     as an inline `style={{ color: "var(--chalk-dim)" }}`, which put a raw token
+     reference in three components. Exposed as a utility so the painted grounds
+     can be restyled from one place. */
+  --color-chalk-dim: var(--chalk-dim);
   --color-wine: var(--wine);
   --color-wine-deep: var(--wine-deep);
   --color-ochre: var(--ochre);

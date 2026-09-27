@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 import { NUMBER } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
-import { Caption, PaintRule, RiseLine } from "@/components/typeset";
+import { Caption, PaintRule, RiseLine, type Opener } from "@/components/typeset";
 
 /**
  * Twenty-three.
@@ -15,6 +15,14 @@ import { Caption, PaintRule, RiseLine } from "@/components/typeset";
  * detail that the number was not actually constant — 23, then 6, then 23
  * again. No rotating ring of text, which is what used to sit here.
  */
+/**
+ * Opener: `device` -- A colossal numeral bleeding off a full-viewport painted field.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "device";
+
 export function TwentyThree() {
   const ref = React.useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({

@@ -9,7 +9,7 @@ import {
   type PeakEraProfile,
 } from "@/lib/lebron-data";
 import { cn } from "@/lib/utils";
-import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, Kicker, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
 interface MetricRowProps {
   label: string;
@@ -112,6 +112,14 @@ function MetricRow({
   );
 }
 
+/**
+ * Opener: `margin-note` -- Heading in a narrow left column, the two era selectors are the body.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "margin-note";
+
 export function EraCompare() {
   const [eraAId, setEraAId] = React.useState("2013"); // Miami Apex
   const [eraBId, setEraBId] = React.useState("2016"); // Cleveland 2016 Climax
@@ -127,15 +135,19 @@ export function EraCompare() {
       aria-label="Era versus era — peak seasons comparative tool"
       className="relative z-10 mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8"
     >
-      {/* --- Section Header --- */}
-      <div className="flex flex-col items-start">
-        <Caption bold className="text-wine tracking-[0.2em]">
-          {ERA_COMPARE_INTRO.heading.toUpperCase()} · PEAK COMPARATOR
-        </Caption>
-        <h2 className="mt-3 text-3xl font-black text-wine sm:text-4xl md:text-5xl">
-          <RiseWords text={ERA_COMPARE_INTRO.subheading} />
-        </h2>
-        <p className="mt-4 max-w-3xl text-base text-ink sm:text-lg leading-relaxed">
+      {/* --- Section Header ---
+          Opener: margin-note. The heading sits in a narrow left column and the
+          two selectors run beside it, so this section does not open with the
+          eyebrow/headline/standfirst stack the page used to run everywhere. The
+          eyebrow that stood here ("THE ERA COMPARATOR · PEAK COMPARATOR") was a
+          restatement of the heading beneath it and is gone — see F-02. */}
+      <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,20rem)_1fr]">
+        <div>
+          <h2 className="text-3xl font-black text-wine sm:text-4xl md:text-5xl">
+            <RiseWords text={ERA_COMPARE_INTRO.subheading} />
+          </h2>
+        </div>
+        <p className="max-w-2xl self-end text-base text-ink sm:text-lg leading-relaxed">
           {ERA_COMPARE_INTRO.copy}
         </p>
       </div>
@@ -279,9 +291,9 @@ export function EraCompare() {
 
         {/* Scoring & Shooting Efficiency */}
         <div className="mt-6">
-          <Caption className="text-muted uppercase tracking-widest text-[0.6875rem]">
+          <Kicker className="font-semibold">
             Scoring & Shooting Efficiency
-          </Caption>
+          </Kicker>
           <div className="mt-2 space-y-1">
             <MetricRow
               label="Points Per Game"
@@ -315,9 +327,9 @@ export function EraCompare() {
 
         {/* Playmaking & Ball Security */}
         <div className="mt-8">
-          <Caption className="text-muted uppercase tracking-widest text-[0.6875rem]">
+          <Kicker className="font-semibold">
             Playmaking & Control
-          </Caption>
+          </Kicker>
           <div className="mt-2 space-y-1">
             <MetricRow
               label="Assists Per Game"
@@ -336,9 +348,9 @@ export function EraCompare() {
 
         {/* Rebounding & Defense */}
         <div className="mt-8">
-          <Caption className="text-muted uppercase tracking-widest text-[0.6875rem]">
+          <Kicker className="font-semibold">
             Rebounding & Defense
-          </Caption>
+          </Kicker>
           <div className="mt-2 space-y-1">
             <MetricRow
               label="Rebounds Per Game"
@@ -363,9 +375,9 @@ export function EraCompare() {
 
         {/* Team Success */}
         <div className="mt-8">
-          <Caption className="text-muted uppercase tracking-widest text-[0.6875rem]">
+          <Kicker className="font-semibold">
             Team Regular Season Record
-          </Caption>
+          </Kicker>
           <div className="mt-2 space-y-1">
             <MetricRow
               label="Regular Season Wins"

@@ -342,3 +342,180 @@ export function Caption({
     </Tag>
   );
 }
+
+/* -------------------------------------------------------------------------
+ * Opener — the shape a section opens with.
+ *
+ * The page originally ran one structural rhythm thirteen times: eyebrow, huge
+ * condensed headline, standfirst, four-item band. A reader could predict every
+ * remaining section from the one before it, which is the single largest reason
+ * the page read as generated (DESIGN-AUDIT.md F-01).
+ *
+ * Each top-level unit therefore declares which of five openers it uses, and the
+ * test gate asserts that no two ADJACENT units in `app/page.tsx` declare the
+ * same one. Silhouette is not machine-checkable, so the declared value is the
+ * honest proxy: it forces the intent to be written down, and reordering the page
+ * without reconsidering the rhythm fails the gate.
+ *
+ *   device       — no heading block; the mechanism IS the opener (the court,
+ *                  the pinned chapters, the colossal numeral, the scrubber)
+ *   ruled-ledger — display heading on a rule; body is a ruled list, no frames
+ *   written-line — the heading IS the content, one line at display scale
+ *   margin-note  — heading in a narrow left column, body running beside it
+ *   instrument   — dense bordered panel, controls in its top edge, no heading
+ * ------------------------------------------------------------------------ */
+
+export type Opener =
+  | "device"
+  | "ruled-ledger"
+  | "written-line"
+  | "margin-note"
+  | "instrument";
+
+export const OPENERS: readonly Opener[] = [
+  "device",
+  "ruled-ledger",
+  "written-line",
+  "margin-note",
+  "instrument",
+];
+
+/* -------------------------------------------------------------------------
+ * Kicker — the replacement for the tracked all-caps eyebrow.
+ *
+ * `AGENTS.md` §1 bans "tracked-out all-caps eyebrows with middle dots". The
+ * eyebrow pattern was nine sites; four were redundant labels for the heading
+ * beneath them and were deleted, and five carry real information (the hero's
+ * scroll affordance, and era-compare's four metric-group labels).
+ *
+ * This is what those five use. It is deliberately NOT built on `.narrow`:
+ * `.narrow` is uppercase with 0.04em tracking, so a "restyled" kicker that kept
+ * it would satisfy a grep for the tracking utilities while looking exactly the
+ * same on screen. Body face, body size, sentence case, no tracking override, no
+ * separator glyph.
+ * ------------------------------------------------------------------------ */
+
+export function Kicker({
+  children,
+  className,
+  as: Tag = "p",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  as?: "span" | "p" | "div";
+}) {
+  return (
+    <Tag className={cn("text-[0.9375rem] leading-snug text-muted", className)}>
+      {children}
+    </Tag>
+  );
+}
+
+/* -------------------------------------------------------------------------
+ * StatBand — the four-item band, as one component.
+ *
+ * This existed inline at seven sites, which is how a page ends up with the same
+ * container for everything (F-01). Extracting it makes the cap mechanical: the
+ * test gate asserts `<StatBand` appears at most twice on the page, so the band
+ * can no longer quietly become the default container for a new section.
+ *
+ * Two presentations, because the two surviving uses genuinely differ:
+ *   framed — each item is an inset panel. The scoreboard read.
+ *   ruled  — one hairline top and bottom, items divided by verticals. The
+ *            line-score read, on a painted ground where frames would fight it.
+ * ------------------------------------------------------------------------ */
+
+export interface StatBandItem {
+  label: string;
+  value: React.ReactNode;
+  caption?: React.ReactNode;
+  /** `gold` for a figure that is a highlight rather than a total. */
+  tone?: "wine" | "gold";
+  /** Overrides the item's `value` colour, e.g. to a chalk token on paint. */
+  valueClassName?: string;
+  labelClassName?: string;
+  captionClassName?: string;
+}
+
+export function StatBand({
+  items,
+  variant = "framed",
+  className,
+  itemClassName,
+}: {
+  items: readonly StatBandItem[];
+  variant?: "framed" | "ruled";
+  className?: string;
+  itemClassName?: string;
+}) {
+  if (variant === "ruled") {
+    return (
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-x-6 gap-y-8 border-y border-rule-chalk py-6 sm:grid-cols-4",
+          className,
+        )}
+      >
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className={cn("flex flex-col gap-1", itemClassName)}
+          >
+            <span
+              className={cn(
+                "figure text-[2.25rem] sm:text-[3rem]",
+                item.tone === "gold" ? "text-gold" : "text-wine",
+                item.valueClassName,
+              )}
+            >
+              {item.value}
+            </span>
+            <Caption className={item.labelClassName}>{item.label}</Caption>
+            {item.caption ? (
+              <Caption className={cn("mt-0.5", item.captionClassName)}>
+                {item.caption}
+              </Caption>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4",
+        className,
+      )}
+    >
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className={cn(
+            "rounded-none border border-rule bg-maple-deep/40 p-4 backdrop-blur-xs",
+            itemClassName,
+          )}
+        >
+          <Caption bold className={cn("block text-muted", item.labelClassName)}>
+            {item.label}
+          </Caption>
+          <div
+            className={cn(
+              "figure mt-1 text-2xl text-wine sm:text-3xl lg:text-4xl",
+              item.tone === "gold" && "text-gold",
+              item.valueClassName,
+            )}
+          >
+            {item.value}
+          </div>
+          {item.caption ? (
+            <Caption className={cn("mt-1 block text-muted", item.captionClassName)}>
+              {item.caption}
+            </Caption>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  );
+}

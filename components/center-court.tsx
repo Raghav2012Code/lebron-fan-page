@@ -7,7 +7,7 @@ import { HERO } from "@/lib/lebron-data";
 import { EASE_PAINT, EASE_SETTLE, stagger } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { COURT_PAINT_ASPECT, CourtDiagram } from "@/components/court-diagram";
-import { Caption, PaintedName } from "@/components/typeset";
+import { Caption, Kicker, PaintedName, type Opener } from "@/components/typeset";
 
 /**
  * The hero. One idea, executed once: the name straddles the paint line.
@@ -16,6 +16,14 @@ import { Caption, PaintedName } from "@/components/typeset";
  * thing lays itself down in a single sequence on load — court lines, then
  * the paint, then the lettering, then the figures.
  */
+/**
+ * Opener: `device` -- The hero court and the painted name. No heading stack above it -- the court is the first thing on the page.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "device";
+
 export function CenterCourt() {
   const ref = React.useRef<HTMLElement>(null);
   // The scroll affordance pulses forever. `reducedMotion="user"` cannot stop
@@ -201,9 +209,9 @@ export function CenterCourt() {
               }}
               aria-hidden="true"
             />
-            <Caption className="text-[0.6875rem] uppercase tracking-widest text-muted/75 transition-colors group-hover:text-wine">
+            <Kicker className="text-[0.8125rem] transition-colors group-hover:text-wine">
               Scroll to explore
-            </Caption>
+            </Kicker>
           </div>
           {/* Animated hairline floor seam */}
           <div className="relative ml-[3px] h-7 w-px overflow-hidden bg-wine/20">

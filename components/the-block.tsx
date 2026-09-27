@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { THE_BLOCK, type BlockKeyframe } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, PaintRule, RiseWords, StatBand, type Opener } from "@/components/typeset";
 
 /**
  * Interpolate linear progress between two keyframes based on current time t.
@@ -67,6 +67,14 @@ function interpolate(
     keyframe: ratio >= 0.5 ? k1 : k0,
   };
 }
+
+/**
+ * Opener: `device` -- The scrubber re-enactment leads with its mechanism.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "device";
 
 export function TheBlock() {
   const [time, setTime] = React.useState(0);
@@ -145,10 +153,11 @@ export function TheBlock() {
       className="on-paint relative bg-wine px-5 py-20 text-chalk sm:px-8 sm:py-28 md:px-14"
     >
       <div className="mx-auto max-w-6xl">
+        {/* Opener: device. The scrubber re-enactment below is this section's
+            opener, so the header is a single colossal line with no eyebrow
+            above it — the tracked all-caps label that stood here restated the
+            heading and is gone (F-02). */}
         <div className="flex flex-col gap-4">
-          <Caption bold className="text-gold tracking-widest uppercase">
-            {THE_BLOCK.subheading}
-          </Caption>
           <h2
             id="the-block-heading"
             className="monument text-chalk"
@@ -168,19 +177,21 @@ export function TheBlock() {
           </motion.p>
         </div>
 
-        {/* --- Telemetry Banner --- */}
-        <div className="mt-10 grid grid-cols-2 gap-6 border-y border-rule-chalk py-6 sm:grid-cols-4">
-          {THE_BLOCK.stats.map((s) => (
-            <div key={s.label} className="flex flex-col gap-1">
-              <span className="figure text-[2.25rem] text-gold sm:text-[3rem]">
-                {s.value}
-              </span>
-              <Caption style={{ color: "var(--chalk-dim)" }}>
-                {s.label}
-              </Caption>
-            </div>
-          ))}
-        </div>
+        {/* --- Telemetry Banner ---
+            One of the seven four-item bands (F-01), and one of the two that
+            survive the cap: a line score genuinely is four figures on one rule.
+            `variant="ruled"` because this ground is painted — per-item frames
+            would fight it, and the ruled read matches a scorer's line. */}
+        <StatBand
+          className="mt-10"
+          variant="ruled"
+          items={THE_BLOCK.stats.map((s) => ({
+            label: s.label,
+            value: s.value,
+            tone: "gold" as const,
+            labelClassName: "text-chalk-dim",
+          }))}
+        />
 
         {/* --- Interactive Court & Controls Grid --- */}
         <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr]">

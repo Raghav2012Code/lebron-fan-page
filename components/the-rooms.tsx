@@ -13,7 +13,7 @@ import {
 import { ROOMS, ROOMS_INTRO, type Room } from "@/lib/lebron-data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
-import { Caption, RiseWords } from "@/components/typeset";
+import { Caption, RiseWords, type Opener } from "@/components/typeset";
 
 const N = ROOMS.length;
 const PINNED_HEIGHT = "420vh";
@@ -333,6 +333,14 @@ function StackedRoom({ room }: { room: Room }) {
     </motion.section>
   );
 }
+
+/**
+ * Opener: `device` -- Pinned scroll-linked chapters. Already the one structural departure on the page, and protected as such.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "device";
 
 export function TheRooms() {
   const reduce = usePrefersReducedMotion();

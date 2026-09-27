@@ -12,7 +12,7 @@ import {
 } from "@/lib/lebron-data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { Caption, PaintRule, RiseWords } from "@/components/typeset";
+import { Caption, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
 /**
  * The span. Twenty-three seasons on one line, with every championship, MVP and
@@ -40,7 +40,7 @@ function Marker({ season }: { season: Season }) {
       {season.olympic ? (
         <span
           aria-hidden
-          className="h-[7px] w-[7px] rounded-full border border-rule-chalk/40"
+          className="h-[7px] w-[7px] rounded-full border border-rule"
           style={{
             // Bronze was painted with `--muted`, a body-copy TEXT token, and
             // the legend only ever showed a gold swatch, so a bronze season
@@ -63,6 +63,14 @@ function Marker({ season }: { season: Season }) {
     </span>
   );
 }
+
+/**
+ * Opener: `instrument` -- Heading, copy and season readout in the panel's top edge; the ruler is its face.
+ *
+ * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
+ * two adjacent units share one. See `Opener` in typeset.tsx and DESIGN-AUDIT.md F-01.
+ */
+export const OPENER: Opener = "instrument";
 
 export function SeasonRuler() {
   const [index, setIndex] = React.useState(SEASONS.length - 1);
@@ -111,10 +119,17 @@ export function SeasonRuler() {
     <section
       id="span"
       aria-labelledby="span-heading"
-      className="floor-deep relative px-5 py-20 sm:px-8 sm:py-24 md:px-14"
+      className="floor relative px-5 py-20 sm:px-8 sm:py-24 md:px-14"
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+      {/* Opener: instrument. The ruler is a control surface and the map for the
+          whole page, so it is set as one: the heading, the copy and the season
+          readout live in the panel's top edge and the ruler is its face. There
+          is no heading block above it. The ground moved from `floor-deep` to
+          `floor` so the inset reads as an inset — a maple-deep panel on a
+          maple-deep ground is invisible — and the panel uses exactly the
+          `bg-maple-deep/50` + `border-rule` inset AGENTS.md §1 prescribes. */}
+      <div className="mx-auto max-w-6xl rounded-none border border-rule bg-maple-deep/50">
+        <div className="flex flex-col gap-8 border-b border-rule px-5 py-7 sm:px-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2
               id="span-heading"
@@ -169,7 +184,7 @@ export function SeasonRuler() {
         </div>
 
         {/* --- the ruler ------------------------------------------------- */}
-        <div className="mt-14">
+        <div className="px-5 pb-7 pt-10 sm:px-7">
           <motion.div
             ref={rulerRef}
             role="radiogroup"
@@ -308,7 +323,7 @@ export function SeasonRuler() {
                   // two: gold for a title, leather for a bronze.
                   <span aria-hidden className="flex items-center gap-1.5">
                     <span className="h-[9px] w-[9px] rounded-full bg-gold" />
-                    <span className="h-[9px] w-[9px] rounded-full border border-rule-chalk/40 bg-leather" />
+                    <span className="h-[9px] w-[9px] rounded-full border border-rule bg-leather" />
                   </span>
                 ) : null}
                 <Caption className="text-muted">{l.text}</Caption>
