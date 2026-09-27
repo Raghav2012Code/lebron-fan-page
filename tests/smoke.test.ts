@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
-import { SEASONS, SECTIONS } from "@/lib/lebron-data";
+import { SEASONS, SECTIONS, NEXT_MARK, CAREER, THE_BLOCK } from "@/lib/lebron-data";
 import {
   getBuzzerBeaters,
   getFranchiseBreakdown,
@@ -11,6 +11,106 @@ import {
 test("smoke test - imports lebron-data via path alias", () => {
   assert.strictEqual(SEASONS.length, 23);
   assert.ok(SECTIONS.length > 0);
+});
+
+/**
+ * The 50,000-point panel shipped a contradiction that every gate passed: it read
+ * "The measure that is still open" and "Nobody has been near it" at 86.9%, while
+ * `CAREER.playoffs.copy` stated the combined total as 51,961 — on the same page,
+ * two sections apart, 1,961 past the mark it called open. The cause was a
+ * definition mismatch rather than a stale digit: `current` was the
+ * regular-season total and the 50,000 mark is a combined figure.
+ *
+ * These assert the three things that made the contradiction possible, so it
+ * cannot come back by editing one string.
+ */
+test("smoke test - NEXT_MARK measures one definition, and admits the mark is closed", () => {
+  const regularSeason = CAREER.headline.find((h) => h.label === "Points");
+  assert.ok(regularSeason, "CAREER.headline must carry a Points row");
+
+  // 1. `current` is the COMBINED total, and equals the two components the page
+  //    already publishes. Previously it was regular-season only.
+  assert.strictEqual(
+    NEXT_MARK.current,
+    regularSeason.total + CAREER.playoffs.points,
+    `NEXT_MARK.current (${NEXT_MARK.current}) must be the regular-season total ` +
+      `plus the playoff total (${regularSeason.total} + ${CAREER.playoffs.points}). ` +
+      `The 50,000 mark is a COMBINED figure; measuring a regular-season-only ` +
+      `number against it is the bug this test exists to prevent.`,
+  );
+
+  // 2. The label is the number, formatted from it, so the two cannot disagree.
+  assert.strictEqual(
+    NEXT_MARK.currentLabel,
+    NEXT_MARK.current.toLocaleString("en-US"),
+    "NEXT_MARK.currentLabel must be derived from NEXT_MARK.current",
+  );
+
+  // 3. The prose may not describe a mark as open that the numbers say is passed.
+  //    This is the assertion that would have caught the original defect on its
+  //    own, without needing to know what the right target should have been.
+  const claimsOpen = /still open|nobody has been near|not a prediction/i;
+  const text = `${NEXT_MARK.heading} ${NEXT_MARK.note}`;
+  if (NEXT_MARK.current >= NEXT_MARK.target) {
+    assert.ok(
+      !claimsOpen.test(text),
+      `NEXT_MARK.current (${NEXT_MARK.current}) is at or past its target ` +
+        `(${NEXT_MARK.target}), so the copy must not describe it as open or ` +
+        `unapproached. Found: ${JSON.stringify(text)}`,
+    );
+  }
+});
+
+/**
+ * THE BLOCK presented three separately-measured figures as one reconciled set.
+ * 88 ft over 2.8 s is a 21.4 mph AVERAGE, and the tile beside it read "Peak
+ * sprint speed 20.1 mph" — an average above the peak, which is impossible. The
+ * comment in the data module had already rejected an earlier value ("93 ft") for
+ * exactly this reasoning and then accepted 88 ft, which commits the same
+ * violation one point smaller.
+ *
+ * Both figures are sourced, so neither can change. What can be enforced is that
+ * the copy says so: if the distance or the duration is ever edited, the derived
+ * average moves and the sentence has to move with it.
+ */
+test("smoke test - THE BLOCK states the average its own distance and time imply", () => {
+  const stat = (label: string) => {
+    const row = THE_BLOCK.stats.find((s) => s.label === label);
+    assert.ok(row, `THE_BLOCK.stats is missing "${label}"`);
+    return row.value;
+  };
+
+  const feet = Number(stat("Chase distance").replace(/[^\d.]/g, ""));
+  const seconds = Number(stat("Time to glass").replace(/[^\d.]/g, ""));
+  assert.ok(feet > 0 && seconds > 0, "both figures must parse");
+
+  // 1 mph = 1.46667 ft/s
+  const averageMph = (feet / seconds / 1.46667).toFixed(1);
+  assert.strictEqual(
+    feet / seconds / 1.46667 > Number(averageMph),
+    true,
+    "rounding sanity: the average must be at or above its own truncation",
+  );
+  assert.ok(
+    THE_BLOCK.copy.includes(`${averageMph} mph`),
+    `88 ft over 2.8 s works out at ${averageMph} mph, and THE_BLOCK.copy must ` +
+      `state that figure. It is higher than the 20.1 mph peak tile beside it, ` +
+      `which is the whole point: the two are measured over different windows and ` +
+      `the copy has to say so rather than leaving a reader to divide. Current ` +
+      `copy: ${JSON.stringify(THE_BLOCK.copy)}`,
+  );
+
+  // The unsourced per-keyframe speeds are gone, so the scrubber cannot print a
+  // speed that contradicts its own distances. Asserted on the rendered data
+  // rather than the type, because a type says nothing about a runtime value.
+  for (const k of THE_BLOCK.keyframes) {
+    assert.ok(
+      !("speed" in k.telemetry),
+      `keyframe at t=${k.time} still carries a speed (${JSON.stringify(k.telemetry)}). ` +
+        `No source reports a speed at those instants, and every segment's ` +
+        `distance implied an average faster than both its own endpoints.`,
+    );
+  }
 });
 
 /**

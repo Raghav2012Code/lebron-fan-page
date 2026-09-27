@@ -249,13 +249,50 @@ export const HONOURS: Honour[] = [
   },
 ];
 
+/** Career regular-season points. Declared once: `CAREER` and the combined
+ *  figure below both derive from it, so the two cannot disagree. */
+const REGULAR_SEASON_POINTS = 43440;
+/** Career playoff points — also the most anyone has scored in the playoffs. */
+const PLAYOFF_POINTS = 8521;
+/** Regular season and playoffs together. This is the basis of the 50,000 mark. */
+const COMBINED_POINTS = REGULAR_SEASON_POINTS + PLAYOFF_POINTS;
+
+/**
+ * THE MEASURE — and the fact that it is closed.
+ *
+ * This used to read "The measure that is still open / Nobody has been near it",
+ * with `current: 43440` measured against `target: 50000`. Two things were wrong
+ * with that, and the second is the one that matters:
+ *
+ * 1. `current` was the REGULAR-SEASON total while the 50,000 mark is a COMBINED
+ *    figure. Two different definitions measured against each other, which is why
+ *    it read as a target nobody is approaching.
+ * 2. The mark is not open. `CAREER.playoffs.copy` states the combined total as
+ *    51,961 — on the same page, two sections apart — and 51,961 is 1,961 PAST
+ *    50,000. The panel was showing a measure at 86.9% for a target the page
+ *    itself contradicted.
+ *
+ * He passed it on 4 March 2025, first quarter, on a three against New Orleans,
+ * at 41,871 regular-season plus 8,162 playoff points for 50,033 (NBA.com, AP).
+ * So the honest presentation is a closed measure, and the only figures used are
+ * ones the module already asserts: `REGULAR_SEASON_POINTS` and `PLAYOFF_POINTS`.
+ *
+ * There is deliberately no replacement "next" target. The highest regular-season
+ * total in NBA history is Kareem's 38,387 and LeBron is past it, so there is no
+ * open regular-season scoring mark to track, and inventing a 60,000 round number
+ * would be fabricating a milestone. AGENTS.md §3 forbids it.
+ *
+ * `honours-board` computes `pct = min(1, current / target)`, so a passed mark
+ * renders as a filled measure with the tick on the end post, which is the right
+ * picture for it.
+ */
 export const NEXT_MARK = {
-  heading: "The measure that is still open",
-  current: 43440,
+  heading: "Fifty thousand, passed",
+  current: COMBINED_POINTS,
   target: 50000,
-  currentLabel: "43,440",
+  currentLabel: COMBINED_POINTS.toLocaleString("en-US"),
   targetLabel: "50,000",
-  note: "Nobody has been near it. A mark being tracked, not a prediction.",
+  note: "Regular season and playoffs together, 1,961 past it. Reached on 4 March 2025, in the first quarter against New Orleans.",
 } as const;
 
 /* ---------------------------------------------------------------------------
@@ -286,7 +323,12 @@ export const CAREER = {
     "Twenty-three seasons and 1,622 games of it, written the way a stat line is said out loud. Per game across the top, in total underneath.",
   /** points / rebounds / assists — the three numbers a stat line is made of */
   headline: [
-    { label: "Points", avg: 26.8, total: 43440, rank: "Most in NBA history" },
+    {
+      label: "Points",
+      avg: 26.8,
+      total: REGULAR_SEASON_POINTS,
+      rank: "Most in NBA history",
+    },
     { label: "Rebounds", avg: 7.5, total: 12095 },
     { label: "Assists", avg: 7.4, total: 12016 },
   ] as CareerAverage[],
@@ -301,9 +343,13 @@ export const CAREER = {
   ] as CareerRow[],
   playoffs: {
     label: "And in the playoffs",
-    points: 8521,
+    points: PLAYOFF_POINTS,
     games: 302,
-    copy: "8,521 points across 302 playoff games, which is also more than anyone else has scored. Regular season and playoffs together, he has scored 51,961.",
+    // Interpolated rather than typed. This sentence is what made the
+    // "still open" panel above checkable — a reader could add up the page and
+    // find the mark already passed — so its combined total and NEXT_MARK's must
+    // not be two separate literals that can drift apart.
+    copy: `${PLAYOFF_POINTS.toLocaleString("en-US")} points across 302 playoff games, which is also more than anyone else has scored. Regular season and playoffs together, he has scored ${COMBINED_POINTS.toLocaleString("en-US")}.`,
   },
   triple:
     "He is the only player in the history of the league to reach ten thousand points, ten thousand rebounds and ten thousand assists.",
@@ -660,8 +706,24 @@ export interface BlockKeyframe {
   jrSmith: { x: number; y: number };
   ball: { x: number; y: number };
   annotation: string;
+  /**
+   * Distance still to close, and the height of the contest.
+   *
+   * There is deliberately no per-keyframe SPEED. There was one, reading 11.2 /
+   * 17.4 / 20.1 / 19.3 / 14.8 / 0.0 mph, and it was arithmetic fiction: no
+   * source reports a speed at those six instants, and every one of the five
+   * segments contradicted its own endpoints. 0.7s to 1.4s covers 23 ft, which is
+   * 22.4 mph averaged, against tiles reading 17.4 then 20.1 — an average above
+   * both endpoints, which is impossible. All five segments had it, the scrubber
+   * printed it live, and a reader with a calculator could catch it in one drag.
+   *
+   * A speed readout is only honest if the speed is measured. The two figures
+   * here that ARE sourced — the 88 ft gap and the 2.8 s to the block — are
+   * printed as tiles, and the 20.1 mph peak stays in the annotation that
+   * attributes it. See the note on THE_BLOCK.stats for why those three do not
+   * divide into one another.
+   */
   telemetry: {
-    speed: string;
     distance: string;
     elevation: string;
   };
@@ -670,19 +732,32 @@ export interface BlockKeyframe {
 export const THE_BLOCK = {
   heading: "The Block",
   subheading: "Game 7, 2016 NBA Finals. 89–89. 1:52 remaining.",
-  copy: "Eighty-eight feet of hardwood closed in 2.8 seconds. A chase-down sprint at 20.1 miles per hour that ended with both hands on the glass at eleven feet five inches.",
+  copy: "Eighty-eight feet of hardwood closed in 2.8 seconds, ending with both hands on the glass at eleven feet five inches. Spread over the whole chase that gap works out at 21.4 mph, while Sport Science's own tracking puts his top speed inside it at 20.1 — two measurements taken over different windows, so the page does not present them as one.",
   quote:
     "“Back comes Iguodala to Curry, back to Iguodala, up for the layup... Oh! BLOCKED BY JAMES! LeBron James with the rejection!”",
   caller: "Mike Breen, ABC Sports",
   duration: 2.8,
   stats: [
-    // ESPN Sport Science — the origin of the 20.1 mph and 11'5" figures
-    // reproduced here — reports LeBron began the play trailing Iguodala by
-    // 88 FEET and covered the first 60ft in 2.67s. The previous "93 ft"
-    // matched no source, contradicted this module's own first-keyframe
-    // telemetry (88 ft), and was arithmetically impossible beside the 2.8s
-    // and 20.1 mph printed next to it: 93ft in 2.8s is a 22.7 mph AVERAGE,
-    // which cannot exceed the peak.
+    // ESPN Sport Science reports that LeBron began the play trailing Iguodala
+    // by 88 FEET, and separately puts his top speed in the chase at 20.1 mph.
+    // Both are reproduced here, and so is the 2.8 s to the block from the game
+    // clock (1:52 to the rejection).
+    //
+    // These three DO NOT RECONCILE, and the page must not imply that they do:
+    //
+    //   88 ft / 2.8 s  =  31.4 ft/s  =  21.4 mph AVERAGE
+    //
+    // An average cannot exceed the peak, so 21.4 > 20.1 means the gap and the
+    // speed are measured over different windows — the gap is the separation at
+    // the catch, while the speed is sampled inside the chase. The copy above
+    // states this rather than leaving a reader to find it.
+    //
+    // The previously recorded "93 ft" was rejected for a version of this
+    // argument ("93ft in 2.8s is a 22.7 mph AVERAGE, which cannot exceed the
+    // peak"). That reasoning was right and the figure still went in, because
+    // 88 ft in 2.8 s is 21.4 mph — the same violation, one point smaller. The
+    // real error was treating three separately-measured figures as one
+    // reconciled set, not the number.
     { label: "Chase distance", value: "88 ft" },
     { label: "Peak sprint speed", value: "20.1 mph" },
     { label: "Impact elevation", value: "11' 5\"" },
@@ -697,7 +772,7 @@ export const THE_BLOCK = {
       ball: { x: 42, y: 16 },
       annotation:
         "Kyrie Irving misses a floater. Andre Iguodala secures the defensive rebound and ignites the Golden State 2-on-1.",
-      telemetry: { speed: "11.2 mph", distance: "88 ft", elevation: "0' 0\"" },
+      telemetry: { distance: "88 ft", elevation: "0' 0\"" },
     },
     {
       time: 0.7,
@@ -707,7 +782,7 @@ export const THE_BLOCK = {
       ball: { x: 44, y: 36 },
       annotation:
         "LeBron crosses the half-court stripe, accelerating past everyone else on the floor.",
-      telemetry: { speed: "17.4 mph", distance: "68 ft", elevation: "0' 0\"" },
+      telemetry: { distance: "68 ft", elevation: "0' 0\"" },
     },
     {
       time: 1.4,
@@ -717,7 +792,7 @@ export const THE_BLOCK = {
       ball: { x: 47, y: 56 },
       annotation:
         "LeBron reaches top sprint speed: 20.1 mph — faster than any sprint recorded in the entire 2016 Finals.",
-      telemetry: { speed: "20.1 mph", distance: "45 ft", elevation: "0' 0\"" },
+      telemetry: { distance: "45 ft", elevation: "0' 0\"" },
     },
     {
       time: 2.1,
@@ -727,7 +802,7 @@ export const THE_BLOCK = {
       ball: { x: 48, y: 74 },
       annotation:
         "JR Smith retreats and contests straight up without fouling, forcing Iguodala to double-clutch and extend high.",
-      telemetry: { speed: "19.3 mph", distance: "21 ft", elevation: "0' 0\"" },
+      telemetry: { distance: "21 ft", elevation: "0' 0\"" },
     },
     {
       time: 2.5,
@@ -737,7 +812,7 @@ export const THE_BLOCK = {
       ball: { x: 49, y: 85 },
       annotation:
         "LeBron launches off two feet outside the charge circle, rising toward the glass with eyes level with the rim.",
-      telemetry: { speed: "14.8 mph", distance: "8 ft", elevation: "8' 9\"" },
+      telemetry: { distance: "8 ft", elevation: "8' 9\"" },
     },
     {
       time: 2.8,
@@ -747,7 +822,7 @@ export const THE_BLOCK = {
       ball: { x: 49.5, y: 87.5 },
       annotation:
         "“BLOCKED BY JAMES!” Both hands pin the ball flush against the backboard at eleven feet five inches.",
-      telemetry: { speed: "0.0 mph", distance: "0 ft", elevation: "11' 5\"" },
+      telemetry: { distance: "0 ft", elevation: "11' 5\"" },
     },
   ] as BlockKeyframe[],
 } as const;

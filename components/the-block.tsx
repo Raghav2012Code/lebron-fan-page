@@ -450,16 +450,12 @@ export function TheBlock() {
                 </div>
               </div>
 
-              {/* Live Telemetry Meters */}
-              <div className="grid grid-cols-3 gap-4 border-t border-rule-chalk pt-5">
-                <div className="flex flex-col gap-1">
-                  <Caption style={{ color: "var(--chalk-dim)" }}>
-                    Sprint Speed
-                  </Caption>
-                  <span className="figure text-[1.75rem] text-chalk">
-                    {current.keyframe.telemetry.speed}
-                  </span>
-                </div>
+              {/* Live Telemetry Meters. Two, not three: the per-keyframe speed
+                  readout was removed because no source reports a speed at those
+                  six instants, and every one of the five segments implied an
+                  average faster than both its own endpoints. See the note on
+                  `BlockKeyframe.telemetry`. */}
+              <div className="grid grid-cols-2 gap-4 border-t border-rule-chalk pt-5">
                 <div className="flex flex-col gap-1">
                   <Caption style={{ color: "var(--chalk-dim)" }}>
                     Distance To Glass

@@ -27,6 +27,7 @@ This repository is **The King — an unofficial LeBron James tribute**, a high-c
   - **No raw hex in a component.** Use a named token or a `var(--…)` reference; per-team colours belong in the data module. Lint error.
   - **No bare `1fr` grid track** — use `minmax(0,1fr)` so a long unbroken string cannot force overflow. Lint error.
   - **No uniform card hover-lift.** `whileHover={{ y: … }}` is a lint error. A hover on a card must carry information about that card.
+  - **No spaced em-dash in rendered copy** — ` — ` before an attribution, inside a select option, or as a label separator. The dash is a machine-applied separator, not a piece of the sentence, and the page already uses the attribute to carry that meaning. Comments and unspaced em-dashes (a year range, `302 games—scoring`) are fine. `tests/design-guards.test.ts` G6 asserts it. This rule used to be stated only in `README.md`, while two comments in the codebase cited it as an `AGENTS.md` §1 rule; it lives here now because that is where the other copy tells live.
 
 ### Anchor targets
 Every in-page anchor target carries the `scroll-clearance` class from `app/globals.css`
