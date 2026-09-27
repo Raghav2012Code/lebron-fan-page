@@ -162,7 +162,7 @@ export function FatherAndSon() {
           find-and-replace put the ink one here and it measured 1.33:1. */}
       <div className="mt-6 border-l-4 border-gold bg-wine p-6 text-chalk shadow-lg sm:p-8">
         <span className="narrow text-xs text-gold">
-          Scorer&apos;s Table · 4:00 2nd Quarter · Oct 22, 2024
+          Scorer&apos;s Table, 4:00 2nd Quarter, Oct 22, 2024
         </span>
         {/* AGENTS.md: all reading copy is Plus Jakarta Sans, and bookish /
           Victorian serifs are explicitly ruled out. */}
@@ -192,7 +192,7 @@ export function FatherAndSon() {
               {debut.venue}
             </h3>
             <p className="narrow mt-1 text-xs text-leather-ink">
-              {debut.city} · vs {debut.opponent}
+              {debut.city} vs {debut.opponent}
             </p>
 
             <div className="mt-4 border-t border-rule pt-3">
@@ -234,7 +234,7 @@ export function FatherAndSon() {
               {history.venue}
             </h3>
             <p className="narrow mt-1 text-xs text-leather-ink">
-              {history.city} · vs {history.opponent}
+              {history.city} vs {history.opponent}
             </p>
 
             <div className="mt-4 border-t border-rule pt-3">
@@ -358,7 +358,10 @@ export function FatherAndSon() {
                 <span className="text-sm font-black tabular-nums text-wine">
                   {activeMilestone.date}
                 </span>
-                <span className="text-xs text-muted">·</span>
+                {/* There used to be a `·` between the date and the title, inside
+                    a `gap-3` flex row — so the glyph was sitting in the gap the
+                    flex had already made, reading as a stray character rather
+                    than a separator. The gap does the separating. */}
                 <h4 className="text-lg font-black text-wine">
                   {activeMilestone.title}
                 </h4>

@@ -130,11 +130,19 @@ export function ShotZones() {
   const activeZone: ShotZoneData =
     era.zones[activeZoneId] ?? era.zones["restricted"];
 
+  // What the LIVE REGION reads, which is not the same thing as what the panel
+  // highlights. Hover drives the highlight and must not drive an announcement;
+  // see the note on the `aria-live` paragraph below.
+  const announcedZone: ShotZoneData =
+    era.zones[selectedZoneId] ?? era.zones["restricted"];
+
   // This is a difference of two percentages, i.e. PERCENTAGE POINTS. Labelling
   // it "%" invited the reader to compute it relatively (77.2 vs 61.2 is
   // +26%, not +16%). Kept as a number so the precision is not discarded by a
   // unary +.
   const diffVsLeague = Math.round((activeZone.fgPct - activeZone.leagueAvg) * 10) / 10;
+  const announcedDiff =
+    Math.round((announcedZone.fgPct - announcedZone.leagueAvg) * 10) / 10;
 
   return (
     <section
@@ -242,7 +250,7 @@ export function ShotZones() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
             <span className="narrow text-[0.6875rem] text-wine">
-              {era.team} · {era.period}
+              {era.team}, {era.period}
             </span>
             <p className="mt-1 text-sm text-ink sm:text-base leading-relaxed">
               {era.narrative}
@@ -292,6 +300,11 @@ export function ShotZones() {
             className="absolute inset-0 h-full w-full select-none font-text"
             viewBox="0 0 500 470"
             preserveAspectRatio="xMidYMid meet"
+            /* `role="group"`, matching the sibling in `last-shot`: the nine zone
+               sectors inside are `role="button"`, and a container of buttons
+               wants a group so the chart is announced as one named thing rather
+               than a bare `aria-label` on an element with no role. */
+            role="group"
             aria-label={`Interactive half court shot chart for ${era.name}`}
           >
             {/* Base court floor background */}
@@ -511,9 +524,18 @@ export function ShotZones() {
           {/* The panel's league average, delta and signature moment are
               conveyed only through this visually-updated region. Without a
               live region a screen-reader user gets no announcement when the
-              selected sector changes. */}
+              selected sector changes.
+
+              It announces the SELECTED sector, not the hovered one. Hover is
+              not a state change worth announcing: sweeping the pointer across
+              the nine sectors produced nine announcements, and leaving one
+              produced a tenth reverting to the selection. The hover highlight
+              below is still visual-only, which is what hover should be; a
+              keyboard user gets the announcement on arrow-key focus, which
+              sets `hoveredZoneId` through `onFocus` and moves the selection
+              with the arrow keys. */}
           <p aria-live="polite" className="sr-only">
-            {`${activeZone.name}: ${activeZone.fgPct.toFixed(1)} percent field goal, league average ${activeZone.leagueAvg.toFixed(1)} percent, ${diffVsLeague >= 0 ? "plus" : "minus"} ${Math.abs(diffVsLeague)} percentage points, ${activeZone.frequency.toFixed(1)} percent of shots.`}
+            {`${announcedZone.name}: ${announcedZone.fgPct.toFixed(1)} percent field goal, league average ${announcedZone.leagueAvg.toFixed(1)} percent, ${announcedDiff >= 0 ? "plus" : "minus"} ${Math.abs(announcedDiff)} percentage points, ${announcedZone.frequency.toFixed(1)} percent of shots.`}
           </p>
           <div>
             <div className="flex items-center justify-between gap-2">

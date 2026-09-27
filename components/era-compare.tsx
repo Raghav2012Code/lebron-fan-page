@@ -192,7 +192,7 @@ export function EraCompare() {
               htmlFor="era-a-select"
               className="narrow block text-xs text-muted"
             >
-              Select Peak Season:
+              Profile A, peak season:
             </label>
             {/* Native <select> is the right control here — real keyboard
                 semantics and a mobile wheel picker, neither of which a
@@ -230,7 +230,7 @@ export function EraCompare() {
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraA.archetype}</h3>
             <p className="narrow mt-1 text-xs text-leather-ink">
-              {eraA.team} · {eraA.seasonLabel}
+              {eraA.team}, {eraA.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
               {eraA.summary}
@@ -254,7 +254,7 @@ export function EraCompare() {
               htmlFor="era-b-select"
               className="narrow block text-xs text-muted"
             >
-              Select Peak Season:
+              Profile B, peak season:
             </label>
             <div className="relative mt-1.5">
               <select
@@ -286,7 +286,7 @@ export function EraCompare() {
           <div className="mt-4 border-t border-rule pt-3">
             <h3 className="text-xl font-black text-wine">{eraB.archetype}</h3>
             <p className="narrow mt-1 text-xs text-leather-ink">
-              {eraB.team} · {eraB.seasonLabel}
+              {eraB.team}, {eraB.seasonLabel}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-ink/90">
               {eraB.summary}

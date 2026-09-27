@@ -935,3 +935,109 @@ test("design guard G11 - Tailwind sources are scoped and carry no banned candida
       `goes with it.`,
   );
 });
+
+/* ==========================================================================
+ * G12 — no middle-dot separator in rendered copy.
+ *
+ * AGENTS.md §1 bans "tracked-out all-caps eyebrows with middle dots (`A · B ·
+ * C`)", and two lint rules police the TRACKING half: `tracking-[0.2em]` and
+ * `tracking-widest` are errors. The DOT half had no enforcement at all, and the
+ * tell survived it — because the eyebrows it describes are set in `.narrow`,
+ * which is uppercase with `0.04em` tracking. The lint rules cannot see them,
+ * which is the same shape as the bare-`fr` rule that matched a string occurring
+ * zero times: the half that was policed was the half that was easy to police.
+ *
+ * Ten sites were live. Two era-comparison kickers, the shot-zone era label, two
+ * father-and-son kickers, the Scorer's Table banner, three playoff-matrix band
+ * captions, the franchise summary, and — the one worth recording — a lone `·`
+ * sitting inside a `gap-3` flex row in father-and-son, so the glyph was inside
+ * the gap the flex had already made and read as a stray character rather than a
+ * separator. That one is deleted rather than replaced, because the gap was
+ * already doing the work the glyph claimed to do.
+ *
+ * Comments are stripped before the scan, for the reason G10 and G11 both
+ * needed to do it: this repository's own copy discusses the tell at length, and
+ * a text scan that does not strip comments reports a guard describing a design
+ * rule as a violation of it.
+ *
+ * One entry survives. It is a data string rather than a label — the drawer's
+ * `3 stl · 1 blk` readout, in the body face and untracked, where the dot is
+ * joining two figures in a cell too narrow to hold them on two lines. AGENTS.md
+ * §2 explicitly protects "a data string inside a sentence".
+ * ======================================================================== */
+
+test("design guard G12 - no middle-dot separator in rendered copy", () => {
+  const SEPARATOR = /[·•]/;
+
+  /**
+   * The one site where the dot is a data separator rather than a label, keyed by
+   * file and then by a DISTINCTIVE SUBSTRING of the offending line.
+   *
+   * The first version of this guard keyed the exception by FILE alone, so
+   * exempting that one line silently exempted all of `playoff-matrix.tsx` — and
+   * re-adding a middle dot to a StatBand caption or to the franchise summary
+   * inside it passed. A per-file allow-list is an off switch wearing a
+   * footnote. G10 and G11 already key per site, for the same reason.
+   *
+   * Substring rather than line number, because a line number is invalidated by
+   * any edit above it and would then exempt the wrong line.
+   */
+  const ACCEPTED: Record<string, Record<string, string>> = {
+    "playoff-matrix.tsx": {
+      "boxScoreTotals?.stl} stl ·":
+        "the drawer's compact `3 stl · 1 blk` readout. A data string in the " +
+        "body face and untracked, joining two figures in a cell too narrow to " +
+        "hold them on two lines. AGENTS.md §2 protects a data string.",
+    },
+  };
+
+  /** Attribute values and comments are out of scope. */
+  const isRendered = (line: string) =>
+    !/=\s*`[^`]*$|=\s*"[^"]*$|=\s*'[^']*$/.test(line);
+
+  const offenders: string[] = [];
+  for (const { name, source } of componentFiles) {
+    const allowed = ACCEPTED[name] ?? {};
+    codeOf(source)
+      .split(/\r?\n/)
+      .forEach((line, i) => {
+        if (!isRendered(line) || !SEPARATOR.test(line)) return;
+        const trimmed = line.trim();
+        const hit = Object.keys(allowed).find((k) => trimmed.includes(k));
+        if (hit) return;
+        offenders.push(`${name}:${i + 1}  ${trimmed.slice(0, 62)}`);
+      });
+  }
+
+  assert.deepStrictEqual(
+    offenders,
+    [],
+    `a middle-dot separator is back in rendered copy: ${offenders.join(" | ")}. ` +
+      `AGENTS.md §1 bans it, and because these labels are set in \`.narrow\` ` +
+      `(uppercase, 0.04em) the two tracking lint rules cannot see them. Use a ` +
+      `comma, or let a flex gap do the separating.`,
+  );
+
+  const stale: string[] = [];
+  for (const [name, entries] of Object.entries(ACCEPTED)) {
+    const file = componentFiles.find((f) => f.name === name);
+    if (!file) {
+      stale.push(`${name} (no such component)`);
+      continue;
+    }
+    const rendered = codeOf(file.source)
+      .split(/\r?\n/)
+      .filter(isRendered);
+    for (const key of Object.keys(entries)) {
+      if (!rendered.some((line) => line.includes(key))) {
+        stale.push(`${name} [${key}]`);
+      }
+    }
+  }
+  assert.deepStrictEqual(
+    stale,
+    [],
+    `G12's ACCEPTED map lists ${stale.join(", ")}, which no longer matches a ` +
+      `separator glyph in rendered copy. Delete the entry.`,
+  );
+});

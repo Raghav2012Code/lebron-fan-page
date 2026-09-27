@@ -162,6 +162,63 @@ const ROUND_TABS: readonly RoundTabMeta[] = (
 });
 
 /**
+ * "Showing N of M series", announced — but only once the typing has settled.
+ *
+ * This was a bare `aria-live="polite"`, so every keystroke in the search box
+ * produced an announcement: typing "2018" announced four intermediate counts on
+ * the way to "Showing 4 of 57 series (3–1)". A live region is for a state
+ * change, and each keystroke is not one the reader was told to expect.
+ *
+ * The visible text updates immediately, because a sighted reader filtering a
+ * list expects that. Only the ANNOUNCEMENT is debounced, by 400ms — long enough
+ * that a word is one announcement rather than one per letter, short enough that
+ * it still feels responsive. `role="status"` and `aria-atomic` are both needed
+ * for the region to be announced as a whole rather than as changed fragments.
+ */
+function ResultCount({
+  shown,
+  total,
+  wins,
+  losses,
+}: {
+  shown: number;
+  total: number;
+  wins: number;
+  losses: number;
+}) {
+  const text = `Showing ${shown} of ${total} series (${wins}-${losses})`;
+  const [announced, setAnnounced] = React.useState(text);
+  const timer = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setAnnounced(text), 400);
+    return () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    };
+  }, [text]);
+
+  return (
+    <div role="status" aria-atomic="true" className="text-xs narrow text-muted">
+      <span aria-hidden>{text}</span>
+      <span className="sr-only">{announced}</span>
+    </div>
+  );
+}
+
+/**
+ * A series' identity, with a fallback for a row that carries no `id`.
+ * `id` is declared optional on `PlayoffSeries`, so `inspectSeries?.id ===
+ * series.id` is `undefined === undefined` for two id-less rows and BOTH would
+ * report `aria-expanded="true"`. Harmless today — all 57 rows carry one — and
+ * wrong the moment one does not, which is the same shape as the key on the card
+ * below, which already had to spell out this fallback.
+ */
+function cardId(series: PlayoffSeries): string {
+  return series.id ?? `${series.year}-${series.roundCode}`;
+}
+
+/**
  * Team paint for the series badge. These are team colours, not brand colours,
  * and they used to be bare hex literals in this component — which is exactly the
  * leak DESIGN-AUDIT.md F-07 describes, because a value living in a component
@@ -242,7 +299,7 @@ export function PlayoffMatrix() {
     }
 
     hasOpenedRef.current = true;
-    lastActiveElementRef.current = document.activeElement as HTMLElement;
+    lastActiveElementRef.current = document.activeElement as HTMLElement | null;
 
     // Lock background scroll. `body` sets `overflow-x: clip`, so the original
     // inline value has to be captured and put back exactly.
@@ -521,17 +578,17 @@ export function PlayoffMatrix() {
                   <Counter to={career.wins} />–<Counter to={career.losses} />
                 </>
               ),
-              caption: `${career.series} series · ${career.seriesWinPct.toFixed(1)}% win rate`,
+              caption: `${career.series} series, ${career.seriesWinPct.toFixed(1)}% win rate`,
             },
             {
               label: "Playoff Games",
               value: <Counter to={career.games} />,
-              caption: `${career.gamesWon}–${career.gamesLost} · ${career.gamesWinPct.toFixed(1)}% game mark`,
+              caption: `${career.gamesWon}–${career.gamesLost}, ${career.gamesWinPct.toFixed(1)}% game mark`,
             },
             {
               label: "Playoff Scoring",
               value: <Counter to={career.points} />,
-              caption: `${career.ppg.toFixed(1)} PPG · most in history`,
+              caption: `${career.ppg.toFixed(1)} PPG, most in history`,
             },
             {
               label: "Sweeps Mastery",
@@ -560,10 +617,12 @@ export function PlayoffMatrix() {
                 <Caption bold className="text-wine uppercase tracking-wider text-xs">
                   Filter By Playoff Round
                 </Caption>
-                <div aria-live="polite" className="text-xs narrow text-muted">
-                  Showing {filteredSeries.length} of {career.series} series (
-          {filteredRecord.wins}-{filteredRecord.losses})
-                </div>
+                <ResultCount
+                  shown={filteredSeries.length}
+                  total={career.series}
+                  wins={filteredRecord.wins}
+                  losses={filteredRecord.losses}
+                />
               </div>
 
               <div
@@ -745,11 +804,11 @@ export function PlayoffMatrix() {
                 const isWon = series.result === "W";
                 return (
                   <motion.div
-                    key={series.id ?? `${series.year}-${series.roundCode}`}
+                    key={cardId(series)}
                     role="button"
                     tabIndex={0}
                     aria-haspopup="dialog"
-                    aria-expanded={inspectSeries?.id === series.id}
+                    aria-expanded={inspectSeries?.id === cardId(series)}
                     onClick={() => setInspectSeries(series)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -917,7 +976,7 @@ export function PlayoffMatrix() {
                 </p>
               </div>
               <div className="text-xs narrow text-muted">
-                {career.franchises} franchises faced • {career.wins} series wins •{" "}
+                {career.franchises} franchises faced, {career.wins} series wins,{" "}
                 {career.losses} series losses
               </div>
             </div>
