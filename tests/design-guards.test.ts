@@ -237,21 +237,28 @@ test("design guard G2 - every section anchor target declares scroll clearance", 
       lines[idx].includes("className")
         ? lines[idx]
         : lines.slice(idx, idx + 8).join(" ");
+    // A whitespace-delimited token, not a substring. A bare `/scroll-clearance/`
+    // also matches `scroll-clearance-2` or `scroll-clearance-x`, which is the
+    // same trap `app/layout.tsx` documents for `[style*="opacity:0"]`: a
+    // lookalike satisfies the guard while providing no clearance at all. Proved
+    // by renaming the class to `scroll-clearanceX`, which passed the substring
+    // form.
     assert.match(
       element,
-      /scroll-clearance/,
+      /(?<=[\s"])scroll-clearance(?=\s|")/,
       `#${id} (${owner.name}:${idx + 1}) is an anchor target but does not carry ` +
         `\`scroll-clearance\`, so it lands flush against the viewport top (F-05)`,
     );
   }
 
   // The season ruler's 23 targets are focusable and sit beneath a tall hero, so
-  // arrowing onto one scrolls it into view with the same problem.
+  // arrowing onto one scrolls it into view with the same problem. Anchored on
+  // the opening quote and the group that follows it, for the same reason.
   const ruler = componentFiles.find(({ name }) => name === "season-ruler.tsx");
   assert.ok(ruler);
   assert.match(
     ruler.source,
-    /className="scroll-clearance group flex min-w-\[24px\]/,
+    /className="scroll-clearance(?=\s) group flex min-w-\[24px\]/,
     "the season ruler's targets must carry scroll-clearance (F-05)",
   );
 });
