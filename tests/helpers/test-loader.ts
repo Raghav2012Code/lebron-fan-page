@@ -1,4 +1,4 @@
-import * as LebronData from "@/lib/lebron-data";
+import * as LebronData from "@/lib/data";
 import * as Authoritative from "../fixtures/authoritative-data";
 
 /**
@@ -47,7 +47,7 @@ export const HARDWOOD_TOKENS = {
 
 /**
  * Get the active PlayoffSeries dataset.
- * Checks lib/lebron-data first for live implementation; falls back to authoritative specification.
+ * Checks lib/data first for live implementation; falls back to authoritative specification.
  */
 export function getPlayoffSeries() {
   const mod = LebronData as Record<string, unknown>;

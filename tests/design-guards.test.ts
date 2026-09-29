@@ -21,7 +21,7 @@ import assert from "node:assert";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { SECTIONS } from "@/lib/lebron-data";
+import { SECTIONS } from "@/lib/data";
 
 const ROOT = join(import.meta.dirname, "..");
 const COMPONENTS = join(ROOT, "components");

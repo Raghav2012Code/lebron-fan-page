@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
-import { CAREER, STATS_AS_OF } from "@/lib/lebron-data";
+import { CAREER, STATS_AS_OF } from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, Counter, PaintRule, type Opener } from "@/components/typeset";
 

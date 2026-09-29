@@ -11,7 +11,7 @@ import {
   type FranchisePostseasonRecord,
   type PlayoffRoundCategory,
   type PlayoffSeries,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { Caption, Counter, PaintRule, RiseWords, StatBand, type Opener } from "@/components/typeset";

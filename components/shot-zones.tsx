@@ -6,7 +6,7 @@ import {
   SHOT_ZONES,
   type EraShotData,
   type ShotZoneData,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Caption, Kicker, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 

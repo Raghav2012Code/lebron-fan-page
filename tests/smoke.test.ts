@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -12,7 +13,7 @@ import {
   THE_BLOCK,
   TRIPLE_DOUBLES,
   TRIPLE_DOUBLE_SUMMARY,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import {
   getBuzzerBeaters,
   getFranchiseBreakdown,
@@ -20,7 +21,7 @@ import {
   getTripleDoubles,
 } from "./helpers/test-loader";
 
-test("smoke test - imports lebron-data via path alias", () => {
+test("smoke test - imports lib/data via the path alias", () => {
   assert.strictEqual(SEASONS.length, 23);
   assert.ok(SECTIONS.length > 0);
 });
@@ -29,7 +30,7 @@ test("smoke test - imports lebron-data via path alias", () => {
  * The test resolver derived the project root from the PROCESS's working
  * directory (`path.resolve(".")`). `npm test` runs from the package root, so it
  * worked — and running the suite from anywhere else failed to resolve
- * `@/lib/lebron-data`, which reads as a broken suite rather than a broken
+ * `@/lib/data`, which reads as a broken suite rather than a broken
  * resolver.
  *
  * This spawns a child from the OS temp directory and imports the alias there. It
@@ -46,7 +47,7 @@ test("smoke test - the test resolver does not depend on the working directory", 
       register,
       "--input-type=module",
       "-e",
-      'import { SEASONS, SECTIONS } from "@/lib/lebron-data";' +
+      'import { SEASONS, SECTIONS } from "@/lib/data";' +
         "console.log(SEASONS.length + ':' + SECTIONS.length);",
     ],
     { cwd: tmpdir(), encoding: "utf8" },
@@ -181,19 +182,19 @@ test("smoke test - THE BLOCK states the average its own distance and time imply"
 test("smoke test - every dataset resolves to the live module, not the fixture", () => {
   assert.ok(
     getPlayoffSeries().isLive,
-    "PLAYOFF_SERIES did not resolve from lib/lebron-data; the suite is testing the fixture",
+    "PLAYOFF_SERIES did not resolve from lib/data; the suite is testing the fixture",
   );
   assert.ok(
     getBuzzerBeaters().isLive,
-    "CLUTCH_BUZZER_BEATERS did not resolve from lib/lebron-data; the suite is testing the fixture",
+    "CLUTCH_BUZZER_BEATERS did not resolve from lib/data; the suite is testing the fixture",
   );
   assert.ok(
     getTripleDoubles().isLive,
-    "the triple-double datasets did not resolve from lib/lebron-data; the suite is testing the fixture",
+    "the triple-double datasets did not resolve from lib/data; the suite is testing the fixture",
   );
   assert.ok(
     getFranchiseBreakdown().isLive,
-    "FRANCHISE_BREAKDOWN did not resolve from lib/lebron-data; the suite is testing the fixture",
+    "FRANCHISE_BREAKDOWN did not resolve from lib/data; the suite is testing the fixture",
   );
 });
 
@@ -244,7 +245,7 @@ test("smoke test - derived UI figures reconcile with the data module", () => {
  * 102.0.
  */
 test("smoke test - every era's shot-zone volumes sum to 100%", async () => {
-  const { SHOT_ZONES } = await import("@/lib/lebron-data");
+  const { SHOT_ZONES } = await import("@/lib/data");
   for (const era of SHOT_ZONES.eras) {
     const values = Object.values(era.zones).map((z) => z.frequency);
     assert.strictEqual(values.length, 9, `${era.id}: expected 9 zones`);
@@ -276,7 +277,7 @@ test("smoke test - every era's shot-zone volumes sum to 100%", async () => {
  * Basketball Reference's own CLE 11-year row — 849 games, .492 / .337 / .733.
  */
 test("smoke test - era aggregates match the verified Basketball Reference figures", async () => {
-  const { SHOT_ZONES } = await import("@/lib/lebron-data");
+  const { SHOT_ZONES } = await import("@/lib/data");
 
   const expected = {
     cle1: { games: 548, ppg: 27.8, fgPct: 47.5, threePtPct: 32.9, ftPct: 74.2 },
@@ -395,7 +396,7 @@ test("smoke test - every clutch re-enactment ends on the buzzer", () => {
   const { data: plays, isLive } = getBuzzerBeaters();
   assert.ok(
     isLive,
-    "CLUTCH_BUZZER_BEATERS did not resolve from lib/lebron-data, so this guard " +
+    "CLUTCH_BUZZER_BEATERS did not resolve from lib/data, so this guard " +
       "would be testing the fixture rather than the data module - and the defect " +
       "it exists to catch lives in the data module.",
   );
@@ -468,7 +469,7 @@ test("smoke test - the triple-double tables reach all 27 opponent franchises", (
   // playoffs together — the 28 playoff entries alone reach far fewer, which is
   // what the first version of this test asserted and got wrong.
   const { regularSeason, playoffs, isLive } = getTripleDoubles();
-  assert.ok(isLive, "TRIPLE_DOUBLES did not resolve from lib/lebron-data");
+  assert.ok(isLive, "TRIPLE_DOUBLES did not resolve from lib/data");
   const tds = [...regularSeason, ...playoffs];
 
   const NBA_30 = [
@@ -509,5 +510,157 @@ test("smoke test - the triple-double tables reach all 27 opponent franchises", (
     `the table names franchises that are not among the NBA 30: ` +
       `${notLeague.join(", ")}. That is how PHO survived here for so long: it is ` +
       `not an NBA abbreviation, and a count alone would never have caught it.`,
+  );
+});
+
+/**
+ * The data module's public surface is pinned here.
+ *
+ * The module was a single 10,394-line file until it was split into
+ * `lib/data/*.ts` behind a barrel. Every component and test imports the
+ * barrel, so a name that stops being exported is invisible until a page
+ * silently renders `undefined`.
+ *
+ * The 67 names are the exact surface of the original file, plus the three
+ * point constants that `career.ts` and `honours.ts` now share. They are checked
+ * in two passes because a type and a value need different evidence:
+ *
+ *  - VALUES are checked by importing the barrel. A missing value is a real
+ *    runtime hole and must fail here.
+ *  - TYPES are checked against the source text, because `export *` erases a
+ *    type at runtime and `n in data` is `false` for a perfectly healthy
+ *    interface. Reading the declarations is the only honest way to see them,
+ *    and it is the pattern the design guards already use.
+ *
+ * This is the acceptance condition from issue #30: the split is a pure move, so
+ * a rename or a dropped export has to fail loudly rather than quietly shrink
+ * what the page can draw.
+ */
+const DATA_VALUES = [
+  "STATS_AS_OF",
+  "FIRST_SEASON",
+  "LAST_SEASON",
+  "SEASON_COUNT",
+  "TEAM_SPANS",
+  "OLYMPICS",
+  "SEASONS",
+  "HERO",
+  "HARDWARE",
+  "HONOURS",
+  "NEXT_MARK",
+  "CAREER",
+  "ROOMS_INTRO",
+  "ROOMS",
+  "LEDGER_INTRO",
+  "LEDGER",
+  "NUMBER",
+  "SHOT",
+  "NIGHTS_INTRO",
+  "NIGHTS",
+  "THE_BLOCK",
+  "SHOT_ZONES",
+  "FATHER_AND_SON",
+  "PEAK_ERAS",
+  "ERA_COMPARE_INTRO",
+  "BASELINE",
+  "SECTIONS",
+  "PLAYOFF_SERIES",
+  "FRANCHISE_BREAKDOWN",
+  "CLUTCH_BUZZER_BEATERS",
+  "PLAYOFF_TRIPLE_DOUBLES",
+  "REGULAR_SEASON_TRIPLE_DOUBLES",
+  "TRIPLE_DOUBLES",
+  "TRIPLE_DOUBLE_SUMMARY",
+  // Added by the split: `career.ts` builds the stat line from the same three
+  // totals `honours.ts` declares, so one side had to become exported.
+  "REGULAR_SEASON_POINTS",
+  "PLAYOFF_POINTS",
+  "COMBINED_POINTS",
+];
+
+const DATA_TYPES = [
+  "TeamSpan",
+  "OlympicYear",
+  "Season",
+  "Honour",
+  "CareerAverage",
+  "CareerRow",
+  "Room",
+  "Metric",
+  "Achievement",
+  "LedgerEntry",
+  "Night",
+  "BlockKeyframe",
+  "ShotZoneData",
+  "EraShotData",
+  "GameComparisonNode",
+  "FatherSonMilestone",
+  "PeakEraProfile",
+  "MilestoneTarget",
+  "PacePreset",
+  "PlayoffRoundCategory",
+  "SeriesBoxScoreTotals",
+  "PlayoffSeries",
+  "FranchisePostseasonRecord",
+  "ChalkboardCoordinates",
+  "ChalkboardTelemetry",
+  "ChalkboardKeyframe",
+  "BuzzerBeaterPlay",
+  "ClutchBuzzerBeater",
+  "TripleDoubleCategory",
+  "TripleDoubleGame",
+  "TripleDoubleEntry",
+  "TripleDoubleSummary",
+];
+
+test("smoke test - the data barrel exports every value the page reads", async () => {
+  const data = (await import("@/lib/data")) as Record<string, unknown>;
+
+  const missing = DATA_VALUES.filter((n) => !(n in data));
+  assert.deepStrictEqual(
+    missing,
+    [],
+    `the data barrel no longer exports: ${missing.join(", ")}. A section that ` +
+      `consumed one of these now renders undefined, which no other gate sees.`,
+  );
+
+  // The `get*` accessors are deliberately NOT asserted here: they live in
+  // `tests/helpers/test-loader.ts`, not in the data module, and never were part
+  // of this surface. The data-tier suites import them from there.
+});
+
+test("smoke test - the data barrel exports every type the page reads", () => {
+  const dir = join(import.meta.dirname, "..", "lib", "data");
+  const declared = new Set<string>();
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".ts") || file === "index.ts") continue;
+    const source = readFileSync(join(dir, file), "utf-8");
+    for (const m of source.matchAll(
+      /^export (?:interface|type) ([A-Za-z_][A-Za-z0-9_]*)/gm,
+    )) {
+      declared.add(m[1]);
+    }
+  }
+
+  const missing = DATA_TYPES.filter((n) => !declared.has(n));
+  assert.deepStrictEqual(
+    missing,
+    [],
+    `no file under lib/data exports the type ${missing.join(", ")}. These are ` +
+      `erased at runtime, so the value test above cannot see them and ` +
+      `tsc only fails if something still imports them.`,
+  );
+
+  // Every domain file must be reachable from the barrel, or a split that drops
+  // an `export *` line would silently shrink the surface instead of failing.
+  const barrel = readFileSync(join(dir, "index.ts"), "utf-8");
+  const unhooked = readdirSync(dir)
+    .filter((f) => f.endsWith(".ts") && f !== "index.ts")
+    .filter((f) => !barrel.includes(`"./${f.replace(/\.ts$/, "")}"`));
+  assert.deepStrictEqual(
+    unhooked,
+    [],
+    `lib/data/${unhooked.join(", lib/data/")} is not re-exported by the barrel, ` +
+      `so everything it declares is unreachable.`,
   );
 });

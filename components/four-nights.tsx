@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
-import { NIGHTS, NIGHTS_INTRO, type Night } from "@/lib/lebron-data";
+import { NIGHTS, NIGHTS_INTRO, type Night } from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { PaintRule, RiseWords, type Opener } from "@/components/typeset";

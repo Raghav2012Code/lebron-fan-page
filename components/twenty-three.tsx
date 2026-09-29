@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-import { NUMBER } from "@/lib/lebron-data";
+import { NUMBER } from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, PaintRule, RiseLine, type Opener } from "@/components/typeset";
 

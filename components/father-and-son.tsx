@@ -7,7 +7,7 @@ import {
   FATHER_AND_SON,
   type FatherSonMilestone,
   type GameComparisonNode,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 

@@ -10,7 +10,7 @@ import {
   TEAM_SPANS,
   type LedgerEntry,
   type Metric,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/components/typeset";

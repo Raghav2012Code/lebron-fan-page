@@ -7,7 +7,7 @@ import {
   ERA_COMPARE_INTRO,
   PEAK_ERAS,
   type PeakEraProfile,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { Caption, Kicker, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
@@ -334,19 +334,19 @@ export function EraCompare() {
             <MetricRow
               label="True Shooting %"
               valA={eraA.metrics.tsPct}
-              valB={eraB.metrics.tsPct}
+              valB={eraB.metrics.tsPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
             <MetricRow
               label="Field Goal %"
               valA={eraA.metrics.fgPct}
-              valB={eraB.metrics.fgPct}
+              valB={eraB.metrics.fgPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
             <MetricRow
               label="3-Point %"
               valA={eraA.metrics.threePtPct}
-              valB={eraB.metrics.threePtPct}
+              valB={eraB.metrics.threePtPct}
               format={(v) => `${v.toFixed(1)}%`}
             />
           </div>

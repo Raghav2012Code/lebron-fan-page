@@ -9,7 +9,7 @@ import {
   STATS_AS_OF,
   TEAM_SPANS,
   type Season,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { Caption, PaintRule, RiseWords, type Opener } from "@/components/typeset";

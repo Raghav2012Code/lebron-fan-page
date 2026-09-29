@@ -10,7 +10,7 @@ import {
   type MotionValue,
 } from "framer-motion";
 
-import { ROOMS, ROOMS_INTRO, type Room } from "@/lib/lebron-data";
+import { ROOMS, ROOMS_INTRO, type Room } from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { Caption, RiseWords, type Opener } from "@/components/typeset";

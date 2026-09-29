@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
-import { BASELINE, SECTIONS, STATS_AS_OF } from "@/lib/lebron-data";
+import { BASELINE, SECTIONS, STATS_AS_OF } from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, PaintRule, RiseLine } from "@/components/typeset";
 

@@ -64,9 +64,9 @@ would be wrong. Enforced by `tests/design-guards.test.ts` G2.
   an explicit attribute beats inheritance, so the root alone is not enough.
 
 ## 3. Data Integrity & Content Rules
-- **Single Source of Truth**: All stats, box scores, series logs, and milestones live in `lib/lebron-data.ts`.
+- **Single Source of Truth**: All stats, box scores, series logs, and milestones live in `lib/data/`, split by domain (one file per section) behind the barrel `lib/data/index.ts`. Components and tests import `@/lib/data` and never a domain file directly, so the split can be reshuffled without touching a component. Two tests pin the barrel's surface: a runtime check on the value exports and a source check on the type exports, which `export *` erases.
 - **Accuracy**: Stats must match official NBA record books and Basketball Reference. Never fabricate stats or invent subjective rating indices.
-- **Navigation Registry**: Any top-level section displayed on the page must have its anchor ID registered in `SECTIONS` inside `lib/lebron-data.ts` (e.g. `playoff-matrix`, `shot-zones`, `era-compare`, `the-block`). Do not add navigation anchors for unimplemented future milestones.
+- **Navigation Registry**: Any top-level section displayed on the page must have its anchor ID registered in `SECTIONS` inside `lib/data/baseline.ts` (e.g. `playoff-matrix`, `shot-zones`, `era-compare`, `the-block`). Do not add navigation anchors for unimplemented future milestones.
 
 ## 4. Feature Milestones Roadmap
 - **Milestone 1 (Complete)**: Playoff Series Matrix (`components/playoff-matrix.tsx`) — 57 career playoff series, 42–15 record, round filter tabs, 25-franchise breakdown, and game-by-game box score drawer.
@@ -77,7 +77,7 @@ would be wrong. Enforced by `tests/design-guards.test.ts` G2.
 Always verify changes with all four gates before committing:
 1. `npm run lint` — ESLint must pass with 0 errors and 0 warnings.
 2. `npm run typecheck` — `tsc --noEmit` must pass cleanly.
-3. `npm test` — all suites must pass. Two shapes of test live here. `tests/smoke.test.ts` asserts on `lib/lebron-data.ts` — the figures the UI now derives from it (playoff W-L, points, sweeps, shot-zone volume sums, the verified era aggregates) plus an `isLive` assertion so a silent fallback to `tests/fixtures/authoritative-data.ts` fails loudly instead of passing. `tests/design-guards.test.ts` reads component and stylesheet **source as text** and asserts design invariants (anchor clearance, the overflow clip, the band cap, opener adjacency, the shape budget, the em-dash ban, the navigation registry). Three further suites cover the data tiers.
+3. `npm test` — all suites must pass. Two shapes of test live here. `tests/smoke.test.ts` asserts on `lib/data/` — the figures the UI now derives from it (playoff W-L, points, sweeps, shot-zone volume sums, the verified era aggregates) plus an `isLive` assertion so a silent fallback to `tests/fixtures/authoritative-data.ts` fails loudly instead of passing. `tests/design-guards.test.ts` reads component and stylesheet **source as text** and asserts design invariants (anchor clearance, the overflow clip, the band cap, opener adjacency, the shape budget, the em-dash ban, the navigation registry). Three further suites cover the data tiers.
 4. `npm run build` — Next.js Turbopack production build must compile and statically prerender all routes without errors.
 
 `npm run lint` additionally carries five `no-restricted-syntax` design rules scoped to `components/**.tsx` (the tracked-eyebrow utilities, `font-mono`, raw hex, the uniform card hover-lift, a bare `1fr` grid track). They are in the lint gate rather than the test gate because they can report a file and a line; the test gate has no AST and can only count.

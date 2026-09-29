@@ -3,7 +3,7 @@
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { THE_BLOCK, type BlockKeyframe } from "@/lib/lebron-data";
+import { THE_BLOCK, type BlockKeyframe } from "@/lib/data";
 import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { Caption, PaintRule, RiseWords, StatBand, type Opener } from "@/components/typeset";

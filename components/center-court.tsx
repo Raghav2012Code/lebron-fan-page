@@ -3,7 +3,7 @@
 import * as React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
-import { HERO } from "@/lib/lebron-data";
+import { HERO } from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, stagger } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { COURT_PAINT_ASPECT, CourtDiagram } from "@/components/court-diagram";

@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
  * It was `path.resolve(".")`, which resolves against the PROCESS's current
  * directory. `npm test` happens to run from the package root, so it worked — and
  * `node --import ./tests/register.mjs --test tests/smoke.test.ts` from anywhere
- * else silently failed to resolve `@/lib/lebron-data`, which is a confusing
+ * else silently failed to resolve `@/lib/data`, which is a confusing
  * failure rather than an honest one. Everything else in the suite derives its
  * root from `import.meta.dirname`; this was the exception.
  */

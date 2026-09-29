@@ -51,9 +51,10 @@ vocabulary in two places. Prefer these terms over inventing new ones:
 - **`AGENTS.md`** — the design system (the "hardwood" aesthetic: maple, wine, ochre, leather,
   chalk; Oswald for display, Plus Jakarta Sans for text), the data-integrity rules, the section
   registry, and the quality gates.
-- **`lib/lebron-data.ts`** — named as the single source of truth for every fact on the page.
+- **`lib/data/`** — the single source of truth for every fact on the page, split by domain behind a
+  barrel. Components and tests import `@/lib/data` and nothing else.
   Domain terms like *stint*, *series*, *shot zone*, *room*, *the ledger* and *the span* are
   defined by its exported types.
 
-If a skill needs one of these terms defined precisely, `lib/lebron-data.ts` is the authority
+If a skill needs one of these terms defined precisely, `lib/data/` is the authority
 rather than prose.

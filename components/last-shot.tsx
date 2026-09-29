@@ -10,7 +10,7 @@ import {
   useTransform,
 } from "framer-motion";
 
-import { SHOT } from "@/lib/lebron-data";
+import { SHOT } from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";

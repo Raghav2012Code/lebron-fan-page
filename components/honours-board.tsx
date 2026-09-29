@@ -9,7 +9,7 @@ import {
   NEXT_MARK,
   STATS_AS_OF,
   type Honour,
-} from "@/lib/lebron-data";
+} from "@/lib/data";
 import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, Counter, PaintRule, RiseWords, type Opener } from "@/components/typeset";
 
