@@ -161,8 +161,7 @@ export const HERO = {
   first: "LEBRON",
   last: "JAMES",
   meta: ["Akron, Ohio", "Born 1984", "No. 23"],
-  standfirst:
-    "An unofficial fan tribute to the player who turned longevity, pressure, and impossible expectations into a competitive language.",
+  standfirst: "A LeBron tribute.",
   figures: [
     { value: "4", label: "Championships" },
     { value: "4", label: "Most Valuable Player" },

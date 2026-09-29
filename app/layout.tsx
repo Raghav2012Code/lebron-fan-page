@@ -15,9 +15,9 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "The King — an unofficial LeBron James tribute",
+  title: "The King — A LeBron Tribute",
   description:
-    "An unofficial fan tribute to LeBron James: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
+    "A LeBron tribute: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
   robots: { index: false, follow: false },
 };
 
