@@ -627,6 +627,29 @@ go red with the right message, and reverting.
    them first — contradicting the component's own docstring. Pre-existing, and fixed while the
    section was being restructured.
 
+### Verification pass — three guards were inert
+
+Every finding above was implemented and committed before this issue was closed, but "implemented" was
+taken on the strength of the plan's own claim that each guard had been "proven by injecting its
+violation". Re-verifying by injection found that claim false for three of the seventeen guards, all
+of the same class: a guard that reads as armed and cannot fail. `403e009` had already fixed this bug
+once, for the bare-`fr` rule, and it recurred.
+
+| Guard | The defect | Proof |
+|---|---|---|
+| `L4` — uniform card hover-lift | The selector read `JSXAttribute[name.name='whileHover'] Expression ObjectExpression …`. There is no `Expression` node in a JSX AST; it is `JSXExpressionContainer`. The file's own docblock says so, having made that correction for the `className` rules two paragraphs earlier. | `whileHover={{ y: -3 }}` on a real `motion.div` left lint clean. |
+| `G5` — round-shape budget | Counted LINES, then (after one fix) LITERALS. `className="rounded-full rounded-full"` on one line reported a single site, so the page budget of four was a budget of four lines. | That exact string in `the-block.tsx` — a file already on the survivor list, so both other checks were satisfied — left G5 green. |
+| `G2` — anchor clearance | Matched `/scroll-clearance/` as a substring, so `scroll-clearanceX` satisfied it while providing no clearance. The same substring trap `app/layout.tsx` documents for `[style*="opacity:0"]`, missed here. | Renaming the class to `scroll-clearanceX` left G2 green. |
+
+All three are fixed and each is now proven red by the injection that used to pass it, in
+`6d54174` and `957c7a7`.
+
+**The lesson, recorded because it is the third time.** Reading a guard and concluding it is correct
+is not verification; the guard and its comments can both be confidently wrong. Every guard in this
+file is now either injection-proven or listed here as unproven. The other fourteen were re-checked
+by injection in the same pass — `G3`, `G4`, `G6`, and lint rules `L1`, `L2`, `L3`, `L5` all go red
+on their violations with a file and a line — and none of them had a defect.
+
 ### Re-audit still owed
 
 `DESIGN-AUDIT.md` §Re-audit asks for a fresh Hallmark `audit` after the structural wave, scored on
