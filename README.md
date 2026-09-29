@@ -1,6 +1,6 @@
 # The King — a LeBron James fan tribute
 
-An unofficial, single-page tribute to LeBron James: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored. Built with Next.js (App Router), React 19, Tailwind CSS v4 and Framer Motion.
+A single-page LeBron tribute: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored. Built with Next.js (App Router), React 19, Tailwind CSS v4 and Framer Motion.
 
 ## Design direction
 
@@ -134,7 +134,7 @@ positives at 375px.
 
 ## Deployment
 
-Deploys to Vercel. `robots: { index: false, follow: false }` is set in `app/layout.tsx` — this is intentionally not indexed as an unofficial fan tribute. If that policy changes, remove it and add OpenGraph metadata, which the site currently has none of.
+Deploys to Vercel. The page is indexable, and `app/layout.tsx` ships the OpenGraph and Twitter card metadata that was previously absent — it was omitted while `robots: { index: false, follow: false }` made a link preview unreachable. The cards are text only: no `images` field is set, because a share card needs a 1200x630 asset and the only image in the repo is the 180x180 apple icon. `metadataBase` is unset for the same reason it looks unset: no deployment URL is recorded anywhere in the repo, and inventing one would ship a fabricated domain into the build output. Set both when a real card image and a real URL exist.
 
 ## Design skills
 

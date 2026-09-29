@@ -14,11 +14,37 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+/**
+ * The OpenGraph block is here because it used to be absent by a standing
+ * decision: `robots: { index: false, follow: false }` meant the page was never
+ * going to be shared as a link preview, so a preview card was dead weight.
+ * Indexing is now on, which is what makes this metadata worth shipping.
+ *
+ * No `images` entry, and no `metadataBase`. A share card needs a 1200x630
+ * asset and the only image in the repo is the 180x180 apple icon, which
+ * renders as a blurry thumbnail; adding a wrong-sized image is worse than
+ * adding none. `metadataBase` is left unset deliberately: the repo has no
+ * deployed URL recorded anywhere, and guessing one would put a fabricated
+ * domain into the build output. With no image fields there is nothing for it
+ * to resolve, so Next emits no relative-URL warning either.
+ */
 export const metadata: Metadata = {
   title: "The King — A LeBron Tribute",
   description:
     "A LeBron tribute: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
-  robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    siteName: "The King",
+    title: "The King — A LeBron Tribute",
+    description:
+      "A LeBron tribute: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
+  },
+  twitter: {
+    card: "summary",
+    title: "The King — A LeBron Tribute",
+    description:
+      "A LeBron tribute: twenty-three seasons, four titles, four MVPs, and the first forty thousand points anyone has scored.",
+  },
 };
 
 export const viewport: Viewport = {
