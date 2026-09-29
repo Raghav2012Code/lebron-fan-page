@@ -99,9 +99,15 @@ const eslintConfig = defineConfig([
         // The card grid's uniform hover-lift. `back-to-top.tsx` moves an ICON on
         // group-hover, which is an affordance rather than decoration, and is
         // deliberately not matched: it is not a card and does not lift one.
+        //
+        // `JSXExpressionContainer`, not `Expression`, and that is not cosmetic:
+        // there is no `Expression` node in a JSX AST, so the previous form of
+        // this selector matched nothing and the rule could never fire — the same
+        // inert-selector failure the `fr` rule above already had once. Proven
+        // fixed by injecting `whileHover={{ y: -3 }}` and watching it report.
         {
           selector:
-            "JSXAttribute[name.name='whileHover'] Expression ObjectExpression Property[key.name='y']",
+            "JSXAttribute[name.name='whileHover'] JSXExpressionContainer ObjectExpression Property[key.name='y']",
           message:
             "A uniform vertical hover-lift across a card grid is a named AI tell (DESIGN-AUDIT.md F-09). Use an affordance that carries information about that card, such as inverting the result badge, rather than moving it.",
         },

@@ -110,7 +110,20 @@ function sitesInComponents(needle: string | RegExp): string[] {
  * as a radius violation. Scoping to string literals is what makes the guard
  * precise rather than merely strict.
  */
-function classTokenSites(needle: string | RegExp): string[] {
+/**
+ * One entry per OCCURRENCE, not per line and not per literal.
+ *
+ * Two narrower definitions were wrong here, and an injection found each in turn.
+ * Counting LINES let `className="rounded-full rounded-full"` on one line report
+ * a single site. Counting LITERALS then fixed the two-separate-strings case but
+ * not this one, because both shapes sit inside the same string literal. The
+ * token is counted where it actually appears — inside the class string — so a
+ * single attribute holding any number of round shapes contributes that number.
+ *
+ * Callers that want distinct locations for a message use `classTokenSites`,
+ * which de-duplicates this by `file:line`.
+ */
+function classTokenHits(needle: string | RegExp): string[] {
   const out: string[] = [];
   for (const { name, source } of componentFiles) {
     codeOf(source)
@@ -118,16 +131,32 @@ function classTokenSites(needle: string | RegExp): string[] {
       .forEach((line, i) => {
         for (const literal of line.matchAll(/"([^"]*)"|'([^']*)'/g)) {
           const value = literal[1] ?? literal[2] ?? "";
-          const hit =
+          // A global regex is required to count occurrences; a caller-supplied
+          // non-global RegExp is made global here so both forms work.
+          const re =
             typeof needle === "string"
-              ? new RegExp(`(?<![\\w-])${needle}(?![\\w-])`).test(value)
-              : needle.test(value);
-          if (hit) {
+              ? new RegExp(`(?<![\\w-])${needle}(?![\\w-])`, "g")
+              : new RegExp(needle.source, needle.flags.includes("g") ? needle.flags : `${needle.flags}g`);
+          const count = [...value.matchAll(re)].length;
+          for (let k = 0; k < count; k++) {
             out.push(`${name}:${i + 1}  ${value.trim().slice(0, 60)}`);
-            return;
           }
         }
       });
+  }
+  return out;
+}
+
+/** `classTokenHits`, de-duplicated to one entry per `file:line` for reporting. */
+function classTokenSites(needle: string | RegExp): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const hit of classTokenHits(needle)) {
+    const key = hit.split("  ")[0];
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(hit);
+    }
   }
   return out;
 }
@@ -344,7 +373,9 @@ test("design guard G5 - round shapes are within budget and every survivor is nam
   };
 
   for (const { name } of componentFiles) {
-    const uses = classTokenSites("rounded-full").filter((s) => s.startsWith(name));
+    // Occurrences, not lines. Counting lines let a single class attribute
+    // holding several round shapes pass the page budget of four.
+    const uses = classTokenHits("rounded-full").filter((s) => s.startsWith(name));
     assert.ok(
       uses.length <= 2,
       `${name} has ${uses.length} rounded-full shapes. The whole page is allowed ` +
@@ -360,7 +391,7 @@ test("design guard G5 - round shapes are within budget and every survivor is nam
     }
   }
 
-  const total = classTokenSites("rounded-full").length;
+  const total = classTokenHits("rounded-full").length;
   assert.strictEqual(
     total,
     4,
