@@ -214,7 +214,7 @@ function ResultCount({
  * wrong the moment one does not, which is the same shape as the key on the card
  * below, which already had to spell out this fallback.
  */
-function cardId(series: PlayoffSeries): string {
+export function cardId(series: PlayoffSeries): string {
   return series.id ?? `${series.year}-${series.roundCode}`;
 }
 

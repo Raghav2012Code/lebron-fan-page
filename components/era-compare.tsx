@@ -39,7 +39,7 @@ interface MetricRowProps {
  * is to pass the direction rather than to widen this row, because the arrow, the
  * meter split and the announced word all have to agree about which way is better.
  */
-function MetricRow({ label, valA, valB, unit = "", format }: MetricRowProps) {
+export function MetricRow({ label, valA, valB, unit = "", format }: MetricRowProps) {
   const displayA = format ? format(valA) : `${valA}${unit}`;
   const displayB = format ? format(valB) : `${valB}${unit}`;
 

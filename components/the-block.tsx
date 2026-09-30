@@ -11,7 +11,7 @@ import { Caption, PaintRule, RiseWords, StatBand, type Opener } from "@/componen
 /**
  * Interpolate linear progress between two keyframes based on current time t.
  */
-function interpolate(
+export function interpolate(
   t: number,
   kfs: readonly BlockKeyframe[],
 ) {

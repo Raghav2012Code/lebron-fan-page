@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { PlayoffMatrix, OPENER } from "@/components/playoff-matrix";
-import { PLAYOFF_SERIES } from "@/lib/data";
+import { PlayoffMatrix, OPENER, cardId } from "@/components/playoff-matrix";
+import { PLAYOFF_SERIES, type PlayoffSeries } from "@/lib/data";
 
 /**
  * The playoff matrix is the densest section on the page: 57 series, five round
@@ -117,6 +117,74 @@ describe("playoff-matrix", () => {
 
   it("names its opener for the page rhythm", () => {
     expect(OPENER).toBe("instrument");
+  });
+
+  it("filters the grid by the search query and clears back to the full ledger", async () => {
+    const user = userEvent.setup();
+    render(<PlayoffMatrix />);
+    expect(seriesCards()).toHaveLength(57);
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search playoff series" }),
+      "2016",
+    );
+    const shown = seriesCards();
+    expect(shown.length).toBeGreaterThan(0);
+    expect(shown.length).toBeLessThan(57);
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(seriesCards()).toHaveLength(57);
+  });
+
+  it("filters to won series, and renders the count the chip declares", async () => {
+    const user = userEvent.setup();
+    render(<PlayoffMatrix />);
+
+    const wonChip = screen.getByRole("button", { name: /^Won \(/ });
+    const declared = Number(wonChip.textContent?.match(/\((\d+)\)/)?.[1]);
+    expect(declared).toBe(42);
+
+    await user.click(wonChip);
+    expect(seriesCards()).toHaveLength(declared);
+    // The chip is selected, so exactly one outcome control reports itself on.
+    expect(wonChip.className).toContain("bg-wine");
+  });
+
+  it("filters to sweeps and agrees with the sweeps count", async () => {
+    const user = userEvent.setup();
+    render(<PlayoffMatrix />);
+
+    const sweeps = screen.getByRole("button", { name: /Sweeps Only/ });
+    const declared = Number(sweeps.textContent?.match(/\((\d+)\)/)?.[1]);
+    expect(declared).toBe(16);
+
+    await user.click(sweeps);
+    expect(seriesCards()).toHaveLength(declared);
+    expect(sweeps.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("switches to the franchise view and back", async () => {
+    const user = userEvent.setup();
+    render(<PlayoffMatrix />);
+
+    await user.click(screen.getByRole("button", { name: /^Franchises \(/ }));
+    // The matrix grid gives way to the per-franchise records.
+    expect(seriesCards()).toHaveLength(0);
+    expect(
+      screen.getByText(/Head-To-Head Postseason Records Across 25 NBA/),
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /^Series Ledger \(/ }));
+    expect(seriesCards()).toHaveLength(57);
+  });
+
+  it("falls back to year-round when a series carries no id", () => {
+    // `id` is optional on `PlayoffSeries`, so two id-less rows must not compare
+    // equal and both report expanded. Direct unit coverage of the fallback,
+    // which no rendered row exercises because all 57 live rows carry an id.
+    const base = { year: 2016, roundCode: "FIN" } as unknown as PlayoffSeries;
+    expect(cardId({ ...base, id: "abc" })).toBe("abc");
+    expect(cardId(base)).toBe("2016-FIN");
   });
 });
 
