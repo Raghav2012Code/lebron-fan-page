@@ -38,11 +38,6 @@ export const HARDWOOD_TOKENS = {
       rim: { cx: 250, cy: 887.5, r: 7.5 },
     },
   },
-  requiredSections: [
-    { id: "playoff-matrix", label: "Playoff matrix" },
-    { id: "clutch-anthology", label: "Clutch anthology" },
-    { id: "triple-doubles", label: "Triple-double constellation" },
-  ] as const,
 };
 
 /**
@@ -51,14 +46,22 @@ export const HARDWOOD_TOKENS = {
  */
 export function getPlayoffSeries() {
   const mod = LebronData as Record<string, unknown>;
-  const live = (mod.PLAYOFF_SERIES || mod.playoffSeries || mod.playoff_series) as
+  // The CANONICAL export name only. This used to probe `playoffSeries` and
+  // `playoff_series` and then silently substitute
+  // `tests/fixtures/authoritative-data.ts` when none matched. The fixture is a
+  // DIFFERENT dataset, so a rename could turn the whole suite into one that
+  // passes against data the site never renders. A missing canonical export is a
+  // hard error now, never a fallback.
+  const live = mod.PLAYOFF_SERIES as
     | typeof Authoritative.PLAYOFF_SERIES
     | undefined;
-  return {
-    data: live && Array.isArray(live) ? live : Authoritative.PLAYOFF_SERIES,
-    isLive: Boolean(live && Array.isArray(live)),
-    authoritative: Authoritative.PLAYOFF_SERIES,
-  };
+  if (!Array.isArray(live)) {
+    throw new Error(
+      "lib/data must export PLAYOFF_SERIES as an array. Refusing to fall back " +
+        "to tests/fixtures/authoritative-data.ts, which holds a different dataset.",
+    );
+  }
+  return { data: live, isLive: true };
 }
 
 /**
@@ -73,7 +76,6 @@ export function getBuzzerBeaters() {
   return {
     data: live && Array.isArray(live) ? live : Authoritative.CLUTCH_BUZZER_BEATERS,
     isLive: Boolean(live && Array.isArray(live)),
-    authoritative: Authoritative.CLUTCH_BUZZER_BEATERS,
   };
 }
 
@@ -108,7 +110,17 @@ export function getTripleDoubles() {
     // test failing.
     summary: (liveSummary ?? Authoritative.TRIPLE_DOUBLE_SUMMARY) as
       typeof Authoritative.TRIPLE_DOUBLE_SUMMARY,
-    isLive: Boolean(livePlayoff && Array.isArray(livePlayoff)),
+    // AND of all three sources. `isLive` used to reflect the playoff table
+    // alone, so `regularSeason` and `summary` could each fall back to the
+    // fixture while this read `true` — the smoke assertion that is supposed to
+    // make the fallback loud could not see two thirds of it.
+    isLive: Boolean(
+      livePlayoff &&
+        Array.isArray(livePlayoff) &&
+        liveRegular &&
+        Array.isArray(liveRegular) &&
+        liveSummary,
+    ),
   };
 }
 
@@ -123,7 +135,6 @@ export function getFranchiseBreakdown() {
   return {
     data: live && Array.isArray(live) ? live : Authoritative.FRANCHISE_BREAKDOWN,
     isLive: Boolean(live && Array.isArray(live)),
-    authoritative: Authoritative.FRANCHISE_BREAKDOWN,
   };
 }
 

@@ -10,6 +10,8 @@ import {
   SECTIONS,
   NEXT_MARK,
   CAREER,
+  LEDGER,
+  REGULAR_SEASON_POINTS,
   THE_BLOCK,
   TRIPLE_DOUBLES,
   TRIPLE_DOUBLE_SUMMARY,
@@ -237,6 +239,29 @@ test("smoke test - derived UI figures reconcile with the data module", () => {
     assert.strictEqual(s.games, s.wins + s.losses, `${s.id}: games != wins + losses`);
     assert.strictEqual(s.isSweep, s.games === 4, `${s.id}: isSweep disagrees with games`);
   }
+});
+
+/**
+ * `the-ledger.tsx` prints "the career total exactly" over the four stint
+ * segments, and `LEDGER_INTRO.copy` makes the same claim. Nothing asserted it:
+ * the ledger was pinned by export name only, so a stint total could have been
+ * edited to any value without a gate going red. The four `scored` figures are
+ * the ones the component sums into `TOTAL`.
+ */
+test("smoke test - the four ledger stints sum to the career point total", () => {
+  const stints = LEDGER.filter(
+    (e): e is typeof e & { scored: number } => e.scored !== null,
+  );
+  assert.strictEqual(stints.length, 4, "expected four NBA stints in the ledger");
+  const sum = stints.reduce((a, e) => a + e.scored, 0);
+  assert.strictEqual(
+    sum,
+    REGULAR_SEASON_POINTS,
+    `the ledger stints sum to ${sum}, but the career regular-season total is ` +
+      `${REGULAR_SEASON_POINTS}. The component promises the four add up to the ` +
+      `career number exactly; if a stint was edited, the other three or the ` +
+      `career total must move with it.`,
+  );
 });
 
 /**
