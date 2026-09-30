@@ -82,7 +82,15 @@ export function SeasonRuler() {
   const move = (next: number) => {
     const clamped = Math.max(0, Math.min(SEASONS.length - 1, next));
     setIndex(clamped);
-    itemRefs.current[clamped]?.focus({ preventScroll: true });
+    // Deliberately NOT `preventScroll: true`, unlike the other roving-tabindex
+    // controls on the page. Below `sm` the ruler is `overflow-x-auto`, so the
+    // selected season can sit outside the visible strip; the container's touch
+    // mapping above assumes arrow keys can scroll it back into view. The
+    // targets carry `scroll-clearance`, so the vertical scroll that focus()
+    // performs lands them below the header rather than flush against the top
+    // (F-05) — the two requirements are met by different mechanisms, so this
+    // site must not be made "uniform" with the others.
+    itemRefs.current[clamped]?.focus();
   };
 
   /**

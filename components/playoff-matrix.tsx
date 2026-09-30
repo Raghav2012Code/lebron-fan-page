@@ -455,6 +455,11 @@ export function PlayoffMatrix() {
     const target = document.getElementById(
       `round-tab-${ROUND_TABS[nextIndex].slug}`,
     );
+    // The round tabs sit adjacent to one another and are already on screen when
+    // a keyboard user arrows between them, so focus must not scroll the page
+    // again. This is the same policy as the drawer's focus restore above; the
+    // season ruler's targets are the one deliberate exception, where arrow-key
+    // scrolling is load-bearing (see `SeasonRuler.move`).
     target?.focus({ preventScroll: true });
   };
 
