@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+# Playwright e2e artifacts (traces, failure screenshots)
+/test-results/
+/playwright-report/
 # Browser-automation artifacts: snapshots, console logs and screenshots written
 # by the MCP browser tools during development. Untracked but not ignored, so
 # `git add .` would otherwise commit them.

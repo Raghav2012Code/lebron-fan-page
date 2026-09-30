@@ -405,7 +405,8 @@ export function TheRooms() {
               one rendered at desktop, so at desktop Framer had serialised the
               five other pinned panels as `opacity: 0` and a visitor without JS
               got one of six chapters and no way to reach the rest. Both copies
-              are now always present and the <noscript> below carries all six.
+              are now always present, and the <noscript> below decides which
+              copy a visitor without JS gets — see its note.
 
               There is deliberately NO `aria-hidden` on either branch, and there
               used to be one on the pinned wrapper — which is the branch that is
@@ -420,7 +421,7 @@ export function TheRooms() {
               `display: none`, which already removes a subtree from the tab order
               and the accessibility tree, so the attribute was only ever
               reachable-as-a-mistake. */}
-          <div className="hidden lg:block">
+          <div className="rooms-stage hidden lg:block">
             <PinnedRooms />
           </div>
           <div className="lg:hidden">
@@ -430,8 +431,40 @@ export function TheRooms() {
           </div>
         </>
       )}
+      {/* With JS off this block is the section's only fallback, and it does
+          two jobs, because neither branch above can be trusted to render
+          without Framer (issue #33, both defects measured in a real browser
+          with scripting disabled before this note was written):
+
+          - It withdraws the pinned stage. The stage is a scroll-linked
+            cross-fade: Framer serialises all six panels at `opacity: 0`, the
+            root layout's no-JS rule (correctly) flattens that to 1, and the
+            result is six chapters printed on top of one another inside a 420vh
+            sticky region — five of the six carrying `aria-hidden="true"` on
+            text that is plainly on screen. Withdrawing the stage also takes
+            its six nav marks out of the tab order: they are `window.scrollTo`
+            buttons that cannot do anything without JS.
+
+          - It hands the chapters over by width. `hidden lg:block` is the exact
+            inverse of the stacked branch's `lg:hidden`: below `lg` the stacked
+            copy is already visible and the fallback stays out of the way (it
+            used to render unconditionally, which printed every chapter twice
+            on a phone); at `lg` and above it is the only copy, which is the
+            gap the stage used to fill.
+
+          The `<style>` lives here, not in the root layout's generic no-JS
+          block: that block's job is flattening Framer entrance states and it
+          is pinned by design guard G9, while this withdrawal is a decision of
+          this section alone. Asserted end-to-end by the no-JS e2e suite — six
+          chapters, once, at both widths, and no visible buttons in the
+          section. */}
       <noscript>
-        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 md:px-14">
+        <style
+          dangerouslySetInnerHTML={{
+            __html: ".rooms-stage{display:none!important}",
+          }}
+        />
+        <div className="hidden lg:block mx-auto max-w-6xl px-5 py-10 sm:px-8 md:px-14">
           {ROOMS.map((room) => (
             <StackedRoom key={room.id} room={room} />
           ))}
