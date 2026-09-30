@@ -121,7 +121,7 @@ export function FatherAndSon() {
             </span>
           </div>
           <span className="mt-1 block text-xs text-muted">
-            October 29, 2003 to October 22, 2024
+            {FATHER_AND_SON.plaque.days}
           </span>
         </div>
 
@@ -136,7 +136,7 @@ export function FatherAndSon() {
             </span>
           </div>
           <span className="mt-1 block text-xs text-muted">
-            Age 18 rookie to age 39 teammate
+            {FATHER_AND_SON.plaque.span}
           </span>
         </div>
 
@@ -151,7 +151,7 @@ export function FatherAndSon() {
             </span>
           </div>
           <span className="mt-1 block text-xs text-muted">
-            Never before in 78 NBA seasons
+            {FATHER_AND_SON.plaque.precedent}
           </span>
         </div>
       </div>

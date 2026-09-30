@@ -20,6 +20,14 @@ export const HARDWARE = {
     "Everything that came with a trophy, a ceremony, or a line in the record book.",
 } as const;
 
+/** Career regular-season points. The ONE literal; every other use on the page
+ *  derives from it so the figures cannot drift: the `HONOURS` row below, the
+ *  ledger's running total, the hero figure, `CAREER` and `COMBINED_POINTS`.
+ *  Exported because `career.ts` builds the career stat line from the same
+ *  number. That dependency was invisible while this file and that one were the
+ *  same file, which is exactly what the split exists to surface. */
+export const CAREER_POINTS = 43440;
+
 export const HONOURS: Honour[] = [
   {
     id: "titles",
@@ -44,7 +52,7 @@ export const HONOURS: Honour[] = [
   },
   {
     id: "points",
-    value: 43440,
+    value: CAREER_POINTS,
     label: "Regular-season points",
     context:
       "He passed forty thousand in March 2023, the first player in league history to get there, and has not stopped.",
@@ -77,15 +85,10 @@ export const HONOURS: Honour[] = [
   },
 ];
 
-/** Career regular-season points. Declared once: `CAREER` and the combined
- *  figure below both derive from it, so the two cannot disagree.
- *
- *  Exported because `career.ts` builds the career stat line from the same
- *  three numbers. That dependency was invisible while this file and that one
- *  were the same file, which is exactly the kind of thing the split exists to
- *  surface: two sections quoting one total must quote one constant, not two
- *  literals that can drift. */
-export const REGULAR_SEASON_POINTS = 43440;
+/** Back-compat alias for `CAREER_POINTS`. The barrel surface test pins this
+ *  spelling, and `career.ts` imports it, so the name stays; the value does not
+ *  get a second literal. */
+export const REGULAR_SEASON_POINTS = CAREER_POINTS;
 /** Career playoff points — also the most anyone has scored in the playoffs. */
 export const PLAYOFF_POINTS = 8521;
 /** Regular season and playoffs together. This is the basis of the 50,000 mark. */

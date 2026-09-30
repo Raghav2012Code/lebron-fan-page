@@ -39,6 +39,15 @@ export const FATHER_AND_SON = {
   quoteAuthor: "LeBron to Bronny, checking in together with 4:00 left in the 2nd quarter",
   daysApart: 7664,
   yearsSpan: 21,
+  /** The three sub-labels under the headline figures. Each restates a fact this
+   *  module already holds — the two dates, the two ages, and the 78-year wait in
+   *  `copy` — so they live beside that data rather than as literals in the
+   *  component, where they could drift from the facts they describe. */
+  plaque: {
+    days: "October 29, 2003 to October 22, 2024",
+    span: "Age 18 rookie to age 39 teammate",
+    precedent: "Never before in 78 NBA seasons",
+  },
   debutNight: {
     date: "October 29, 2003",
     year: 2003,

@@ -10,9 +10,12 @@ import {
   SECTIONS,
   NEXT_MARK,
   CAREER,
+  FIRST_SEASON,
+  LAST_SEASON,
   LEDGER,
   REGULAR_SEASON_POINTS,
   THE_BLOCK,
+  teamForSeason,
   TRIPLE_DOUBLES,
   TRIPLE_DOUBLE_SUMMARY,
 } from "@/lib/data";
@@ -248,6 +251,22 @@ test("smoke test - derived UI figures reconcile with the data module", () => {
  * edited to any value without a gate going red. The four `scored` figures are
  * the ones the component sums into `TOTAL`.
  */
+test("smoke test - a gap year is not silently labelled with the first team", () => {
+  // The old `?? TEAM_SPANS[0]` turned any uncovered year into "Cleveland".
+  assert.throws(
+    () => teamForSeason(1999),
+    /No TEAM_SPANS entry covers season 1999/,
+    "an uncovered season must throw, not inherit TEAM_SPANS[0]",
+  );
+  // And the live career is contiguous: every season from first to last resolves.
+  for (let year = FIRST_SEASON; year <= LAST_SEASON; year += 1) {
+    assert.ok(
+      teamForSeason(year),
+      `season ${year} has no team span, so the ruler would show the wrong team`,
+    );
+  }
+});
+
 test("smoke test - the four ledger stints sum to the career point total", () => {
   const stints = LEDGER.filter(
     (e): e is typeof e & { scored: number } => e.scored !== null,

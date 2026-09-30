@@ -2,6 +2,8 @@
  * THE LEDGER — the points, added up
  * ------------------------------------------------------------------------- */
 
+import { CAREER_POINTS } from "./honours";
+
 /**
  * One ledger metric: a figure, and the scale its bar is drawn against.
  *
@@ -123,7 +125,7 @@ export const LEDGER: LedgerEntry[] = [
       { label: "Points per game", value: 25.9, max: 30 },
     ],
     scored: 12402,
-    running: { value: 43440, label: "Career points" },
+    running: { value: CAREER_POINTS, label: "Career points" },
     achievements: [
       { when: "2020", what: "NBA champion" },
       { when: "2020", what: "Finals MVP" },

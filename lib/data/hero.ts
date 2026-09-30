@@ -2,6 +2,8 @@
  * HERO
  * ------------------------------------------------------------------------- */
 
+import { CAREER_POINTS } from "./honours";
+
 export const HERO = {
   first: "LEBRON",
   last: "JAMES",
@@ -10,6 +12,6 @@ export const HERO = {
   figures: [
     { value: "4", label: "Championships" },
     { value: "4", label: "Most Valuable Player" },
-    { value: "43,440", label: "Regular-season points" },
+    { value: CAREER_POINTS.toLocaleString("en-US"), label: "Regular-season points" },
   ],
 } as const;

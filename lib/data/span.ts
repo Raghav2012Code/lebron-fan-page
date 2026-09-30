@@ -88,6 +88,25 @@ const MILESTONES: Record<number, string> = {
   2025: "First player to reach a 23rd season",
 };
 
+/**
+ * The team span covering a season START year.
+ *
+ * Throws when no span covers the year. The previous form read
+ * `TEAM_SPANS.find(...) ?? TEAM_SPANS[0]`, which silently labelled every gap
+ * year "Cleveland" — a wrong team on the ruler, with no gate able to see it.
+ * The spans are contiguous today; the throw is what keeps them so.
+ */
+export function teamForSeason(start: number): TeamSpan {
+  const span = TEAM_SPANS.find((t) => start >= t.from && start <= t.to);
+  if (!span) {
+    throw new Error(
+      `No TEAM_SPANS entry covers season ${start}. A gap year must not ` +
+        `silently inherit the first team; add the span or fix its from/to.`,
+    );
+  }
+  return span;
+}
+
 export interface Season {
   /** season start year — 2003 means the 2003-04 season */
   start: number;
@@ -105,8 +124,7 @@ export const SEASONS: Season[] = Array.from(
   { length: SEASON_COUNT },
   (_, i): Season => {
     const start = FIRST_SEASON + i;
-    const team =
-      TEAM_SPANS.find((t) => start >= t.from && start <= t.to) ?? TEAM_SPANS[0];
+    const team = teamForSeason(start);
     return {
       start,
       label: `${start}-${String((start + 1) % 100).padStart(2, "0")}`,
