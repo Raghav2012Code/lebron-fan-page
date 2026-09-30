@@ -85,6 +85,9 @@ function stripComments(source: string): string {
 /** Component source with comments removed, memoised per file. */
 const codeOf = (source: string) => stripComments(source);
 
+/** Escape a literal string so it can be embedded in a `RegExp` as itself. */
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /** Every occurrence of `needle` in component CODE, as `file:line`. */
 function sitesInComponents(needle: string | RegExp): string[] {
   const out: string[] = [];
@@ -135,7 +138,7 @@ function classTokenHits(needle: string | RegExp): string[] {
           // non-global RegExp is made global here so both forms work.
           const re =
             typeof needle === "string"
-              ? new RegExp(`(?<![\\w-])${needle}(?![\\w-])`, "g")
+              ? new RegExp(`(?<![\\w-])${escapeRegExp(needle)}(?![\\w-])`, "g")
               : new RegExp(needle.source, needle.flags.includes("g") ? needle.flags : `${needle.flags}g`);
           const count = [...value.matchAll(re)].length;
           for (let k = 0; k < count; k++) {
@@ -224,14 +227,17 @@ test("design guard G2 - every section anchor target declares scroll clearance", 
   );
 
   for (const { id } of SECTIONS) {
+    // Through `codeOf`: a comment naming the id within eight lines of an
+    // anchor used to satisfy the scan, so this guard was the one place a
+    // prose mention could stand in for a real declaration.
     const owner = componentFiles.find(({ source }) =>
-      new RegExp(`id="${id}"`).test(source),
+      new RegExp(`id="${id}"`).test(codeOf(source)),
     );
     assert.ok(owner, `no component renders id="${id}"`);
 
     // The clearance class has to be on the element that CARRIES the id, since
     // that is what the browser scrolls.
-    const lines = owner.source.split(/\r?\n/);
+    const lines = codeOf(owner.source).split(/\r?\n/);
     const idx = lines.findIndex((l) => l.includes(`id="${id}"`));
     const element =
       lines[idx].includes("className")
@@ -257,7 +263,7 @@ test("design guard G2 - every section anchor target declares scroll clearance", 
   const ruler = componentFiles.find(({ name }) => name === "season-ruler.tsx");
   assert.ok(ruler);
   assert.match(
-    ruler.source,
+    codeOf(ruler.source),
     /className="scroll-clearance(?=\s) group flex min-w-\[24px\]/,
     "the season ruler's targets must carry scroll-clearance (F-05)",
   );
@@ -272,9 +278,11 @@ test("design guard G2 - every section anchor target declares scroll clearance", 
 
 test("design guard G3 - the four-item band is used at most twice", () => {
   const uses = sitesInComponents("<StatBand");
-  assert.strictEqual(
-    uses.length,
-    2,
+  // "At most twice", not "exactly twice". The spec caps the band; it does not
+  // require both uses. Asserting equality turned a valid page with one band
+  // into a guard failure.
+  assert.ok(
+    uses.length <= 2,
     `StatBand must be used at most twice on the page (F-01). Found ${uses.length}: ` +
       `${uses.join(", ")}. Spend the two on the scoreboard tiles and the block's ` +
       `telemetry; anything else wants a different container.`,
@@ -445,13 +453,17 @@ test("design guard G6 - no spaced em-dash in rendered copy", () => {
   const offenders: string[] = [];
 
   for (const { name, source } of componentFiles) {
-    codeOf(source)
-      .split(/\r?\n/)
-      .forEach((line, i) => {
-        if (line.includes(EM) && new RegExp(`${EM}\\s`).test(line)) {
-          offenders.push(`${name}:${i + 1}  ${line.trim().slice(0, 60)}`);
-        }
-      });
+    // Join the physical lines first. A multiline string can carry the em-dash
+    // at the end of one line and the space at the start of the next, which a
+    // per-line scan cannot see.
+    const normalized = codeOf(source).replace(/\r?\n/g, " ");
+    const m = new RegExp(`${EM}\\s`).exec(normalized);
+    if (m) {
+      const at = m.index;
+      offenders.push(
+        `${name}  ...${normalized.slice(Math.max(0, at - 20), at + 40)}`,
+      );
+    }
   }
 
   assert.deepStrictEqual(
