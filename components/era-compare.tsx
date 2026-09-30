@@ -28,23 +28,6 @@ interface MetricRowProps {
  * A single comparison row: label, the better value, the worse value, and the
  * gap between them.
  *
- * The face is `font-text`, not Tailwind's default sans utility. That default is
- * a system stack — `-apple-system, BlinkMacSystemFont, "Segoe UI", …` — which is
- * NOT the declared body face, and `AGENTS.md` §2 bans it precisely because it
- * silently introduces a third family. This table was therefore rendering in a
- * family that no grep for the monospace utility could see, because the defect
- * was a utility pointing at the wrong token rather than a raw monospace request.
- * Two families, full stop: `font-text` and `font-display`.
- *
- * The two utility names this comment used to spell out are deliberately absent.
- * Tailwind's candidate scanner does not skip comments, so naming a banned
- * utility in prose is enough to GENERATE it — see the `source(none)` block at the
- * top of `globals.css`. A comment warning against a utility must not ship it.
- */
-/**
- * A single comparison row: label, the better value, the worse value, and the
- * gap between them.
- *
  * Higher is better, for every metric on this page — that is what the ten rows
  * all are, from points per game to true shooting to team wins. There used to be
  * a `higherIsBetter` prop for the lower-is-better case, and no call site ever

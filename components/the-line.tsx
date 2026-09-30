@@ -8,15 +8,6 @@ import { EASE_PAINT, EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, Counter, PaintRule, type Opener } from "@/components/typeset";
 
 /**
- * The line.
- *
- * A stat line is written the way basketball people say it out loud —
- * points / rebounds / assists — so that is exactly how it is set here, as one
- * slashed line in the paint with the totals hung underneath each figure.
- * Everything below it is official and exact; the per-season table these come
- * from sums to each of these totals in every category.
- */
-/**
  * Opener: `written-line` -- Opens on the painted band with the stat line itself as the display; the heading is its label.
  *
  * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if

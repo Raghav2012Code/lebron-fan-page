@@ -92,6 +92,15 @@ const eslintConfig = defineConfig([
           "/(^|\\s)font-mono(\\s|$)/",
           "globals.css declares two families and no monospace. Use `.narrow` / `.narrow-bold` for a label or data string, `.prose-copy` for prose, or `font-text` for inline body copy.",
         ),
+        // SCOPE: this matches raw `#rrggbb` literals only. It deliberately
+        // does not match `rgba(...)`, even though a handful of components pass
+        // brand hues through one: `shot-zones.tsx` (SVG strokes at ~107-124 and
+        // the team-fill at ~351) and `last-shot.tsx` (the floor markings and the
+        // ball shadow at ~415-419 and ~475). Those need an alpha channel the
+        // token layer does not carry, and `shot-zones.tsx` documents the choice
+        // as deliberate. They stay on the same brand hues, so the intent is not
+        // to reintroduce arbitrary colour; if that changes, tighten the regex
+        // below rather than adding a one-off exemption.
         ...classNameHas(
           "/#[0-9a-fA-F]{3,8}/",
           "Raw hex in a component bypasses the token layer and will drift from globals.css. Use a named token (bg-wine, text-leather, ...) or a var(--…) reference. Per-team colours belong in the data module.",

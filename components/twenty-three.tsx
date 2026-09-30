@@ -8,14 +8,6 @@ import { EASE_SETTLE, VIEWPORT_SOON } from "@/lib/motion";
 import { Caption, PaintRule, RiseLine, type Opener } from "@/components/typeset";
 
 /**
- * Twenty-three.
- *
- * The quiet section, deliberately: the hero already spent the page's boldness,
- * so this one is a single colossal numeral, two paragraphs, and the honest
- * detail that the number was not actually constant — 23, then 6, then 23
- * again. No rotating ring of text, which is what used to sit here.
- */
-/**
  * Opener: `device` -- A colossal numeral bleeding off a full-viewport painted field.
  *
  * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if

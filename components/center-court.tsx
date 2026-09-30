@@ -10,13 +10,6 @@ import { COURT_PAINT_ASPECT, CourtDiagram } from "@/components/court-diagram";
 import { Caption, Kicker, PaintedName, type Opener } from "@/components/typeset";
 
 /**
- * The hero. One idea, executed once: the name straddles the paint line.
- * LEBRON sits on bare maple in wine; JAMES is inside the painted key and
- * reverses to chalk. The court is drawn to scale behind it, and the whole
- * thing lays itself down in a single sequence on load — court lines, then
- * the paint, then the lettering, then the figures.
- */
-/**
  * Opener: `device` -- The hero court and the painted name. No heading stack above it -- the court is the first thing on the page.
  *
  * Declared, not inferred: the test gate reads these in `app/page.tsx` order and fails if
