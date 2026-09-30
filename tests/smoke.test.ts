@@ -245,11 +245,9 @@ test("smoke test - derived UI figures reconcile with the data module", () => {
 });
 
 /**
- * `the-ledger.tsx` prints "the career total exactly" over the four stint
- * segments, and `LEDGER_INTRO.copy` makes the same claim. Nothing asserted it:
- * the ledger was pinned by export name only, so a stint total could have been
- * edited to any value without a gate going red. The four `scored` figures are
- * the ones the component sums into `TOTAL`.
+ * A gap year must not silently inherit the first team span. The old
+ * `?? TEAM_SPANS[0]` turned any uncovered year into "Cleveland" — a wrong team
+ * on the ruler that no gate could see.
  */
 test("smoke test - a gap year is not silently labelled with the first team", () => {
   // The old `?? TEAM_SPANS[0]` turned any uncovered year into "Cleveland".
@@ -267,6 +265,15 @@ test("smoke test - a gap year is not silently labelled with the first team", () 
   }
 });
 
+/**
+ * `the-ledger.tsx` prints "the career total exactly" over the four stint
+ * segments, and `LEDGER_INTRO.copy` makes the same claim. Nothing asserted it:
+ * the ledger was pinned by export name only, so a stint total could have been
+ * edited to any value without a gate going red. The four `scored` figures are
+ * the ones that must sum to the barrel's `REGULAR_SEASON_POINTS`; that value is
+ * itself watched by the `DATA_VALUES` surface check below, so a rename or a
+ * dropped export cannot quietly take the career total with it.
+ */
 test("smoke test - the four ledger stints sum to the career point total", () => {
   const stints = LEDGER.filter(
     (e): e is typeof e & { scored: number } => e.scored !== null,

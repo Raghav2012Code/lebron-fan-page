@@ -229,7 +229,10 @@ test("design guard G2 - every section anchor target declares scroll clearance", 
   for (const { id } of SECTIONS) {
     // Through `codeOf`: a comment naming the id within eight lines of an
     // anchor used to satisfy the scan, so this guard was the one place a
-    // prose mention could stand in for a real declaration.
+    // prose mention could stand in for a real declaration. Injection-proven:
+    // planting `// id="span" className="scroll-clearance"` in `baseline.tsx`
+    // while stripping the real token from `season-ruler.tsx` still reports
+    // `season-ruler.tsx:147`, which the pre-`codeOf` form could not.
     const owner = componentFiles.find(({ source }) =>
       new RegExp(`id="${id}"`).test(codeOf(source)),
     );
@@ -280,7 +283,8 @@ test("design guard G3 - the four-item band is used at most twice", () => {
   const uses = sitesInComponents("<StatBand");
   // "At most twice", not "exactly twice". The spec caps the band; it does not
   // require both uses. Asserting equality turned a valid page with one band
-  // into a guard failure.
+  // into a guard failure. Injection-proven: appending a third `<StatBand`
+  // occurrence to `era-compare.tsx` reports `Found 3` and the three sites.
   assert.ok(
     uses.length <= 2,
     `StatBand must be used at most twice on the page (F-01). Found ${uses.length}: ` +
