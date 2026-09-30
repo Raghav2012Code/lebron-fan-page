@@ -17,6 +17,13 @@ import { Caption, Kicker, PaintedName, type Opener } from "@/components/typeset"
  */
 export const OPENER: Opener = "device";
 
+/**
+ * The hero. One idea, executed once: the name straddles the paint line.
+ * LEBRON sits on bare maple in wine; JAMES is inside the painted key and
+ * reverses to chalk. The court is drawn to scale behind it, and the whole
+ * thing lays itself down in a single sequence on load — court lines, then
+ * the paint, then the lettering, then the figures.
+ */
 export function CenterCourt() {
   const ref = React.useRef<HTMLElement>(null);
   // The scroll affordance pulses forever. `reducedMotion="user"` cannot stop

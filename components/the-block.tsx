@@ -10,6 +10,13 @@ import { Caption, PaintRule, RiseWords, StatBand, type Opener } from "@/componen
 
 /**
  * Interpolate linear progress between two keyframes based on current time t.
+ *
+ * Exported for `tests/render/the-block.test.tsx` only. The interpolation is
+ * pure, but its three branches (before the first keyframe, after the last, and
+ * between two) are not observable through the mounted scrubber, so the render
+ * test reaches in and calls it directly. Treat this as a test seam, not part of
+ * the component's runtime surface: nothing in `app/` or `components/` should
+ * import it.
  */
 export function interpolate(
   t: number,
