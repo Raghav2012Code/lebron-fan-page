@@ -317,7 +317,9 @@ export function FatherAndSon() {
                   if (next === null) return;
                   ev.preventDefault();
                   setActiveMilestoneIdx(next);
-                  document.getElementById(`father-son-tab-${next}`)?.focus();
+                  document
+                    .getElementById(`father-son-tab-${next}`)
+                    ?.focus({ preventScroll: true });
                 }}
                 onClick={() => setActiveMilestoneIdx(idx)}
                 className={cn(

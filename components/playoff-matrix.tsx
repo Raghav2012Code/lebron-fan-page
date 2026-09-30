@@ -455,7 +455,7 @@ export function PlayoffMatrix() {
     const target = document.getElementById(
       `round-tab-${ROUND_TABS[nextIndex].slug}`,
     );
-    target?.focus();
+    target?.focus({ preventScroll: true });
   };
 
   return (

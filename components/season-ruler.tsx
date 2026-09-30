@@ -82,7 +82,7 @@ export function SeasonRuler() {
   const move = (next: number) => {
     const clamped = Math.max(0, Math.min(SEASONS.length - 1, next));
     setIndex(clamped);
-    itemRefs.current[clamped]?.focus();
+    itemRefs.current[clamped]?.focus({ preventScroll: true });
   };
 
   /**

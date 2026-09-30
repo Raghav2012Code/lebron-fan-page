@@ -21,6 +21,20 @@ export function SoundToggle({ className }: { className?: string }) {
     playRef.current = play;
   }, [play]);
 
+  // The confirmation tone is deferred so it is not cut off by the state change
+  // that precedes it. Track the timer so unmount clears it: an orphaned timeout
+  // firing into a torn-down audio context is the same defect `last-shot.tsx` and
+  // `playoff-matrix.tsx` already clear against.
+  const confirmToneRef = React.useRef<number | null>(null);
+  React.useEffect(
+    () => () => {
+      if (confirmToneRef.current !== null) {
+        window.clearTimeout(confirmToneRef.current);
+      }
+    },
+    [],
+  );
+
   return (
     <button
       type="button"
@@ -28,7 +42,12 @@ export function SoundToggle({ className }: { className?: string }) {
         const turningOn = !enabled;
         toggle();
         // play a confirmation tone only when turning ON
-        if (turningOn) window.setTimeout(() => playRef.current("click"), 20);
+        if (turningOn) {
+          confirmToneRef.current = window.setTimeout(
+            () => playRef.current("click"),
+            20,
+          );
+        }
       }}
       aria-pressed={enabled}
       className={cn(

@@ -221,7 +221,7 @@ export function ShotZones() {
                 setSelectedEraIndex(next);
                 document
                   .getElementById(`shot-zones-era-tab-${SHOT_ZONES.eras[next].id}`)
-                  ?.focus();
+                  ?.focus({ preventScroll: true });
               }}
               onClick={() => setSelectedEraIndex(idx)}
               className={cn(

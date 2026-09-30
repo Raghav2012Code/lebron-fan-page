@@ -109,7 +109,12 @@ export function Baseline() {
             ))}
             <li>
               <Caption style={{ color: "var(--chalk-dim)" }}>
-                {STATS_AS_OF_YEAR}, a fan tribute
+                {/* Render the year and its comma only when there is a year;
+                    the old `\`${year}\`, a fan tribute` shipped a leading
+                    ", a fan tribute" if `STATS_AS_OF` ever stopped matching. */}
+                {STATS_AS_OF_YEAR
+                  ? `${STATS_AS_OF_YEAR}, a fan tribute`
+                  : "A fan tribute"}
               </Caption>
             </li>
           </ul>
