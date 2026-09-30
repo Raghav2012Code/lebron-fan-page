@@ -70,13 +70,19 @@ export function FatherAndSon() {
   // shortened, `activeMilestone` would be undefined and take the section down
   // with it. The default (the Oct 22, 2024 history night) is expressed as
   // "last entry" rather than a magic 5 that only means that today.
+  const lastMilestoneIdx = FATHER_AND_SON.timeline.length - 1;
   const [activeMilestoneIdx, setActiveMilestoneIdx] = React.useState(
-    FATHER_AND_SON.timeline.length - 1,
+    lastMilestoneIdx,
+  );
+  // Clamp ONCE, then use the clamped index both to read the milestone and to
+  // mark the tab. The read was clamped but the comparison was not, so an
+  // out-of-range state could show the last milestone while marking no tab.
+  const clampedMilestoneIdx = Math.max(
+    0,
+    Math.min(activeMilestoneIdx, lastMilestoneIdx),
   );
   const activeMilestone: FatherSonMilestone =
-    FATHER_AND_SON.timeline[
-      Math.min(activeMilestoneIdx, FATHER_AND_SON.timeline.length - 1)
-    ];
+    FATHER_AND_SON.timeline[clampedMilestoneIdx];
 
   const debut = FATHER_AND_SON.debutNight;
   const history = FATHER_AND_SON.historyNight;
@@ -284,7 +290,7 @@ export function FatherAndSon() {
           className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
         >
           {FATHER_AND_SON.timeline.map((m, idx) => {
-            const isSelected = idx === activeMilestoneIdx;
+            const isSelected = idx === clampedMilestoneIdx;
             return (
               <button
                 key={`${m.year}-${m.title}`}
@@ -346,7 +352,7 @@ export function FatherAndSon() {
           key={activeMilestone.title}
           id="father-son-panel"
           role="tabpanel"
-          aria-labelledby={`father-son-tab-${activeMilestoneIdx}`}
+          aria-labelledby={`father-son-tab-${clampedMilestoneIdx}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}

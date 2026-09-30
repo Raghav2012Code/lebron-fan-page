@@ -65,8 +65,11 @@ function MetricRow({ label, valA, valB, unit = "", format }: MetricRowProps) {
   const bWins = diff < 0;
   const isTie = diff === 0;
 
-  // Scale so noticeable differences fill part of the meter
-  const pctA = Math.min(100, Math.max(10, (valA / (valA + valB)) * 100));
+  // Scale so noticeable differences fill part of the meter. Guard the sum:
+  // `0 / 0` is NaN, which rendered as `width: NaN%`. Two zeroes is an even
+  // split, which is what 50/50 says.
+  const sum = valA + valB;
+  const pctA = sum > 0 ? Math.min(100, Math.max(10, (valA / sum) * 100)) : 50;
   const pctB = 100 - pctA;
 
   return (

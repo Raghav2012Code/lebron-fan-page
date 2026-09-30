@@ -162,7 +162,10 @@ function Accumulation({
 }
 
 function MetricLine({ metric }: { metric: Metric }) {
-  const fill = Math.max(0, Math.min(1, metric.value / metric.max));
+  // Guard `max`: `value / 0` is Infinity (0 / 0 is NaN), and `Math.min(1, NaN)`
+  // is NaN, which Framer turns into a `scaleX(NaN)` resting state.
+  const fill =
+    metric.max > 0 ? Math.max(0, Math.min(1, metric.value / metric.max)) : 0;
   return (
     <motion.div
       className="flex flex-col gap-2"
