@@ -164,4 +164,68 @@ describe("sound", () => {
         original;
     }
   });
+  /**
+   * Mount the toggle with `prefers-reduced-motion` forced on or off, click it
+   * so sound is ON, and report what the bars are.
+   *
+   * The equalizer bars animate `height` on `repeat: Infinity`, which is a
+   * JavaScript loop. Framer's `reducedMotion="user"` only snaps transform and
+   * layout keys, and globals.css's `[data-reveal-loop]` rule reaches CSS
+   * animations only, so neither existing mechanism could stop these. The
+   * component has to branch itself, the way `center-court` does.
+   *
+   * A rendered height cannot tell an animated bar from a static one: both are a
+   * span carrying a `height` style. The bars therefore carry `data-reveal-loop`,
+   * the attribute globals.css already uses to mark a Framer repeat loop, and
+   * that is what this counts.
+   *
+   * One render per test, because `getByRole("button")` cannot tell two of them
+   * apart and the provider's module-level state is reset per mount anyway.
+   */
+  async function barsWithPreference(reduce: boolean) {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: reduce && query.includes("prefers-reduced-motion"),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    })) as any;
+    try {
+      const user = userEvent.setup();
+      const { container } = await mountSound();
+      await user.click(toggle());
+      expect(pressed(), "sound must be on for this to mean anything").toBe(
+        "true",
+      );
+      return {
+        loops: container.querySelectorAll("[data-reveal-loop]").length,
+        bars: container.querySelectorAll("button span span").length,
+      };
+    } finally {
+      window.matchMedia = original;
+    }
+  }
+
+  it("marks the equalizer bars as an infinite loop when motion is welcome", async () => {
+    const animating = await barsWithPreference(false);
+    expect(animating.bars, "three bars are drawn").toBe(3);
+    expect(
+      animating.loops,
+      "with motion welcome the bars are the Framer loop, and are marked as one",
+    ).toBe(3);
+  });
+
+  it("does not pulse forever when the visitor asked for reduced motion", async () => {
+    const reduced = await barsWithPreference(true);
+    expect(reduced.bars, "the bars are still drawn, just not animated").toBe(3);
+    expect(
+      reduced.loops,
+      "under reduced motion no bar may run the infinite loop",
+    ).toBe(0);
+  });
 });
