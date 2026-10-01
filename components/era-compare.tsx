@@ -100,23 +100,33 @@ export function MetricRow({ label, valA, valB, unit = "", format }: MetricRowPro
         </span>
       </div>
 
-      {/* Visual differential balance bar */}
+      {/* Visual differential balance bar.
+          The width is on the `style` prop and the animation is a `scaleX`, not
+          the other way round. Framer's `initial` overwrites the inline style
+          with the hidden state, so an `initial={{ width: "50%" }}` reaches a
+          scripting-disabled visitor as a hard 50/50 split regardless of the
+          data — a bar that lies about the comparison it illustrates. With the
+          width in the style and only the transform animated, `NO_SCRIPT_CSS`'s
+          `transform: none` leaves the true width standing, and the numerals
+          above it were already correct. */}
       <div className="mt-2 flex h-2 w-full overflow-hidden bg-maple-shadow/40">
         <motion.div
-          initial={{ width: "50%" }}
-          animate={{ width: `${pctA}%` }}
+          style={{ width: `${pctA}%` }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className={cn(
-            "h-full transition-colors",
+            "h-full origin-left transition-colors",
             aWins ? "bg-wine" : isTie ? "bg-muted/40" : "bg-maple-shadow",
           )}
         />
         <motion.div
-          initial={{ width: "50%" }}
-          animate={{ width: `${pctB}%` }}
+          style={{ width: `${pctB}%` }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className={cn(
-            "h-full transition-colors",
+            "h-full origin-left transition-colors",
             bWins ? "bg-gold" : isTie ? "bg-muted/40" : "bg-maple-shadow",
           )}
         />

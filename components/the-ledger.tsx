@@ -194,10 +194,19 @@ function MetricLine({ metric }: { metric: Metric }) {
         </span>
       </div>
       <div className="relative h-[6px] w-full bg-rule">
+        {/* Width on the `style` prop, animation on the transform, for the reason
+            given in `era-compare.tsx`: Framer's `initial` overwrites the inline
+            style with the hidden state, so an `initial={{ scaleX: 0 }}` over a
+            `w-full` element is neutralised by `NO_SCRIPT_CSS` into a bar at 100%
+            for every metric, whatever the data says. With the width in the style
+            and only the transform animated, the transform rule leaves the true
+            fill standing. `origin-left` means the reveal still grows rightwards,
+            so the animation is unchanged. */}
         <motion.div
-          className="absolute inset-y-0 left-0 w-full origin-left bg-wine"
+          className="absolute inset-y-0 left-0 origin-left bg-wine"
+          style={{ width: `${fill * 100}%` }}
           initial={{ scaleX: 0 }}
-          whileInView={{ scaleX: fill }}
+          whileInView={{ scaleX: 1 }}
           /* `once: true`, like every other `whileInView` on the page. These two
              were the only `once: false` viewports in the codebase, and the
              effect was that the ledger was the one section that is not
