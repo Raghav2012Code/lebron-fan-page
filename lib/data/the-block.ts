@@ -35,7 +35,7 @@ export interface BlockKeyframe {
 export const THE_BLOCK = {
   heading: "The Block",
   subheading: "Game 7, 2016 NBA Finals. 89–89. 1:52 remaining.",
-  copy: "Eighty-eight feet of hardwood closed in 2.8 seconds, ending with both hands on the glass at eleven feet five inches. Spread over the whole chase that gap works out at 21.4 mph, while Sport Science's own tracking puts his top speed inside it at 20.1 — two measurements taken over different windows, so the page does not present them as one.",
+  copy: "Eighty-eight feet of hardwood closed in 2.8 seconds, ending with both hands on the glass at eleven feet five inches. Spread over the whole chase that gap works out at 21.4 mph, while Sport Science’s own tracking puts his top speed inside it at 20.1. Two measurements taken over different windows, so the page does not present them as one.",
   quote:
     "“Back comes Iguodala to Curry, back to Iguodala, up for the layup... Oh! BLOCKED BY JAMES! LeBron James with the rejection!”",
   caller: "Mike Breen, ABC Sports",
@@ -94,7 +94,7 @@ export const THE_BLOCK = {
       jrSmith: { x: 50, y: 68 },
       ball: { x: 47, y: 56 },
       annotation:
-        "LeBron reaches top sprint speed: 20.1 mph — faster than any sprint recorded in the entire 2016 Finals.",
+        "LeBron reaches top sprint speed: 20.1 mph, faster than any sprint recorded in the entire 2016 Finals.",
       telemetry: { distance: "45 ft", elevation: "0' 0\"" },
     },
     {

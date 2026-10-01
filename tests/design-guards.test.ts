@@ -32,6 +32,18 @@ const componentFiles = readdirSync(COMPONENTS)
   .map((f) => ({ name: f, source: readFileSync(join(COMPONENTS, f), "utf8") }));
 
 /**
+ * The data modules, which are equally a source of rendered copy: `copy`,
+ * `summary`, `note`, `signatureMoment` and the label fields all reach the page
+ * verbatim. G6 originally scanned `components/**` only, so three spaced
+ * em-dashes shipped in `lib/data` while the guard reported clean — a guard
+ * that cannot see the copy it guards is not a guard.
+ */
+const DATA = join(ROOT, "lib", "data");
+const dataFiles = readdirSync(DATA)
+  .filter((f) => f.endsWith(".ts"))
+  .map((f) => ({ name: `lib/data/${f}`, source: readFileSync(join(DATA, f), "utf8") }));
+
+/**
  * Blank out comments, preserving every newline so reported line numbers stay
  * correct.
  *
@@ -544,16 +556,17 @@ test("design guard G5 - round shapes are within budget and every survivor is nam
  * the era comparator — the last two are the same defect in a control the reader
  * picks from.
  *
- * Scoped to JSX text and attributes. Comments legitimately use an em-dash as
- * punctuation, and the `playoff-matrix` "302 games—scoring" is unspaced, so
- * neither is a violation of this rule.
+ * Scoped to quoted strings in components and in `lib/data`, with comments
+ * removed. Comments legitimately use an em-dash as punctuation, and the
+ * `playoff-matrix` "302 games—scoring" is unspaced, so neither is a violation
+ * of this rule.
  * ======================================================================== */
 
 test("design guard G6 - no spaced em-dash in rendered copy", () => {
   const EM = "\u2014";
   const offenders: string[] = [];
 
-  for (const { name, source } of componentFiles) {
+  for (const { name, source } of [...componentFiles, ...dataFiles]) {
     // Join the physical lines first. A multiline string can carry the em-dash
     // at the end of one line and the space at the start of the next, which a
     // per-line scan cannot see.

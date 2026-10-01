@@ -33,7 +33,7 @@ export interface FatherSonMilestone {
 export const FATHER_AND_SON = {
   heading: "Father & Son",
   subheading: "7,664 days. Two generations. One hardwood floor.",
-  copy: "On October 29, 2003, an eighteen-year-old from Akron played his first NBA game in Sacramento. Bronny James was not yet born. On October 22, 2024, they stood side-by-side at the scorer’s table in Los Angeles — the first father and son in 78 years of NBA history to share an NBA floor.",
+  copy: "On October 29, 2003, an eighteen-year-old from Akron played his first NBA game in Sacramento. Bronny James was not yet born. On October 22, 2024, they stood side-by-side at the scorer’s table in Los Angeles, the first father and son in 78 years of NBA history to share an NBA floor.",
   quote:
     "“You see that scorer’s table right there? You ready? You see the intensity, right? Just play carefree, though.”",
   quoteAuthor: "LeBron to Bronny, checking in together with 4:00 left in the 2nd quarter",
