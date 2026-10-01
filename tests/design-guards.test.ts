@@ -558,8 +558,13 @@ test("design guard G6 - no spaced em-dash in rendered copy", () => {
     // at the end of one line and the space at the start of the next, which a
     // per-line scan cannot see.
     const normalized = codeOf(source).replace(/\r?\n/g, " ");
-    const m = new RegExp(`${EM}\\s`).exec(normalized);
-    if (m) {
+    // `/g`, not a bare `exec`. A bare `exec` reports ONE offender per file, so
+    // the count in the failure message was a floor rather than a total, and a
+    // second violation in a file that already had one was invisible. Every
+    // offender is reported, so a fix cannot be made to look complete by
+    // clearing the first hit.
+    const re = new RegExp(`${EM}\\s`, "g");
+    for (let m = re.exec(normalized); m !== null; m = re.exec(normalized)) {
       const at = m.index;
       offenders.push(
         `${name}  ...${normalized.slice(Math.max(0, at - 20), at + 40)}`,
