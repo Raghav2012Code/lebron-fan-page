@@ -204,6 +204,17 @@ export function TheBlock() {
         <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {/* THE COURT SCHEMATIC */}
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-wine-deep border border-rule-chalk shadow-inner sm:aspect-square">
+            {/* The three player tokens are `pointer-events-none` and carry a
+                bare jersey number, so the `title` attributes that used to sit
+                on them could never appear and named nothing for a screen
+                reader either. The information is real, so it is stated once
+                here instead of three times in a place that could not show it. */}
+            <p className="sr-only">
+              The court schematic tracks three players: JR Smith, number 5,
+              contesting at the rim; Andre Iguodala, number 9, moving in
+              transition; and LeBron James, number 23, sprinting to meet the
+              ball at the opposite basket.
+            </p>
             <svg
               className="absolute inset-0 h-full w-full select-none"
               viewBox="0 0 100 100"
@@ -326,30 +337,31 @@ export function TheBlock() {
             {/* --- Player Tokens on Floor --- */}
             {/* JR Smith (No. 5) */}
             <div
+              aria-hidden
               className="pointer-events-none absolute z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border border-chalk/40 bg-wine/90 text-[0.6875rem] font-bold text-chalk transition-transform"
               style={{
                 left: `${current.jrSmith.x}%`,
                 top: `${current.jrSmith.y}%`,
               }}
-              title="JR Smith (Contesting)"
             >
               5
             </div>
 
             {/* Andre Iguodala (No. 9) */}
             <div
+              aria-hidden
               className="pointer-events-none absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border border-chalk/60 bg-wine-deep text-[0.75rem] font-bold text-chalk/90 transition-transform"
               style={{
                 left: `${current.iguodala.x}%`,
                 top: `${current.iguodala.y}%`,
               }}
-              title="Andre Iguodala (Transition Layup)"
             >
               9
             </div>
 
             {/* LeBron James (No. 23) — Scales up slightly with elevation */}
             <motion.div
+              aria-hidden
               className="pointer-events-none absolute z-20 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-none border-2 border-gold bg-wine text-[0.8125rem] font-black text-gold shadow-lg"
               style={{
                 left: `${current.lebron.x}%`,
@@ -360,7 +372,6 @@ export function TheBlock() {
                     ? `0 ${current.lebron.elevation * 6}px 14px rgba(0,0,0,0.6)`
                     : "none",
               }}
-              title="LeBron James (Chase-down sprint)"
             >
               23
             </motion.div>
