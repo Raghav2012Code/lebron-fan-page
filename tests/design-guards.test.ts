@@ -41,45 +41,142 @@ const componentFiles = readdirSync(COMPONENTS)
  * component JSDoc, and the comment explaining each guard — and then fails on
  * the word `rounded-full` appearing in a sentence about why `rounded-full` is
  * rare. Every pattern below is matched against stripped source.
+ *
+ * String literals are tracked, and that is load-bearing rather than tidiness.
+ * The previous version decided `//` and `/*` were comments wherever they
+ * appeared, so a URL, a `https://` in body copy, or a glob in a string blanked
+ * the rest of the line — and everything the guards check is on the far side of
+ * a string. That is a false negative through EVERY guard in this file, and it is
+ * silent: the guard reports clean on a source that contains the violation.
+ * Template literals are tracked too, including `${ … }` interpolations, which
+ * are code again and may hold their own strings and comments.
+ *
+ * Known limit, stated rather than hidden: regex literals are NOT tracked, since
+ * a `/` is ambiguous between division and a regex without an AST. A regex
+ * containing `//` or `/*` would be read as a comment opener. There is none in
+ * `components/**` today, and the failure mode is a false negative in the same
+ * direction as the bug above, not a false alarm.
  */
 function stripComments(source: string): string {
-  let out = "";
-  let state: "code" | "block" | "line" = "code";
-  for (let i = 0; i < source.length; ) {
-    const c = source[i];
-    const d = source[i + 1];
-    if (state === "code") {
-      if (c === "/" && d === "*") {
-        state = "block";
-        out += "  ";
+  const out: string[] = [];
+  const n = source.length;
+  let i = 0;
+
+  /** Copy a `'…'` or `"…"` literal verbatim, honouring backslash escapes. */
+  const copyQuoted = (quote: string): void => {
+    out.push(quote);
+    i += 1;
+    while (i < n) {
+      if (source[i] === "\\") {
+        out.push(source[i], source[i + 1] ?? " ");
         i += 2;
-      } else if (c === "/" && d === "/") {
-        state = "line";
-        out += "  ";
-        i += 2;
-      } else {
-        out += c;
-        i += 1;
+        continue;
       }
-    } else if (state === "block") {
-      if (c === "*" && d === "/") {
-        state = "code";
-        out += "  ";
-        i += 2;
-      } else {
-        out += c === "\n" ? "\n" : " ";
+      out.push(source[i]);
+      if (source[i] === quote) {
         i += 1;
+        return;
       }
-    } else if (c === "\n") {
-      state = "code";
-      out += "\n";
       i += 1;
+    }
+  };
+
+  /** Copy a block comment as spaces, keeping its newlines for line numbers. */
+  const blankBlock = (): void => {
+    out.push("  ");
+    i += 2;
+    while (i < n && !(source[i] === "*" && source[i + 1] === "/")) {
+      out.push(source[i] === "\n" ? "\n" : " ");
+      i += 1;
+    }
+    if (i < n) {
+      out.push("  ");
+      i += 2;
+    }
+  };
+
+  /** Copy a line comment as spaces, stopping at the newline. */
+  const blankLine = (): void => {
+    while (i < n && source[i] !== "\n") {
+      out.push(" ");
+      i += 1;
+    }
+  };
+
+  /**
+   * Copy a `${ … }` interpolation as CODE: braces nest, and inside it strings
+   * and comments resume, so it cannot simply be copied through as text.
+   */
+  const copyInterpolation = (): void => {
+    out.push("${");
+    i += 2;
+    let depth = 1;
+    while (i < n && depth > 0) {
+      const c = source[i]!;
+      const d = source[i + 1];
+      if (c === "{") {
+        depth += 1;
+      } else if (c === "}") {
+        depth -= 1;
+      } else if (c === "/" && d === "/") {
+        blankLine();
+        continue;
+      } else if (c === "/" && d === "*") {
+        blankBlock();
+        continue;
+      } else if (c === '"' || c === "'") {
+        copyQuoted(c);
+        continue;
+      } else if (c === "`") {
+        copyTemplate();
+        continue;
+      }
+      out.push(c);
+      i += 1;
+    }
+  };
+
+  /** Copy a `` `…` `` template literal verbatim, except for interpolations. */
+  const copyTemplate = (): void => {
+    out.push("`");
+    i += 1;
+    while (i < n) {
+      if (source[i] === "\\") {
+        out.push(source[i], source[i + 1] ?? " ");
+        i += 2;
+        continue;
+      }
+      if (source[i] === "`") {
+        out.push("`");
+        i += 1;
+        return;
+      }
+      if (source[i] === "$" && source[i + 1] === "{") {
+        copyInterpolation();
+        continue;
+      }
+      out.push(source[i]!);
+      i += 1;
+    }
+  };
+
+  while (i < n) {
+    const c = source[i]!;
+    const d = source[i + 1];
+    if (c === "/" && d === "/") {
+      blankLine();
+    } else if (c === "/" && d === "*") {
+      blankBlock();
+    } else if (c === '"' || c === "'") {
+      copyQuoted(c);
+    } else if (c === "`") {
+      copyTemplate();
     } else {
-      out += " ";
+      out.push(c);
       i += 1;
     }
   }
-  return out;
+  return out.join("");
 }
 
 /** Component source with comments removed, memoised per file. */
