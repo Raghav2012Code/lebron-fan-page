@@ -406,7 +406,7 @@ export function TheLedger() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-rule px-5 pb-8 pt-6 sm:px-7">
+        <div className="ledger-tabs mt-8 border-t border-rule px-5 pb-8 pt-6 sm:px-7">
           <Tabs value={active} onValueChange={setActive}>
             <TabsList aria-label="Career stint">
               {LEDGER.map((e) => (
@@ -433,6 +433,42 @@ export function TheLedger() {
           </Tabs>
         </div>
       </div>
+
+      {/* With JS off, the tab set is four-fifths missing and the control is
+          inert. Radix `TabsContent` mounts only the active panel, so the
+          server HTML carries `LEDGER[0]` and nothing else: Cleveland I, with
+          Miami, Cleveland II, Los Angeles and the national-team stanza simply
+          absent from a section titled "The ledger". The five triggers remain
+          focusable and do nothing, which is worse than absent.
+
+          So the block below does what `the-rooms` does, in the same shape and
+          for the same two reasons:
+
+          - It withdraws the tab set. The `<style>` is scoped to
+            `.ledger-tabs` and lives here rather than in the root layout's
+            NO_SCRIPT_CSS, because that block's job is flattening Framer
+            entrance states and is pinned by guard G9, while withdrawing one
+            section's dead controls is this section's decision alone.
+
+          - It prints all five stints, so the section's own data is its
+            fallback. Rendering the panels unconditionally instead would print
+            every stint twice whenever scripting is on.
+
+          The accumulation column above is untouched: it is a Counter, and a
+          Counter seeds the DOM with its final value, so the running total was
+          already correct without JS. */}
+      <noscript>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: ".ledger-tabs{display:none!important}",
+          }}
+        />
+        <div className="mx-auto max-w-6xl border-t border-rule px-5 pb-8 pt-6 sm:px-7">
+          {LEDGER.map((entry) => (
+            <LedgerPanel key={entry.id} entry={entry} />
+          ))}
+        </div>
+      </noscript>
     </section>
   );
 }

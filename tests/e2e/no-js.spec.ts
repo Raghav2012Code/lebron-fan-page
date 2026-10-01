@@ -156,6 +156,65 @@ test.describe("with JavaScript", () => {
 test.describe("no JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
+  test("the ledger prints all five stints, not just the first", async ({
+    page,
+  }) => {
+    // Radix `TabsContent` mounts only the active panel, so the server HTML
+    // carried Cleveland I alone: four of the five stints were unreachable to a
+    // visitor with scripting off, behind five focusable triggers that did
+    // nothing. The section's `<noscript>` prints all five and withdraws the tab
+    // set.
+    await page.setViewportSize({ width: 1280, height: 812 });
+    await page.goto("/");
+
+    const ledger = await page.evaluate(() => {
+      const root = document.getElementById("ledger");
+      if (!root) throw new Error("#ledger section not found");
+
+      const painted = (el: HTMLElement): boolean => {
+        if (el.offsetParent === null) return false;
+        let node: HTMLElement | null = el;
+        let opacity = 1;
+        while (node) {
+          const cs = getComputedStyle(node);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          opacity *= Number(cs.opacity);
+          node = node.parentElement;
+        }
+        return opacity > 0.05;
+      };
+
+      const tabs = root.querySelector<HTMLElement>(".ledger-tabs");
+      return {
+        tabPanelPainted: tabs ? painted(tabs) : true,
+        tabButtons: tabs
+          ? Array.from(tabs.querySelectorAll("button")).filter((b) =>
+              painted(b as HTMLElement),
+            ).length
+          : 0,
+        // Each `LedgerPanel` is one stint. The active tab's panel lives in the
+        // withdrawn tab set, so anything painted here came from the fallback.
+        stints: Array.from(root.querySelectorAll("h3")).filter((h) =>
+          painted(h as HTMLElement),
+        ).length,        text: (root.textContent ?? "").replace(/\s+/g, " "),
+      };
+    });
+
+    expect(
+      ledger.tabPanelPainted,
+      "the tab set must be withdrawn when scripting is off",
+    ).toBe(false);
+    expect(ledger.tabButtons, "no inert triggers in the tab order").toBe(0);
+    expect(ledger.stints, "all five stints are printed").toBe(5);
+    // Spot-check that these are the real stints, not five copies of one.
+    for (const stint of ["Cleveland", "Miami", "Los Angeles", "United States"]) {
+      expect(
+        ledger.text,
+        `the fallback must name the ${stint} stint`,
+      ).toContain(stint);
+    }
+  });
+
   test("the shot court is not left under its cover", async ({ page }) => {
     // The regression this pins: the cover is an opaque maple sheet that only an
     // animation removes. Framer serialises its `initial={{ scaleX: 1 }}` as
