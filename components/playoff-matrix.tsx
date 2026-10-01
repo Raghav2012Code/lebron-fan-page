@@ -404,9 +404,12 @@ export function PlayoffMatrix() {
 
   // Career totals, derived from the ledger so the tiles cannot drift from it.
   const career = React.useMemo(() => {
-    // `wins`/`losses` are the required fields; `gamesWon`/`gamesLost` are
-    // optional duplicates that are not populated on every row, so the
-    // authoritative pair is used here.
+    // `wins`/`losses`/`games` are the fields the UI reads. `gamesWon`,
+    // `gamesLost` and `totalGames` are exact duplicates of them, populated on
+    // all 57 rows and required by the type; the two sets are asserted identical
+    // per series in `tests/smoke.test.ts`. The required pair is used here, which
+    // is what this comment used to claim about the other pair on the grounds
+    // that it might be missing — it never is.
     const gamesWon = PLAYOFF_SERIES.reduce((a, s) => a + s.wins, 0);
     const gamesLost = PLAYOFF_SERIES.reduce((a, s) => a + s.losses, 0);
     const games = PLAYOFF_SERIES.reduce((a, s) => a + s.games, 0);
@@ -920,7 +923,7 @@ export function PlayoffMatrix() {
                         </div>
                         <div className="mt-1 flex items-center justify-between text-[0.6875rem] narrow text-muted">
                           <span>{series.boxScoreTotals?.pts ?? series.lebronStats.totalPoints} Total PTS</span>
-                          <span>{series.totalGames ?? series.games} Games</span>
+                          <span>{series.totalGames} Games</span>
                         </div>
                       </div>
 
@@ -1244,7 +1247,7 @@ export function PlayoffMatrix() {
 
                       <div className="flex items-center justify-between text-xs narrow text-muted pt-1">
                         <span>Turnovers: <strong className="text-wine">{inspectSeries.boxScoreTotals.tov}</strong></span>
-                        <span>Games Played: <strong className="text-wine">{inspectSeries.totalGames ?? inspectSeries.games}</strong></span>
+                        <span>Games Played: <strong className="text-wine">{inspectSeries.totalGames}</strong></span>
                         <span>Team: <strong className="text-wine">{inspectSeries.teamName ?? inspectSeries.team}</strong></span>
                       </div>
                     </div>

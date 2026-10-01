@@ -39,9 +39,18 @@ export interface PlayoffSeries {
   wins: number;
   losses: number;
   games: number;
-  gamesWon?: number;
-  gamesLost?: number;
-  totalGames?: number;
+  /**
+   * Exact duplicates of `wins` / `losses` / `games`, on every one of the 57
+   * rows. They used to be optional, which was two lies at once: a `?` that no
+   * row exercised, and a comment in `playoff-matrix.tsx` reasoning from it that
+   * they "are not populated on every row" — so the component read one set, the
+   * tier tests read the other, and nothing checked that they agreed. They are
+   * required now, and `smoke.test.ts` asserts the two sets are identical per
+   * series, so a future edit to one cannot drift away from the other.
+   */
+  gamesWon: number;
+  gamesLost: number;
+  totalGames: number;
   seriesScore?: string;
   isSweep: boolean;
   sweepType?: "won" | "lost" | null;

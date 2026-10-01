@@ -259,6 +259,39 @@ test("smoke test - no getter hands back fixture data while reporting live", () =
 });
 
 /**
+ * Every series carries two spellings of the same game record: `wins`/`losses`/
+ * `games` and `gamesWon`/`gamesLost`/`totalGames`. The playoff matrix reads the
+ * first, most of the tier suites read the second, and until now nothing compared
+ * them — so one set could be edited and the other left stale, with the suite
+ * green and the page quietly showing the old number.
+ *
+ * This is the check that was missing. It runs per series rather than on the
+ * career sums, because a pair can cancel out across 57 rows.
+ */
+test("smoke test - the duplicated playoff game-record fields never disagree", async () => {
+  const { PLAYOFF_SERIES } = await import("@/lib/data");
+  const mismatches: string[] = [];
+
+  for (const s of PLAYOFF_SERIES) {
+    if (s.gamesWon !== s.wins) {
+      mismatches.push(`${s.id}: gamesWon ${s.gamesWon} != wins ${s.wins}`);
+    }
+    if (s.gamesLost !== s.losses) {
+      mismatches.push(`${s.id}: gamesLost ${s.gamesLost} != losses ${s.losses}`);
+    }
+    if (s.totalGames !== s.games) {
+      mismatches.push(`${s.id}: totalGames ${s.totalGames} != games ${s.games}`);
+    }
+  }
+
+  assert.deepStrictEqual(
+    mismatches,
+    [],
+    `a series' two game-record spellings have drifted apart: ${mismatches.join(" | ")}`,
+  );
+});
+
+/**
  * Guards the invariants the UI now derives rather than hardcodes. Each of
  * these was a literal in a component at some point and drifted from the data.
  */
