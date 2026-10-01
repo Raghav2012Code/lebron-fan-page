@@ -1095,3 +1095,58 @@ test("design guard G12 - no middle-dot separator in rendered copy", () => {
       `separator glyph in rendered copy. Delete the entry.`,
   );
 });
+
+/* ==========================================================================
+ * G13 - every no-JS cover is opted out of NO_SCRIPT_CSS.
+ *
+ * The shot challenge retracts an opaque maple sheet off its half-court:
+ * `initial={{ scaleX: 1 }}` and `whileInView={{ scaleX: 0 }}`. AGENTS.md §6's
+ * fallback cannot neutralise it, because Framer serialises `scaleX: 1` as
+ * `transform:none` and the general transform rule has nothing to flatten. For
+ * an opaque overlay the untransformed state IS the covered state, so with
+ * scripting disabled the court rendered as a blank maple rectangle.
+ *
+ * The remedy is an opt-in `data-cover` attribute plus one rule in
+ * `NO_SCRIPT_CSS`. That makes the invariant hand-maintained, which §6 calls
+ * out as the thing not to do, so it is pinned here from two ends: the rule has
+ * to exist, and every element carrying the attribute has to actually be an
+ * animation-driven cover rather than an incidental match.
+ * ======================================================================== */
+
+test("design guard G13 - no-JS covers are opted out, and the opt-out rule exists", () => {
+  const layout = codeOf(read("app", "layout.tsx"));
+  const css = layout.slice(layout.indexOf("NO_SCRIPT_CSS"));
+
+  const users = componentFiles.filter((f) => /data-cover/.test(codeOf(f.source)));
+
+  assert.ok(
+    users.length > 0,
+    "no component carries `data-cover`, so this guard is measuring nothing. " +
+      "The shot challenge's cover is the element that needs it; if it has gone, " +
+      "delete this guard rather than leave it green on an empty set.",
+  );
+
+  assert.match(
+    css,
+    /\[data-cover\]\s*\{\s*display:\s*none\s*!important;?\s*\}/,
+    "NO_SCRIPT_CSS must remove `data-cover` elements outright. Neutralising " +
+      "the animation cannot help an element that only the animation removes.",
+  );
+
+  for (const { name, source } of users) {
+    const code = codeOf(source);
+    for (const attr of code.match(/data-cover/g) ?? []) {
+      assert.ok(
+        attr === "data-cover",
+        `${name} uses data-cover; the attribute takes no value.`,
+      );
+    }
+    assert.match(
+      code,
+      /data-cover=""[\s\S]{0,400}?initial=\{\{/,
+      `${name} marks an element \`data-cover\` but no nearby \`initial={{ … }}\` ` +
+        "animates it away. An element that is removed by the no-JS rule and " +
+        "stays put with JS on would be a new hole, not a fixed one.",
+    );
+  }
+});

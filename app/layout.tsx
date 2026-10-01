@@ -92,6 +92,18 @@ export const viewport: Viewport = {
  * because the page also draws genuinely dashed lines at `2 3` and `4 4`, and
  * those are geometry, not animation.
  *
+ * The `[data-cover]` rule is the one case none of the above can reach. The shot
+ * challenge retracts an opaque maple sheet off its half-court with
+ * `initial={{ scaleX: 1 }}` and `whileInView={{ scaleX: 0 }}`. Framer serialises
+ * `scaleX: 1` as `transform:none`, so the general transform rule has nothing to
+ * flatten here, and for an opaque overlay the untransformed state IS the
+ * covered state. Measured in Chromium with scripting disabled: the court was a
+ * blank maple rectangle, with the backboard, ball, aim line and release band all
+ * gone. Neutralising the animation cannot rescue an element whose purpose is to
+ * be removed by it, so such an element opts out through this rule instead. The
+ * attribute is opt-in per element, and G13 in `tests/design-guards.test.ts`
+ * asserts that every one of them is paired with the rule.
+ *
  * The trade-off, stated plainly: the general transform rule will also flatten any
  * inline transform added in future for a reason other than animation. No such
  * transform exists today — the built HTML was enumerated exhaustively, and every
@@ -116,6 +128,9 @@ const NO_SCRIPT_CSS = `
 }
 [stroke-dasharray="0 1"] {
   stroke-dasharray: none !important;
+}
+[data-cover] {
+  display: none !important;
 }
 `;
 

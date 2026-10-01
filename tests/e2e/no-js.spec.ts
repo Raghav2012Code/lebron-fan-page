@@ -20,6 +20,16 @@ import { expect, test, type Page } from "@playwright/test";
  * The last test is the JS-on smoke: the stage must still exist, the fallback
  * must stay off the page, and hydration must produce no console errors — the
  * guard against this fix "passing" by withdrawing the stage for everyone.
+ *
+ * The two shot-court tests are the second no-JS guarantee, and they exist
+ * because the first suite's scope was the reason a real defect shipped. The
+ * challenge's cover is an opaque maple sheet that only an animation removes;
+ * Framer serialises its `initial={{ scaleX: 1 }}` as `transform:none`, which
+ * the `NO_SCRIPT_CSS` transform rule cannot flatten, so a scripting-disabled
+ * visitor saw a blank maple rectangle instead of the half-court. One test
+ * asserts the cover is gone with scripting off, the other that it is still
+ * there and has retracted with scripting on — so the fix cannot "pass" by
+ * deleting the cover for everyone.
  */
 
 const ROOM_LABELS = [
@@ -124,5 +134,73 @@ test.describe("with JavaScript", () => {
     expect(errors, "hydration must be clean with the <noscript> style present").toEqual(
       [],
     );
+  });
+
+  test("the cover has retracted off the shot court", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 812 });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.locator("#shot-court").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(1500);
+
+    const cover = page.locator("#shot-court [data-cover]");
+    const box = await cover.boundingBox();
+    expect(box, "the cover is rendered when scripting is on").not.toBeNull();
+    expect(
+      box?.width ?? 624,
+      "the cover has retracted, so the court is visible",
+    ).toBeLessThan(4);
+  });
+});
+
+test.describe("no JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("the shot court is not left under its cover", async ({ page }) => {
+    // The regression this pins: the cover is an opaque maple sheet that only an
+    // animation removes. Framer serialises its `initial={{ scaleX: 1 }}` as
+    // `transform:none`, which NO_SCRIPT_CSS's transform rule cannot flatten, so
+    // a scripting-disabled visitor got a blank maple rectangle where the
+    // half-court should be. Measured, not inferred, before the fix.
+    await page.setViewportSize({ width: 1280, height: 812 });
+    await page.goto("/");
+
+    const shot = await page.evaluate(() => {
+      const court = document.getElementById("shot-court");
+      if (!court) throw new Error("#shot-court not found");
+      const cover = court.querySelector("[data-cover]");
+      const svg = court.querySelector("svg");
+      const painted = (el: Element | null) => {
+        if (!el) return false;
+        let node: HTMLElement | null = el as HTMLElement;
+        let opacity = 1;
+        while (node) {
+          const cs = getComputedStyle(node);
+          if (cs.display === "none" || cs.visibility === "hidden") return false;
+          opacity *= Number(cs.opacity);
+          node = node.parentElement;
+        }
+        return opacity > 0.05;
+      };
+      return {
+        coverPresent: cover !== null,
+        coverPainted: painted(cover),
+        courtPainted: painted(court),
+        markingsPainted: painted(svg),
+      };
+    });
+
+    expect(shot.coverPresent, "the cover is in the markup either way").toBe(
+      true,
+    );
+    expect(
+      shot.coverPainted,
+      "with scripting off the cover must not be painted, or it hides the court",
+    ).toBe(false);
+    expect(shot.courtPainted, "the court itself is visible").toBe(true);
+    expect(
+      shot.markingsPainted,
+      "the court's own pathsLength-animated markings are visible too",
+    ).toBe(true);
   });
 });

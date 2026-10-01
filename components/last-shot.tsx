@@ -396,6 +396,7 @@ export function LastShot() {
               size for pointer maths from the first frame. */}
           <div
             ref={courtRef}
+            id="shot-court"
             role="group"
             aria-label="Shot challenge court. Use left and right arrows to aim, space or enter to shoot."
             tabIndex={0}
@@ -572,10 +573,23 @@ export function LastShot() {
 
             {/* The cover, pulled off to the right. Not rendered at all under
                 reduced motion: a cover that depends on an animation running
-                is a cover that can leave the court hidden. */}
+                is a cover that can leave the court hidden.
+
+                `data-cover` is the no-JS half of that sentence. The
+                `reduce ? null` branch cannot reach a visitor who has simply
+                got JavaScript turned off, and such a visitor gets the cover
+                exactly as the server rendered it — `transform:none`, because
+                Framer serialises `scaleX: 1` as the identity — which is a full
+                624x499 sheet of opaque maple over the entire half-court. CSS
+                cannot rescue that from a transform rule, since for an opaque
+                overlay the untransformed state IS the covered state. So the
+                cover opts out through `NO_SCRIPT_CSS` in app/layout.tsx, which
+                removes it outright rather than trying to animate it away.
+                Guarded by G12. */}
             {reduce ? null : (
               <motion.span
                 aria-hidden
+                data-cover=""
                 className="pointer-events-none absolute inset-0 z-20 origin-right bg-maple"
                 initial={{ scaleX: 1 }}
                 whileInView={{ scaleX: 0 }}
