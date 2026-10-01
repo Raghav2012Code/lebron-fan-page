@@ -79,7 +79,16 @@ export const SHOT_ZONES: {
           area: "0–4 ft",
           fgPct: 71.4,
           leagueAvg: 60.5,
-          frequency: 38.5,
+          // 38.9, not 38.5. The nine volumes are attempts-weighted shares
+          // rounded to one decimal, and the original set left a 0.4 hole that
+          // only the tolerance in `smoke.test.ts` was hiding — cle1 summed to
+          // 99.6 against a declared envelope of +/-0.5, so a single further
+          // rounding edit would have failed the era. The residual is assigned
+          // here rather than spread thinly: at 38.9 it is a 1.0% relative move,
+          // where spreading it would put a much larger relative change into one
+          // of the small corner or deep-three buckets. The exact unrounded
+          // share is not recoverable from the rounded set.
+          frequency: 38.9,
           signatureMoment:
             "Over 700 dunks in seven seasons, shattering rim protection with tomahawk slams.",
         },

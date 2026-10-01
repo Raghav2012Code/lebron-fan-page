@@ -348,7 +348,7 @@ test("smoke test - the four ledger stints sum to the career point total", () => 
 /**
  * Shot-zone volumes are presented to the reader as "share of all shots
  * taken", so the nine zones of an era must partition 100%. One era summed to
- * 102.0.
+ * 102.0, and a second sat at 99.6.
  */
 test("smoke test - every era's shot-zone volumes sum to 100%", async () => {
   const { SHOT_ZONES } = await import("@/lib/data");
@@ -356,11 +356,15 @@ test("smoke test - every era's shot-zone volumes sum to 100%", async () => {
     const values = Object.values(era.zones).map((z) => z.frequency);
     assert.strictEqual(values.length, 9, `${era.id}: expected 9 zones`);
     const sum = values.reduce((a, b) => a + b, 0);
-    // Nine values rounded to one decimal can carry up to +/-0.45 of
-    // accumulated rounding error.
+    // Nine values rounded to one decimal could in principle carry up to +/-0.45
+    // of accumulated rounding error, and this tolerance used to allow exactly
+    // that. Every era now sums to 100.0 exactly, so the envelope is tightened
+    // to 0.05: a guard that tolerates the whole error budget cannot catch the
+    // era that is one rounding edit away from failing. `cle1` was sitting at
+    // 99.6, 0.4 below the line, and the data now carries the residual.
     assert.ok(
-      Math.abs(sum - 100) <= 0.5,
-      `${era.id}: zone volumes sum to ${sum.toFixed(1)}, expected 100 +/- 0.5`,
+      Math.abs(sum - 100) <= 0.05,
+      `${era.id}: zone volumes sum to ${sum.toFixed(2)}, expected 100 +/- 0.05`,
     );
   }
 });
