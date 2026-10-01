@@ -55,7 +55,7 @@ export const HONOURS: Honour[] = [
     value: CAREER_POINTS,
     label: "Regular-season points",
     context:
-      "He passed forty thousand in March 2023, the first player in league history to get there, and has not stopped.",
+      "He passed forty thousand in March 2024, the first player in league history to get there, and has not stopped.",
     weight: "block",
   },
   {

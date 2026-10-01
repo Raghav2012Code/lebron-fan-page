@@ -85,7 +85,10 @@ const MILESTONES: Record<number, string> = {
   2003: "Rookie of the Year",
   2006: "First trip to the Finals",
   2022: "Passes Kareem Abdul-Jabbar for first all-time",
-  2023: "First player past 40,000 points",
+  // The 40,000th point fell on 2 March 2024, which is in the season that
+  // STARTED in 2023 — hence the key. The string carries the calendar year so
+  // the key cannot be read as one.
+  2023: "First player past 40,000 points, in March 2024",
   2025: "First player to reach a 23rd season",
 };
 
