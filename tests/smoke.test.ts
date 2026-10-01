@@ -18,6 +18,7 @@ import {
   teamForSeason,
   TRIPLE_DOUBLES,
   TRIPLE_DOUBLE_SUMMARY,
+  PLAYOFF_SERIES,
 } from "@/lib/data";
 import {
   getBuzzerBeaters,
@@ -25,6 +26,7 @@ import {
   getPlayoffSeries,
   getTripleDoubles,
 } from "./helpers/test-loader";
+import * as AuthoritativeFixture from "./fixtures/authoritative-data";
 
 test("smoke test - imports lib/data via the path alias", () => {
   assert.strictEqual(SEASONS.length, 23);
@@ -185,9 +187,16 @@ test("smoke test - THE BLOCK states the average its own distance and time imply"
  * fallback loud instead of silent.
  */
 test("smoke test - every dataset resolves to the live module, not the fixture", () => {
-  assert.ok(
-    getPlayoffSeries().isLive,
-    "PLAYOFF_SERIES did not resolve from lib/data; the suite is testing the fixture",
+  // `getPlayoffSeries` reports `isLive: true` unconditionally, because it
+  // throws instead of falling back, so asserting the flag proves nothing. What
+  // would actually break is a substituted array, so this asserts IDENTITY
+  // against the live export. The fixture is a different dataset under the same
+  // shape, which is the whole hazard.
+  assert.strictEqual(
+    getPlayoffSeries().data,
+    PLAYOFF_SERIES,
+    "getPlayoffSeries returned something other than the live PLAYOFF_SERIES " +
+      "export; the suite is testing the fixture",
   );
   assert.ok(
     getBuzzerBeaters().isLive,
@@ -201,6 +210,52 @@ test("smoke test - every dataset resolves to the live module, not the fixture", 
     getFranchiseBreakdown().isLive,
     "FRANCHISE_BREAKDOWN did not resolve from lib/data; the suite is testing the fixture",
   );
+});
+
+/**
+ * The other three getters DO fall back to the fixture, silently, when their
+ * export is missing or the wrong shape. `isLive` is what makes that loud, and
+ * it was only asserted for the one getter that cannot fall back — so the tier
+ * suites, which are the bulk of `npm run test:data`, ran green against fixture
+ * data in isolation.
+ *
+ * This asserts the mechanism itself rather than today's answer: a getter must
+ * either report live or be the one that throws, and none of the four may
+ * quietly hand back a fixture array while claiming to.
+ */
+test("smoke test - no getter hands back fixture data while reporting live", () => {
+  const getters = {
+    buzzerBeaters: getBuzzerBeaters(),
+    tripleDoubles: getTripleDoubles(),
+    franchiseBreakdown: getFranchiseBreakdown(),
+  };
+
+  // The fixture's own arrays, by reference, so "is this the fixture?" is a
+  // comparison rather than a guess at its contents.
+  const fixtureArrays: unknown[] = [
+    AuthoritativeFixture.CLUTCH_BUZZER_BEATERS,
+    AuthoritativeFixture.PLAYOFF_TRIPLE_DOUBLES,
+    AuthoritativeFixture.REGULAR_SEASON_TRIPLE_DOUBLES,
+    AuthoritativeFixture.FRANCHISE_BREAKDOWN,
+  ];
+
+  for (const [name, result] of Object.entries(getters)) {
+    const arrays = "data" in result
+      ? [result.data]
+      : [result.playoffs, result.regularSeason];
+    for (const array of arrays) {
+      assert.ok(
+        !fixtureArrays.includes(array),
+        `${name} handed back the fixture array itself`,
+      );
+    }
+    const live = "isLive" in result ? result.isLive : true;
+    assert.ok(
+      live,
+      `${name} reported isLive=false, so it is running on the fixture. Every ` +
+        "getter must resolve from lib/data or fail loudly.",
+    );
+  }
 });
 
 /**

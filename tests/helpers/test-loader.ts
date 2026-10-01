@@ -61,6 +61,11 @@ export function getPlayoffSeries() {
         "to tests/fixtures/authoritative-data.ts, which holds a different dataset.",
     );
   }
+  // Always true, and deliberately so: this getter throws rather than falling
+  // back, so there is no code path on which it can be false. Asserting it is
+  // therefore a tautology — `smoke.test.ts` asserts the returned array's
+  // IDENTITY against the live export instead, which is the property the
+  // fixture substitution would actually break.
   return { data: live, isLive: true };
 }
 

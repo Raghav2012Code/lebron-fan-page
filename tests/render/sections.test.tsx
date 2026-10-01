@@ -101,5 +101,20 @@ describe("page figures", () => {
   it("renders 23 seasons on the ruler", () => {
     render(<SeasonRuler />);
     expect(SEASONS).toHaveLength(23);
+    // The count above only pins the DATA. This pins the render: a ruler that
+    // drew nothing would satisfy the length assertion on its own, which is
+    // what this test used to do.
+    //
+    // `radio`, not `button`: the ruler gives each season an explicit role, and
+    // the roving-tabindex keyboard model is built on it.
+    expect(screen.getAllByRole("radio")).toHaveLength(SEASONS.length);
+    // And each target is labelled with the season it stands for, so the count
+    // cannot be satisfied by 23 anonymous nodes.
+    for (const season of SEASONS) {
+      expect(
+        screen.getByRole("radio", { name: new RegExp(season.label) }),
+        `the ruler must render a target for ${season.label}`,
+      ).toBeTruthy();
+    }
   });
 });
