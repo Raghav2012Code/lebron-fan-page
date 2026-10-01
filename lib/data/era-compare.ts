@@ -158,7 +158,7 @@ export const PEAK_ERAS: readonly PeakEraProfile[] = [
     age: 39,
     archetype: "Longevity Miracle",
     summary:
-      "First player to cross 40,000 career points, shot a career-best 41.0% from three, and closed out with a bronze in Paris.",
+      "First player to cross 40,000 career points, shot a career-best 41.0% from three, and closed out with a gold in Paris.",
     metrics: {
       ppg: 25.7,
       rpg: 7.3,
@@ -174,7 +174,7 @@ export const PEAK_ERAS: readonly PeakEraProfile[] = [
     },
     hardware: [
       "First to 40,000 Points",
-      "Olympic Bronze",
+      "Olympic Gold",
       "All-NBA Team at Age 39",
       "In-Season Tournament MVP",
     ],

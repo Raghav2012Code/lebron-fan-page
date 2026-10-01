@@ -32,6 +32,6 @@ export const NIGHTS: Night[] = [
   {
     year: "2024",
     title: "The long view",
-    copy: "Bronze in Paris and the flag at the opening ceremony, in the same year he shared an NBA floor with his son.",
+    copy: "Gold in Paris, and the flag at the opening ceremony, in the same year he shared an NBA floor with his son.",
   },
 ];

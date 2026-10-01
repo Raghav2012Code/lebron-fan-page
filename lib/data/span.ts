@@ -73,10 +73,11 @@ export const OLYMPICS: OlympicYear[] = [
   { year: 2004, city: "Athens", medal: "Bronze" },
   { year: 2008, city: "Beijing", medal: "Gold" },
   { year: 2012, city: "London", medal: "Gold" },
-  // Paris 2024 was BRONZE. USA lost the gold-medal game to France and took
-  // bronze; LeBron played three games in Paris (QF, SF, bronze game), where a
-  // gold run would have required a fourth. Career tally: 2 gold, 2 bronze.
-  { year: 2024, city: "Paris", medal: "Bronze" },
+  // Paris 2024 was GOLD. USA beat France 98-87 in the final on 10 August and
+  // did not play a third-place game, so there was no bronze to take. LeBron
+  // played three in Paris — quarter-final, semi-final, and that final — and was
+  // named MVP of the tournament. Career tally: 3 gold, 1 bronze.
+  { year: 2024, city: "Paris", medal: "Gold" },
 ];
 
 /** Milestones pinned to the season they happened in (season START year). */

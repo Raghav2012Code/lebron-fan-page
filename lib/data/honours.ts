@@ -68,10 +68,10 @@ export const HONOURS: Honour[] = [
   },
   {
     id: "gold",
-    value: 2,
+    value: 3,
     label: "Olympic gold medals",
     context:
-      "Beijing 2008 and London 2012, with bronze in Athens 2004 and again in Paris 2024.",
+      "Beijing 2008, London 2012 and Paris 2024, with bronze in Athens 2004.",
     weight: "row",
   },
   {

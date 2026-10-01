@@ -143,18 +143,18 @@ export const LEDGER: LedgerEntry[] = [
     place: "Olympic basketball",
     metrics: [
       { label: "Olympic Games", value: 4, max: 4 },
-      { label: "Gold medals", value: 2, max: 4 },
+      { label: "Gold medals", value: 3, max: 4 },
       { label: "Total medals", value: 4, max: 4 },
     ],
     scored: null,
-    running: { value: 2, label: "Olympic gold medals" },
+    running: { value: 3, label: "Olympic gold medals" },
     achievements: [
       { when: "2008", what: "Gold in Beijing" },
       { when: "2012", what: "Gold in London" },
       { when: "2004", what: "Bronze in Athens" },
-      { when: "2024", what: "Bronze in Paris" },
+      { when: "2024", what: "Gold in Paris" },
       { when: "2024", what: "Flag bearer for the United States" },
     ],
-    note: "Two decades in the same shirt, and two golds to show for it.",
+    note: "Two decades in the same shirt, and three golds to show for it.",
   },
 ];
